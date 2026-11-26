@@ -48,23 +48,26 @@ class ThemeScreenshotSmokeTest {
             )
         }
 
-        val appearances = listOf(
-            "light" to ThemeSettings(
-                appearance = ThemeAppearance.LIGHT,
-                pureBlack = false,
-                dynamicColor = false,
-            ),
-            "dark" to ThemeSettings(
-                appearance = ThemeAppearance.DARK,
-                pureBlack = false,
-                dynamicColor = false,
-            ),
-            "amoled" to ThemeSettings(
-                appearance = ThemeAppearance.DARK,
-                pureBlack = true,
-                dynamicColor = false,
-            ),
-        )
+        val appearances =
+            listOf(
+                "light" to ThemeSettings(
+                    appearance = ThemeAppearance.LIGHT,
+                    pureBlack = false,
+                    dynamicColor = false,
+                ),
+                "dark" to
+                    ThemeSettings(
+                        appearance = ThemeAppearance.DARK,
+                        pureBlack = false,
+                        dynamicColor = false,
+                    ),
+                "amoled" to
+                    ThemeSettings(
+                        appearance = ThemeAppearance.DARK,
+                        pureBlack = true,
+                        dynamicColor = false,
+                    ),
+            )
 
         appearances.forEach { (appearanceName, appearance) ->
             composeRule.runOnIdle {
@@ -74,9 +77,10 @@ class ThemeScreenshotSmokeTest {
             composeRule.waitForIdle()
 
             composeRule.onNodeWithTag("home-screen").assertExists()
-            val homeScreenshot = composeRule
-                .onNodeWithTag("app-root")
-                .captureToImage()
+            val homeScreenshot =
+                composeRule
+                    .onNodeWithTag("app-root")
+                    .captureToImage()
             assertScreenshotDimensions(homeScreenshot, "home-$appearanceName")
             saveScreenshot("home-$appearanceName.png", homeScreenshot)
 
@@ -86,20 +90,27 @@ class ThemeScreenshotSmokeTest {
             composeRule.waitForIdle()
 
             composeRule.onNodeWithTag("theme-settings-screen").assertExists()
-            val settingsScreenshot = composeRule
-                .onNodeWithTag("app-root")
-                .captureToImage()
+            val settingsScreenshot =
+                composeRule
+                    .onNodeWithTag("app-root")
+                    .captureToImage()
             assertScreenshotDimensions(settingsScreenshot, "appearance-$appearanceName")
             saveScreenshot("appearance-$appearanceName.png", settingsScreenshot)
         }
     }
 
-    private fun assertScreenshotDimensions(image: ImageBitmap, label: String) {
+    private fun assertScreenshotDimensions(
+        image: ImageBitmap,
+        label: String,
+    ) {
         assertTrue("$label screenshot has no width", image.width > 0)
         assertTrue("$label screenshot has no height", image.height > 0)
     }
 
-    private fun saveScreenshot(fileName: String, image: ImageBitmap) {
+    private fun saveScreenshot(
+        fileName: String,
+        image: ImageBitmap,
+    ) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val appFiles = checkNotNull(context.getExternalFilesDir(null)) {
             "App-specific external files directory is unavailable"

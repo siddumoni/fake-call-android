@@ -87,6 +87,8 @@ jobs:
         run: python3 scripts/install_android_sdk.py --kind=emulator
       - name: Start emulator and run instrumented / screenshot tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        env:
+          ANDROID_I_WANT_MY_TCG: "yes"
         with:
           api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}
           system-image-api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}

@@ -1,5 +1,8 @@
 package com.siddumoni.fakecall
 
+import java.io.File
+import java.io.FileOutputStream
+
 import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,8 +17,6 @@ import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
-import java.io.File
-import java.io.FileOutputStream
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -50,11 +51,12 @@ class ThemeScreenshotSmokeTest {
 
         val appearances =
             listOf(
-                "light" to ThemeSettings(
-                    appearance = ThemeAppearance.LIGHT,
-                    pureBlack = false,
-                    dynamicColor = false,
-                ),
+                "light" to
+                    ThemeSettings(
+                        appearance = ThemeAppearance.LIGHT,
+                        pureBlack = false,
+                        dynamicColor = false,
+                    ),
                 "dark" to
                     ThemeSettings(
                         appearance = ThemeAppearance.DARK,
@@ -112,9 +114,10 @@ class ThemeScreenshotSmokeTest {
         image: ImageBitmap,
     ) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val appFiles = checkNotNull(context.getExternalFilesDir(null)) {
-            "App-specific external files directory is unavailable"
-        }
+        val appFiles =
+            checkNotNull(context.getExternalFilesDir(null)) {
+                "App-specific external files directory is unavailable"
+            }
         val screenshotDirectory = File(appFiles, "screenshots")
         check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
             "Could not create screenshot output directory"

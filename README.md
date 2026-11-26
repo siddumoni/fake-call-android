@@ -12,7 +12,7 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 - Kotlin: 2.4.21
 - Android Gradle Plugin: 9.3.1
 - Gradle: 9.7.0
-- Compose BOM: 2026.11.01
+- Compose BOM: 2026.09.00
 - JDK: 17
 
 The AGP / Gradle / Kotlin combination stays inside the documented fully supported Kotlin Gradle Plugin compatibility range for Kotlin 2.4.21. The November 2026 Compose release requires compile SDK 37.

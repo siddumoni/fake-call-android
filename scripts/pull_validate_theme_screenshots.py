@@ -52,25 +52,33 @@ def installed_app_packages() -> list[str]:
 
 
 def find_screenshot_package() -> str:
-    candidates = [
-        package
-        for package in installed_app_packages()
-        if not package.endswith(".test")
-        and ".test." not in package
-    ]
+    known_packages = ("com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
+    candidates = list(
+        dict.fromkeys((*known_packages, *installed_app_packages()))
+    )
     for package in candidates:
-        remote_dir = f"/sdcard/Android/data/{package}/files/screenshots"
         try:
-            names = set(run_adb("shell", "ls", remote_dir).split())
+            names = set(run_adb("shell", "run-as", package, "ls", "files/screenshots").split())
         except subprocess.CalledProcessError:
             continue
         if set(SCREENSHOT_NAMES).issubset(names):
             return package
 
     raise RuntimeError(
-        "No installed AlibiCall app package contains all six screenshots. "
-        f"Candidate packages: {candidates}"
+        "No installed AlibiCall app package contains all six internal screenshots. "
+        f"Candidates checked: {candidates}"
     )
+
+
+def pull_screenshot(package: str, name: str, destination: Path) -> None:
+    remote_file = f"files/screenshots/{name}"
+    with destination.open("wb") as output:
+        subprocess.run(
+            ["adb", "exec-out", "run-as", package, "cat", remote_file],
+            check=True,
+            stdout=output,
+            stderr=subprocess.PIPE,
+        )
 
 
 def png_dimensions(data: bytes) -> tuple[int, int]:
@@ -91,13 +99,12 @@ def validate_png(path: Path) -> tuple[int, int]:
 
 def pull_and_validate(output: Path) -> list[dict[str, object]]:
     package = find_screenshot_package()
-    remote_dir = f"/sdcard/Android/data/{package}/files/screenshots"
     output.mkdir(parents=True, exist_ok=True)
     report: list[dict[str, object]] = []
 
     for name in SCREENSHOT_NAMES:
         destination = output / name
-        run_adb("pull", f"{remote_dir}/{name}", str(destination))
+        pull_screenshot(package, name, destination)
         width, height = validate_png(destination)
         report.append(
             {

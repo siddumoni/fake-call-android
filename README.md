@@ -8,14 +8,15 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 
 - Application ID: `com.siddumoni.fakecall`
 - Minimum SDK: 34
-- Compile / target SDK: 37
-- Kotlin Gradle Plugin and Compose compiler: 2.4.21
+- Compile platform: Android 17 API 37.1 (minor API level 1)
+- Target SDK: 37
 - Android Gradle Plugin: 9.3.1
 - Gradle: 9.7.0
-- Compose BOM: 2026.09.00
+- Kotlin Gradle Plugin and Compose compiler: 2.4.21
+- Compose BOM: 2026.11.01 (stable)
 - JDK: 17
 
-AGP 9.3.1 and Gradle 9.7.0 are the latest versions listed as fully supported by the Kotlin compatibility matrix for KGP 2.4.20–2.4.21. Newer standalone AGP/Gradle releases exist, but exceed that published fully-supported range. Compose BOM 2026.09.00 is the latest stable BOM currently documented by Android. It maps the stable Compose 1.12.1 line, which requires compileSdk 37 and AGP 9.1.1 or newer. Compose 1.13.0 requires compileSdk 37.1, so it is intentionally not selected because this project is pinned to compileSdk 37.
+The Compose 1.13.0 release selected by the November 2026 stable BOM requires API 37.1 at compile time. The Gradle Android DSL sets the API 37 minor level explicitly; the app still targets API 37 as requested. AGP 9.3.1 and Gradle 9.7.0 remain within the published fully-supported Kotlin Gradle Plugin compatibility range for Kotlin 2.4.20–2.4.21.
 
 ## Build
 
@@ -28,7 +29,7 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs Android SDK 37 and runs screenshot smoke tests on the highest available x86_64 Android emulator image, recording the selected API level in the run summary.
+On Windows use `gradlew.bat`. GitHub Actions installs the API 37.1 compile platform and selects the highest available Android 17 x86_64 emulator image (falling back to API 36 only when an Android 17 image is unavailable). The CI run summary records the actual emulator API level.
 
 ## Privacy and permissions
 

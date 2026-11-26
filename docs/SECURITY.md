@@ -6,7 +6,16 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The foundation app's final debug and release merged manifests must contain no Android permissions. Later feature work may add only individually reviewed permissions from this candidate set:
+The app source manifest requests no platform permissions. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
+
+The current merged-manifest allowlist contains only AndroidX Core's package-specific signature permission:
+
+- Debug: `com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`
+- Release: `com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`
+
+AndroidX Core's AAR manifest declares `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` with `android:protectionLevel="signature"` and requests that permission. It is used by `ContextCompat.RECEIVER_NOT_EXPORTED` as a compatibility guard for runtime receivers on Android versions before API 33. AlibiCall has `minSdk 34`, so that legacy fallback path cannot execute; the dependency's manifest declarations nevertheless remain in the merged manifest. The custom permission does not grant telephony, contacts, call-log, SMS, microphone, camera, storage or network access. Signature protection limits it to applications signed with the same certificate. CI verifies the exact build-variant name and rejects a change from `signature` protection.
+
+Later feature work may add only individually reviewed permissions from this candidate set:
 
 | Permission | Purpose | Gate |
 |---|---|---|
@@ -15,10 +24,6 @@ The foundation app's final debug and release merged manifests must contain no An
 | SCHEDULE_EXACT_ALARM | User-specified precise call schedule | Check canScheduleExactAlarms and handle revocation |
 | VIBRATE | Optional vibration pattern | Confirm platform permission requirement at implementation time |
 | RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Add only with tested boot receiver |
-
-### AndroidX Core compatibility permission
-
-AndroidX Core's AAR manifest contributes a package-scoped permission named `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, together with a matching `uses-permission`. The permission is signature-protected and exists for the library's `RECEIVER_NOT_EXPORTED` compatibility fallback on Android versions before API 33. Android's security guidance requires this fallback permission only when `minSdk < 33`. This app requires API 34 or newer, so that legacy path cannot execute. The app manifest removes the exact debug and release application-ID variants of both declarations by name using `tools:node="remove"`. The CI allowlist remains empty and checks both final merged variants, including permission declarations as well as requested permissions. If minSdk is ever lowered below 33 or the compatibility strategy changes, this decision must be revisited and any retained permission added to the explicit allowlist with a rationale.
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, or broad external storage permissions. Foreground-service declarations require a separate technical justification before implementation.
 

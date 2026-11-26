@@ -127,8 +127,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Gradle
+      - name: Set up Gradle with a clean dependency cache
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+        with:
+          cache-disabled: true
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install Android 17 preview platform and Build Tools

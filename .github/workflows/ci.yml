@@ -64,6 +64,7 @@ jobs:
   instrumentation:
     name: Instrumented and screenshot tests (API 37)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -88,7 +89,11 @@ jobs:
           echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
           echo "no" | avdmanager create avd --force --name alibicall-ci --package "$ANDROID_EMULATOR_IMAGE" --device pixel_2
           nohup emulator -avd alibicall-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          adb wait-for-device
+          if ! timeout 180 adb wait-for-device; then
+            cat "$RUNNER_TEMP/emulator.log"
+            echo "Android emulator did not connect to ADB within 180 seconds." >&2
+            exit 1
+          fi
           booted=false
           for attempt in $(seq 1 90); do
             if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r')" = "1" ]; then

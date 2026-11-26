@@ -56,6 +56,11 @@ jobs:
             cp app/build/outputs/apk/debug/*.apk release/AlibiCall-DEBUG.apk
           fi
           (cd release && sha256sum *.apk > SHA256SUMS.txt)
+      - name: Verify signed release APK
+        if: env.ALIBICALL_SIGNING_READY == 'true'
+        run: |
+          "$ANDROID_HOME/$ANDROID_BUILD_TOOLS/apksigner" verify \
+            --verbose --print-certs release/AlibiCall-release.apk
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
         with:

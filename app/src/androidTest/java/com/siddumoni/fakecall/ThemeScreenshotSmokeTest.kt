@@ -1,15 +1,21 @@
 package com.siddumoni.fakecall
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.test.platform.app.InstrumentationRegistry
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
+import java.io.File
+import java.io.FileOutputStream
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -19,14 +25,8 @@ class ThemeScreenshotSmokeTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun homeAndThemeSettingsRenderInLightDarkAndAmoledAppearances() {
-        var settings by mutableStateOf(
-            ThemeSettings(
-                appearance = ThemeAppearance.LIGHT,
-                pureBlack = false,
-                dynamicColor = false,
-            ),
-        )
+    fun homeAndThemeSettingsRenderAndExportInLightDarkAndAmoledAppearances() {
+        var settings by mutableStateOf(ThemeSettings(appearance = ThemeAppearance.LIGHT))
         var screen by mutableStateOf(AppScreen.HOME)
 
         composeRule.setContent {
@@ -49,24 +49,24 @@ class ThemeScreenshotSmokeTest {
         }
 
         val appearances = listOf(
-            ThemeSettings(
+            "light" to ThemeSettings(
                 appearance = ThemeAppearance.LIGHT,
                 pureBlack = false,
                 dynamicColor = false,
             ),
-            ThemeSettings(
+            "dark" to ThemeSettings(
                 appearance = ThemeAppearance.DARK,
                 pureBlack = false,
                 dynamicColor = false,
             ),
-            ThemeSettings(
+            "amoled" to ThemeSettings(
                 appearance = ThemeAppearance.DARK,
                 pureBlack = true,
                 dynamicColor = false,
             ),
         )
 
-        appearances.forEachIndexed { index, appearance ->
+        appearances.forEach { (appearanceName, appearance) ->
             composeRule.runOnIdle {
                 settings = appearance
                 screen = AppScreen.HOME
@@ -77,8 +77,8 @@ class ThemeScreenshotSmokeTest {
             val homeScreenshot = composeRule
                 .onNodeWithTag("app-root")
                 .captureToImage()
-            assertTrue("Home screenshot $index has no width", homeScreenshot.width > 0)
-            assertTrue("Home screenshot $index has no height", homeScreenshot.height > 0)
+            assertScreenshotDimensions(homeScreenshot, "home-$appearanceName")
+            saveScreenshot("home-$appearanceName.png", homeScreenshot)
 
             composeRule.runOnIdle {
                 screen = AppScreen.THEME_SETTINGS
@@ -89,8 +89,36 @@ class ThemeScreenshotSmokeTest {
             val settingsScreenshot = composeRule
                 .onNodeWithTag("app-root")
                 .captureToImage()
-            assertTrue("Settings screenshot $index has no width", settingsScreenshot.width > 0)
-            assertTrue("Settings screenshot $index has no height", settingsScreenshot.height > 0)
+            assertScreenshotDimensions(settingsScreenshot, "appearance-$appearanceName")
+            saveScreenshot("appearance-$appearanceName.png", settingsScreenshot)
         }
+    }
+
+    private fun assertScreenshotDimensions(image: ImageBitmap, label: String) {
+        assertTrue("$label screenshot has no width", image.width > 0)
+        assertTrue("$label screenshot has no height", image.height > 0)
+    }
+
+    private fun saveScreenshot(fileName: String, image: ImageBitmap) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val appFiles = checkNotNull(context.getExternalFilesDir(null)) {
+            "App-specific external files directory is unavailable"
+        }
+        val screenshotDirectory = File(appFiles, "screenshots")
+        check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
+            "Could not create screenshot output directory"
+        }
+
+        val screenshotFile = File(screenshotDirectory, fileName)
+        FileOutputStream(screenshotFile).use { output ->
+            check(image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, output)) {
+                "Could not encode screenshot $fileName"
+            }
+            output.flush()
+        }
+        assertTrue(
+            "$fileName was not written",
+            screenshotFile.isFile && screenshotFile.length() > 0L,
+        )
     }
 }

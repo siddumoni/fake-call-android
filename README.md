@@ -26,8 +26,10 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Central Material 3 light, dark and AMOLED palettes with WCAG AA text contrast checks.
 - Application-level night mode selection before the first Activity, edge-to-edge surfaces and saved screen state through mode changes.
 - Screenshot, interaction, preference and colour-contrast tests for the theme slice.
+- Local caller-profile CRUD (fictional display name and optional number label), persisted in app-private Preferences DataStore.
+- Preview incoming and answered simulated-call screens with an explicit simulation banner; no telephony or network integration.
 
-The simulated-call feature set is being delivered in subsequent focused pull requests. No call scheduling, incoming-call UI or ringtone functionality is claimed complete yet.
+Caller profiles and a manually launched simulated-call preview are implemented in the next feature branch. Scheduled delivery, notifications, ringtones and boot recovery are not implemented yet.
 
 ## Build
 

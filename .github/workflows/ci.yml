@@ -162,14 +162,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dependency-review:
-    name: Dependency review
+    name: Dependency vulnerability review (OSV-Scanner)
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Dependency review
-        uses: actions/dependency-review-action@ce3cf9537a52e8119d91fd484ab5b8a807627bf8
-        with:
-          fail-on-severity: moderate
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
+    with:
+      scan-args: |-
+        --lockfile=./app/gradle.lockfile
+        --lockfile=./settings-gradle.lockfile
+        --lockfile=./gradle/verification-metadata.xml
+      upload-sarif: false

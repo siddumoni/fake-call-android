@@ -104,8 +104,8 @@ class ThemeScreenshotSmokeTest {
         image: ImageBitmap,
         label: String,
     ) {
-        assertTrue("$label screenshot has no width", image.width > 0)
-        assertTrue("$label screenshot has no height", image.height > 0)
+        assertTrue("$label screenshot width is too small", image.width >= 320)
+        assertTrue("$label screenshot height is too small", image.height >= 480)
     }
 
     private fun saveScreenshot(
@@ -113,7 +113,10 @@ class ThemeScreenshotSmokeTest {
         image: ImageBitmap,
     ) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val screenshotDirectory = File(context.filesDir, "screenshots")
+        val externalFiles = checkNotNull(context.getExternalFilesDir(null)) {
+            "App-specific external files directory is unavailable"
+        }
+        val screenshotDirectory = File(externalFiles, "screenshots")
         check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
             "Could not create screenshot output directory"
         }
@@ -126,8 +129,14 @@ class ThemeScreenshotSmokeTest {
             output.flush()
         }
         assertTrue(
-            "$fileName was not written",
-            screenshotFile.isFile && screenshotFile.length() > 0L,
+            "$fileName was not written as a real PNG",
+            screenshotFile.isFile &&
+                screenshotFile.length() > 512L &&
+                screenshotFile.inputStream().use { input ->
+                    input.readNBytes(8).contentEquals(
+                        byteArrayOf(137.toByte(), 80, 78, 71, 13, 10, 26, 10),
+                    )
+                },
         )
     }
 }

@@ -1,5 +1,24 @@
 {
-  "permissions": [],
-  "defined_permissions": [],
-  "rationale": {}
+  "variants": {
+    "debug": {
+      "permissions": [
+        "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "defined_permissions": {
+        "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "signature"
+      }
+    },
+    "release": {
+      "permissions": [
+        "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "defined_permissions": {
+        "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "signature"
+      }
+    }
+  },
+  "rationale": {
+    "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "AndroidX Core AAR manifest compatibility declaration for RECEIVER_NOT_EXPORTED runtime receivers on Android before API 33. It is signature-protected. The debug application ID includes the .debug suffix; minSdk 34 means the legacy runtime fallback is unreachable, but the dependency manifest entry remains merged.",
+    "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "AndroidX Core AAR manifest compatibility declaration for RECEIVER_NOT_EXPORTED runtime receivers on Android before API 33. It is signature-protected. minSdk 34 means the legacy runtime fallback is unreachable, but the dependency manifest entry remains merged."
+  }
 }

@@ -12,10 +12,10 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 - Kotlin Gradle Plugin and Compose compiler: 2.4.21
 - Android Gradle Plugin: 9.3.1
 - Gradle: 9.7.0
-- Compose BOM: 2026.11.01
+- Compose BOM: 2026.09.00
 - JDK: 17
 
-AGP 9.3.1 and Gradle 9.7.0 are deliberately paired with Kotlin 2.4.21 because the Kotlin team's published compatibility matrix lists 9.3.1 and 9.7.0 as the upper fully supported AGP and Gradle versions for KGP 2.4.20–2.4.21. Newer AGP/Gradle releases exist, but they are outside that fully supported matrix. AGP 9.3 supports API 37. The Compose 2026.11.01 BOM is the latest stable BOM documented by Android and maps the stable Compose UI/Foundation 1.13.0 and Material3 1.5.0 line.
+AGP 9.3.1 and Gradle 9.7.0 are the latest versions listed as fully supported by the Kotlin compatibility matrix for KGP 2.4.20–2.4.21. Newer standalone AGP/Gradle releases exist, but exceed that published fully-supported range. Compose BOM 2026.09.00 is the latest stable BOM currently documented by Android. It maps the stable Compose 1.12.1 line, which requires compileSdk 37 and AGP 9.1.1 or newer. Compose 1.13.0 requires compileSdk 37.1, so it is intentionally not selected because this project is pinned to compileSdk 37.
 
 ## Build
 

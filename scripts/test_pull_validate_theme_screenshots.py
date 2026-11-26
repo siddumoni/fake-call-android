@@ -6,6 +6,7 @@ from pathlib import Path
 from pull_validate_theme_screenshots import (
     MIN_BYTES,
     PNG_SIGNATURE,
+    parse_app_packages,
     png_dimensions,
     validate_png,
 )
@@ -19,6 +20,22 @@ def fake_png(width: int, height: int, payload_size: int = MIN_BYTES) -> bytes:
 
 
 class ThemeScreenshotValidationTests(unittest.TestCase):
+    def test_detects_debug_and_release_packages_and_excludes_test_package(self):
+        packages = parse_app_packages(
+            "\\n".join(
+                (
+                    "package:com.siddumoni.fakecall",
+                    "package:com.siddumoni.fakecall.debug",
+                    "package:com.siddumoni.fakecall.debug.test",
+                    "package:com.other.app",
+                ),
+            ),
+        )
+        self.assertEqual(
+            ["com.siddumoni.fakecall", "com.siddumoni.fakecall.debug"],
+            packages,
+        )
+
     def test_reads_dimensions_from_png_header(self):
         self.assertEqual((1080, 1920), png_dimensions(fake_png(1080, 1920)))
 

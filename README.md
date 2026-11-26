@@ -40,7 +40,7 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary. Linux hosted runners do not expose KVM; the emulator uses the Android Emulator's documented TCG fallback and may take substantially longer to cold boot.
+On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
 ## Privacy and permissions
 

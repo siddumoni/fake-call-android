@@ -6,9 +6,12 @@ Last updated: 2026-11-26
 
 - Public repository: https://github.com/siddumoni/fake-call-android
 - Default branch: `main`; it contains only the initial README commit.
-- PR 1: https://github.com/siddumoni/fake-call-android/pull/1, base `main`, head branch `initial-setup`.
-- PR 2: https://github.com/siddumoni/fake-call-android/pull/2, base `initial-setup`, head branch `pr2-theme-system`.
+- PR 1: https://github.com/siddumoni/fake-call-android/pull/1, head branch `initial-setup`, base `main`.
+- PR 2: https://github.com/siddumoni/fake-call-android/pull/2, head branch `pr2-theme-system`, stacked on PR 1.
 - No PR has been merged and no direct pushes have been made to `main`.
+- The Gradle 9.7.0 wrapper includes the official distribution SHA-256 and passed wrapper validation.
+- Gradle dependency lockfiles and verification metadata were refreshed successfully for Compose BOM 2026.11.01 in workflow run [45863446695](https://github.com/siddumoni/fake-call-android/actions/runs/45863446695).
+- Normal build workflows use read-only repository contents permissions. The release workflow grants contents write only to the publish job.
 
 ## Toolchain
 
@@ -16,26 +19,29 @@ Last updated: 2026-11-26
 - Compose BOM 2026.11.01, selecting stable Compose 1.13.0.
 - Compose 1.13.0 requires compile API 37.1. The app uses the AGP minor API DSL to compile against API 37.1 while retaining targetSdk 37 and minSdk 34.
 - SDK installer supports the API 37.1 compile platform and discovers available Android emulator images. If an Android 17 x86_64 image is not installable it falls back to API 36.
-- AndroidX Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0; ktlint Gradle plugin 14.2.0.
+- AndroidX Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0; ktlint Gradle plugin 14.2.0, whose current configured default KtLint engine is 1.5.0.
 
-## PR 1 — foundation and current validation
+## PR 1 — foundation and latest CI evidence
 
-Latest observed PR 1 head: `0424e3302787070f09da1b46ccc0c47917105a81`.
+The latest PR 1 code-validation commit was `c0ff370e72109039fa6dc109e70e91ca9056abe4`. Workflow run [45874209298](https://github.com/siddumoni/fake-call-android/actions/runs/45874209298) passed:
+- Debug and release APK builds.
+- JVM unit tests, Android Lint and ktlint.
+- SDK installer unit tests.
+- Exact merged-manifest permission allowlist and central UI colour-token checks.
+- CodeQL analysis and Gitleaks secret scan.
+- Android 17 API 37 emulator boot and `:app:connectedDebugAndroidTest`.
 
-Workflow run [45871868980](https://github.com/siddumoni/fake-call-android/actions/runs/45871868980) has completed these jobs successfully:
-- Debug and release builds, JVM unit tests, Android Lint, ktlint and SDK installer tests.
-- Exact merged-manifest permission policy and central UI colour-token checks.
-- CodeQL analysis.
-- Gitleaks secret scan.
-- Debug APK artifact upload.
+The emulator job confirmed `/dev/kvm` was readable and writable. It therefore used hardware acceleration rather than TCG fallback, booted API 37, and finished connected Android tests with `BUILD SUCCESSFUL`.
 
-The API 37.1 emulator instrumentation job was still running at the time this status was written. It had launched the emulator with the documented TCG fallback because GitHub-hosted Linux runners do not expose KVM. A separate cancelled PR 2 attempt showed the device remaining `offline` during cold boot; that cancellation happened before instrumented tests completed, so it is not a test failure or a passing result.
+The PR 1 documentation was then updated in commit `c72553b70d111003a83ee0ba835d9a2e6c0db283`. A fresh CI run [45875676281](https://github.com/siddumoni/fake-call-android/actions/runs/45875676281) is validating that current documentation head.
 
-Dependency Review fails because GitHub reports the repository Dependency Graph as unavailable/disabled. The workflow has not been weakened or bypassed. **Owner action required:** enable the Dependency Graph in repository Settings → Code security and analysis → Dependency graph, then rerun Dependency Review.
+**Only remaining PR 1 CI failure:** Dependency Review fails because GitHub reports that this repository's Dependency Graph is disabled/unavailable. The workflow has not been weakened or bypassed. **Owner action required:** enable Dependency Graph in repository Settings → Code security and analysis → Dependency graph, then rerun Dependency Review.
 
-## PR 2 — theme system and current validation
+The debug APK artifact was uploaded by the successful build job. The repository still has no release signing secrets or signed production release.
 
-Latest theme branch commit before this status update: `0159112385a269f60cfbe0caf38e8512df4ad713`.
+## PR 2 — theme system and latest code state
+
+Latest theme implementation commit after automatic formatting: `0ef378779dd292bf6924f7825c8726742ccd2439`.
 
 Implemented:
 - Preferences DataStore persistence for Follow system, Light, Dark, Pure black (AMOLED) and Dynamic colour.
@@ -46,15 +52,15 @@ Implemented:
 - Instrumented tests for DataStore persistence, theme interactions and Home/Appearance rendering in Light, Dark and AMOLED.
 - A Pure Black palette that sets all Material 3 surface-container roles to pure black, with explicit assertions.
 
-The screenshot smoke suite captures both Home and Appearance in Light, Dark and Pure Black. It checks render dimensions and exports PNGs; it is not a pixel-perfect golden-image comparison.
+A clean-cache PR 2 build identified KtLint 1.5.0 formatting violations across the new theme implementation and tests. One-time formatting workflow [45875349572](https://github.com/siddumoni/fake-call-android/actions/runs/45875349572) completed successfully: `:app:ktlintFormat` ran, followed by `:app:ktlintCheck`, and the workflow committed the formatted source files and removed itself. A fresh full CI run against commit `0ef3787` is still required before PR 2 can be considered validated.
 
-A previous clean-cache build on the theme branch failed first on screenshot-test ktlint formatting; that was corrected. A subsequent attempt on the older theme commit failed during resolution of the Compose compiler plugin marker. The same Kotlin 2.4.21 plugin coordinates are published by the Kotlin Team and were resolved successfully by the PR 1 build, so this appears to be a transient dependency-repository resolution failure, not a reason to downgrade the Kotlin version. The latest head needs a fresh full CI run after this status/documentation commit.
+The screenshot smoke suite captures Home and Appearance in Light, Dark and Pure Black. It checks render dimensions and exports PNGs; it is not a pixel-perfect golden-image comparison.
 
-Dependency Review is skipped for push-triggered runs and remains blocked on PR 1 until the repository Dependency Graph is enabled.
+The Follow system mode uses application-level night mode AUTO, which maps to an undefined per-app night-mode override in the Android framework so the system configuration flows through. Light and Dark modes explicitly set the app override.
 
 ## Not yet verified
 
-- A complete connected Android instrumentation run, including successful cold boot and all six screenshot exports, on the latest PR heads.
+- A complete connected Android instrumentation run, including all six screenshot exports, on the latest formatted PR 2 head.
 - Dependency Review on PR 1 after the repository Dependency Graph is enabled.
 - Physical OnePlus Nord 6 / ColorOS 17 validation.
 - Release signing secrets or a signed production release artifact.
@@ -62,12 +68,11 @@ Dependency Review is skipped for push-triggered runs and remains blocked on PR 1
 
 ## Next steps
 
-1. Complete the PR 1 API 37 emulator instrumentation and screenshot run.
-2. Enable Dependency Graph and rerun PR 1 Dependency Review.
-3. Run the full CI matrix against the latest PR 2 head, correcting any remaining failures without weakening checks.
-4. Hostile-review and merge PR 1 only after all required checks pass.
-5. Retarget/rebase PR 2 onto `main`, then validate and merge it.
-6. Continue with caller presets, incoming-call screens, scheduling/notifications, ringtone design, onboarding/settings/shortcuts/tile and final security hardening.
+1. Enable Dependency Graph and rerun PR 1 Dependency Review.
+2. Complete the full PR 2 CI matrix on the formatted theme branch.
+3. Hostile-review and merge PR 1 only after Dependency Review and all other required checks pass.
+4. Retarget/rebase PR 2 onto `main`, then validate and merge it.
+5. Continue with caller presets, incoming-call screens, scheduling/notifications, ringtone design, onboarding/settings/shortcuts/tile and final security hardening.
 
 ## Physical-device limitation
 

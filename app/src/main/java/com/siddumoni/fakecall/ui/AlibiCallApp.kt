@@ -1,7 +1,5 @@
 package com.siddumoni.fakecall.ui
 
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -23,6 +23,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -90,7 +91,8 @@ private fun HomeScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp)
+            .testTag("home-screen"),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
@@ -141,7 +143,8 @@ private fun ThemeSettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .testTag("theme-settings-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -196,7 +199,7 @@ private fun AppearanceOption(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-             .selectable(
+            .selectable(
                 selected = selected,
                 role = Role.RadioButton,
                 onClick = onClick,
@@ -225,7 +228,7 @@ private fun PreferenceSwitch(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-             .toggleable(
+            .toggleable(
                 value = checked,
                 role = Role.Switch,
                 onValueChange = onCheckedChange,

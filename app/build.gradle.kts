@@ -34,11 +34,11 @@ android {
             if (signingPath != null) {
                 signingConfig =
                     signingConfigs.create("release") {
-                    storeFile = file(signingPath)
-                    storePassword = providers.environmentVariable("ALIBICALL_STORE_PASSWORD").orNull
-                    keyAlias = providers.environmentVariable("ALIBICALL_KEY_ALIAS").orNull
-                    keyPassword = providers.environmentVariable("ALIBICALL_KEY_PASSWORD").orNull
-                }
+                        storeFile = file(signingPath)
+                        storePassword = providers.environmentVariable("ALIBICALL_STORE_PASSWORD").orNull
+                        keyAlias = providers.environmentVariable("ALIBICALL_KEY_ALIAS").orNull
+                        keyPassword = providers.environmentVariable("ALIBICALL_KEY_PASSWORD").orNull
+                    }
             }
         }
     }

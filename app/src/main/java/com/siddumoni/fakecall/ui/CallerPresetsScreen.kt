@@ -65,7 +65,10 @@ fun CallerPresetsScreen(
         if (presets.isEmpty()) {
             Text(stringResource(R.string.caller_presets_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 items(presets, key = { it.id }) { preset ->
                     CallerPresetCard(
                         preset = preset,

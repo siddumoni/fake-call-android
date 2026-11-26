@@ -23,6 +23,8 @@ class AlibiCallApplication : Application() {
     }
 
     fun applyApplicationNightMode(appearance: ThemeAppearance) {
+        // For application night mode, AUTO maps to an undefined package override,
+        // allowing the system's current dark-mode configuration to flow through.
         val mode = when (appearance) {
             ThemeAppearance.FOLLOW_SYSTEM -> UiModeManager.MODE_NIGHT_AUTO
             ThemeAppearance.LIGHT -> UiModeManager.MODE_NIGHT_NO

@@ -32,7 +32,8 @@ android {
             )
             val signingPath = providers.environmentVariable("ALIBICALL_KEYSTORE_PATH").orNull
             if (signingPath != null) {
-                signingConfig = signingConfigs.create("release") {
+                signingConfig =
+                    signingConfigs.create("release") {
                     storeFile = file(signingPath)
                     storePassword = providers.environmentVariable("ALIBICALL_STORE_PASSWORD").orNull
                     keyAlias = providers.environmentVariable("ALIBICALL_KEY_ALIAS").orNull

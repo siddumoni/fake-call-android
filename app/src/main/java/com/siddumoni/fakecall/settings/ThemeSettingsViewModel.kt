@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.siddumoni.fakecall.AlibiCallApplication
 import com.siddumoni.fakecall.data.preferences.ThemePreferencesRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +51,8 @@ class ThemeSettingsViewModel(application: Application) : AndroidViewModel(applic
             try {
                 repository.save(updated)
                 _saveFailed.value = false
-            } catch (_: Exception) {
+            } catch (exception: Exception) {
+                if (exception is CancellationException) throw exception
                 _saveFailed.value = true
             }
         }

@@ -86,7 +86,7 @@ jobs:
       - name: Start emulator and run instrumented / screenshot tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
-          api-level: ${{ env.ANDROID_EMULATOR_API_LEVEL }}
+          api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}
           system-image-api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}
           target: ${{ env.ANDROID_EMULATOR_TARGET }}
           arch: ${{ env.ANDROID_EMULATOR_ARCH }}

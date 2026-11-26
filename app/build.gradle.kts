@@ -6,9 +6,10 @@ plugins {
 android {
     namespace = "com.siddumoni.fakecall"
     compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
+        version =
+            release(37) {
+                minorApiLevel = 1
+            }
     }
     defaultConfig {
         applicationId = "com.siddumoni.fakecall"

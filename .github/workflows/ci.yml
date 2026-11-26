@@ -176,16 +176,36 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  export-release-runtime-lock:
+    name: Prepare release runtime lockfile for OSV
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - name: Generate release runtime dependency lockfile
+        run: python3 scripts/export_osv_runtime_lockfile.py
+      - name: Upload release runtime dependency lockfile
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: alibicall-release-runtime-lock
+          path: build/osv/gradle.lockfile
+          if-no-files-found: error
+          retention-days: 1
+
   dependency-review:
     name: Dependency vulnerability review (OSV-Scanner)
     if: github.event_name == 'pull_request'
+    needs: export-release-runtime-lock
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     permissions:
       actions: read
       contents: read
       security-events: write
     with:
+      download-artifact: alibicall-release-runtime-lock
       scan-args: |-
-        --lockfile=./app/gradle.lockfile
-        --lockfile=./gradle/verification-metadata.xml
+        --lockfile=./gradle.lockfile
       upload-sarif: false

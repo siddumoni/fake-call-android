@@ -56,7 +56,10 @@ fun CallerPresetsScreen(
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Button(onClick = { editing = null; showCreate = true }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { editing = null; showCreate = true },
+            modifier = Modifier.fillMaxWidth().testTag("caller-preset-add-button"),
+        ) {
             Text(stringResource(R.string.caller_preset_add))
         }
         if (presets.isEmpty()) {

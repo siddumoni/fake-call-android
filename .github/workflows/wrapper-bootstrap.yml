@@ -31,7 +31,10 @@ jobs:
           gradle-version: '9.7.0'
       - name: Generate official wrapper with distribution checksum
         run: |
-          gradle wrapper \
+          # This step only generates wrapper files. The existing verification catalogue
+          # may be stale after a deliberate dependency update; refresh it from the actual
+          # graph below, then enforce strict verification in the following build step.
+          gradle --dependency-verification=off wrapper \
             --gradle-version 9.7.0 \
             --distribution-type bin \
             --gradle-distribution-sha256-sum 84fbba45c7f4c64abc77460e1c00f541e9f960e3c7ed2538f1ede19eacd873ae

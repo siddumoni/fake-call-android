@@ -13,7 +13,7 @@ Last updated: 2026-11-26
 ## Toolchain
 
 - AGP 9.3.1, Gradle 9.7.0 and Kotlin 2.4.21 stay within Kotlin's documented fully supported Gradle / AGP compatibility range.
-- Compose BOM 2026.11.01; Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0.
+- Compose BOM 2026.09.00, selecting the latest stable Android Developers-documented BOM compatible with compileSdk 37. Compose 1.13.0 requires 37.1 and is not used.; Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0.
 - compileSdk / targetSdk 37, minSdk 34, JDK 17.
 
 Newer standalone AGP and Gradle versions exist, but they are outside the documented fully supported KGP 2.4.21 range. Compatibility was preferred over choosing newer version numbers that the Kotlin team does not list as fully supported.

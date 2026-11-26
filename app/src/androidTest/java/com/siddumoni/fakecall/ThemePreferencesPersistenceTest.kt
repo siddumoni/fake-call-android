@@ -14,21 +14,23 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ThemePreferencesPersistenceTest {
     @Test
-    fun appearanceAndIndependentOptionsPersistInDataStore() = runBlocking {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val repository = ThemePreferencesRepository(context)
-        val previousSettings = repository.settings.first()
-        val expected = ThemeSettings(
-            appearance = ThemeAppearance.DARK,
-            pureBlack = true,
-            dynamicColor = false,
-        )
+    fun appearanceAndIndependentOptionsPersistInDataStore() =
+        runBlocking {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val repository = ThemePreferencesRepository(context)
+            val previousSettings = repository.settings.first()
+            val expected =
+                ThemeSettings(
+                    appearance = ThemeAppearance.DARK,
+                    pureBlack = true,
+                    dynamicColor = false,
+                )
 
-        try {
-            repository.save(expected)
-            assertEquals(expected, repository.settings.first())
-        } finally {
-            repository.save(previousSettings)
+            try {
+                repository.save(expected)
+                assertEquals(expected, repository.settings.first())
+            } finally {
+                repository.save(previousSettings)
+            }
         }
-    }
 }

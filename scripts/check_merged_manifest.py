@@ -32,7 +32,11 @@ def main() -> int:
         candidates = [
             path
             for path in Path("app/build/intermediates").rglob("AndroidManifest.xml")
-            if "merged" in str(path).lower() and "debug" in path.parts
+            if (
+                "merged_manifests" in path.parts
+                and "debug" in path.parts
+                and "processDebugManifest" in path.parts
+            )
         ]
         if len(candidates) != 1:
             print(

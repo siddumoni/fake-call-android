@@ -42,11 +42,12 @@ class ThemeSettingsTest {
 
     @Test
     fun pureBlackAndDynamicColorAreIndependentOfAppearance() {
-        val settings = ThemeSettings(
-            appearance = ThemeAppearance.LIGHT,
-            pureBlack = true,
-            dynamicColor = false,
-        )
+        val settings =
+            ThemeSettings(
+                appearance = ThemeAppearance.LIGHT,
+                pureBlack = true,
+                dynamicColor = false,
+            )
 
         assertEquals(ThemeAppearance.LIGHT, settings.appearance)
         assertTrue(settings.pureBlack)

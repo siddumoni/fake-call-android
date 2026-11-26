@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class ThemeSettingsViewModel(application: Application) : AndroidViewModel(application) {
+class ThemeSettingsViewModel(
+    application: Application,
+) : AndroidViewModel(application) {
     private val alibiApplication = application as AlibiCallApplication
     private val repository = ThemePreferencesRepository(application)
     private val saveMutex = Mutex()

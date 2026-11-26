@@ -1,13 +1,15 @@
 package com.siddumoni.fakecall.settings
 
-enum class ThemeAppearance(val storageValue: String) {
+enum class ThemeAppearance(
+    val storageValue: String,
+) {
     FOLLOW_SYSTEM("follow_system"),
     LIGHT("light"),
-    DARK("dark");
+    DARK("dark"),
+    ;
 
     companion object {
-        fun fromStorage(value: String?): ThemeAppearance =
-            entries.firstOrNull { it.storageValue == value } ?: FOLLOW_SYSTEM
+        fun fromStorage(value: String?): ThemeAppearance = entries.firstOrNull { it.storageValue == value } ?: FOLLOW_SYSTEM
     }
 }
 

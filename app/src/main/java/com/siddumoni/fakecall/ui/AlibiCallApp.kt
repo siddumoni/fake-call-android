@@ -4,14 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -53,9 +53,10 @@ fun AlibiCallApp(
 ) {
     AlibiCallTheme(settings = settings) {
         Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("app-root"),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag("app-root"),
             topBar = {
                 if (screen == AppScreen.THEME_SETTINGS) {
                     TopAppBar(
@@ -70,18 +71,20 @@ fun AlibiCallApp(
             },
         ) { innerPadding ->
             when (screen) {
-                AppScreen.HOME -> HomeScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    onOpenThemeSettings = onOpenThemeSettings,
-                )
-                AppScreen.THEME_SETTINGS -> ThemeSettingsScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    settings = settings,
-                    onAppearanceChanged = onAppearanceChanged,
-                    onPureBlackChanged = onPureBlackChanged,
-                    onDynamicColorChanged = onDynamicColorChanged,
-                    saveFailed = saveFailed,
-                )
+                AppScreen.HOME ->
+                    HomeScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        onOpenThemeSettings = onOpenThemeSettings,
+                    )
+                AppScreen.THEME_SETTINGS ->
+                    ThemeSettingsScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        settings = settings,
+                        onAppearanceChanged = onAppearanceChanged,
+                        onPureBlackChanged = onPureBlackChanged,
+                        onDynamicColorChanged = onDynamicColorChanged,
+                        saveFailed = saveFailed,
+                    )
             }
         }
     }
@@ -93,11 +96,12 @@ private fun HomeScreen(
     onOpenThemeSettings: () -> Unit,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp)
-            .testTag("home-screen"),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+                .testTag("home-screen"),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
@@ -146,11 +150,12 @@ private fun ThemeSettingsScreen(
     saveFailed: Boolean,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp)
-            .testTag("theme-settings-screen"),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .testTag("theme-settings-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -202,14 +207,15 @@ private fun AppearanceOption(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                onClick = onClick,
-            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .selectable(
+                    selected = selected,
+                    role = Role.RadioButton,
+                    onClick = onClick,
+                ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
@@ -232,14 +238,14 @@ private fun PreferenceSwitch(
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(
-                value = checked,
-                role = Role.Switch,
-                onValueChange = onCheckedChange,
-            )
-            .padding(vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = checked,
+                    role = Role.Switch,
+                    onValueChange = onCheckedChange,
+                ).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

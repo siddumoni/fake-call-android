@@ -10,32 +10,34 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
-import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 private val Context.themePreferencesDataStore: DataStore<Preferences> by
     preferencesDataStore(name = "theme_preferences")
 
-class ThemePreferencesRepository(context: Context) {
+class ThemePreferencesRepository(
+    context: Context,
+) {
     private val dataStore = context.applicationContext.themePreferencesDataStore
 
-    val settings: Flow<ThemeSettings> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
+    val settings: Flow<ThemeSettings> =
+        dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }.map { preferences ->
+                ThemeSettings(
+                    appearance = ThemeAppearance.fromStorage(preferences[APPEARANCE_KEY]),
+                    pureBlack = preferences[PURE_BLACK_KEY] ?: false,
+                    dynamicColor = preferences[DYNAMIC_COLOR_KEY] ?: true,
+                )
             }
-        }
-        .map { preferences ->
-            ThemeSettings(
-                appearance = ThemeAppearance.fromStorage(preferences[APPEARANCE_KEY]),
-                pureBlack = preferences[PURE_BLACK_KEY] ?: false,
-                dynamicColor = preferences[DYNAMIC_COLOR_KEY] ?: true,
-            )
-        }
 
     suspend fun save(settings: ThemeSettings) {
         dataStore.edit { preferences ->

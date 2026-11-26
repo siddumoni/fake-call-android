@@ -2,48 +2,56 @@ package com.siddumoni.fakecall
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
+import com.siddumoni.fakecall.ui.AlibiCallApp
+import com.siddumoni.fakecall.ui.AppScreen
 
 class MainActivity : ComponentActivity() {
+    private val themeViewModel: ThemeSettingsViewModel by viewModels()
+    private var currentScreen by mutableStateOf(AppScreen.HOME)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentScreen = savedInstanceState
+            ?.getString(STATE_CURRENT_SCREEN)
+            ?.let { restored -> AppScreen.entries.firstOrNull { it.name == restored } }
+            ?: AppScreen.HOME
+        enableEdgeToEdge()
         setContent {
-            AlibiCallTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize().testTag("alibicall-root"),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            text = getString(R.string.app_name),
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = getString(R.string.foundation_message),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                }
+            val settings by themeViewModel.settings.collectAsState()
+            val saveFailed by themeViewModel.saveFailed.collectAsState()
+
+            BackHandler(enabled = currentScreen == AppScreen.THEME_SETTINGS) {
+                currentScreen = AppScreen.HOME
             }
+
+            AlibiCallApp(
+                settings = settings,
+                onAppearanceChanged = themeViewModel::setAppearance,
+                onPureBlackChanged = themeViewModel::setPureBlack,
+                onDynamicColorChanged = themeViewModel::setDynamicColor,
+                saveFailed = saveFailed,
+                screen = currentScreen,
+                onOpenThemeSettings = { currentScreen = AppScreen.THEME_SETTINGS },
+                onBack = { currentScreen = AppScreen.HOME },
+            )
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)
+        super.onSaveInstanceState(outState)
+    }
+
+    private companion object {
+        const val STATE_CURRENT_SCREEN = "current_screen"
     }
 }

@@ -51,3 +51,18 @@ Threats and mitigations:
 Android 17 background audio hardening may silently reject audio operations outside a valid lifecycle. Exact alarm exemption applies only under documented conditions and does not survive strict hardening test mode. Full-screen intent availability depends on system approval. OEM battery and auto-launch policies may delay or suppress alarms/notifications. Notification channel sound is user-controlled and immutable after channel creation. These behaviours require physical-device validation.
 
 ColorOS-specific setting names and paths have not yet been confirmed on the target device. Verify before documenting a precise menu path; otherwise mark it unverified in DEVICE_TESTS.md.
+
+
+## Theme system (PR 2)
+
+Theme preferences are stored in Preferences DataStore as an appearance enum (`follow_system`, `light`, `dark`) plus independent `pure_black` and `dynamic_color` booleans. The default is Follow system, Pure black off, Dynamic colour on. Unknown persisted appearance values fall back to Follow system.
+
+The Application reads the persisted theme before the first Activity starts and calls `UiModeManager.setApplicationNightMode` so Android can select the matching day/night resource variant before drawing the splash screen. Light and Dark map to the explicit package night modes; Follow system uses the package's undefined/automatic mode so the device configuration remains the source of truth. Compose independently observes `isSystemInDarkTheme()` while Follow system is selected, so later system changes are applied live. This behaviour must be verified on the API 37 emulator and target ColorOS device.
+
+The Compose theme owns the static Light, Dark and Pure Black palettes. Android Dynamic colour is used only on API 31+ when enabled; Pure Black takes precedence over Dynamic colour when Dark appearance is active. Text roles are checked at runtime against a 4.5:1 contrast threshold and choose the higher-contrast black or white fallback when the preferred text colour does not meet it. Automated tests exercise the static palette roles. Dynamic colour relies on Android's system-generated accessible tonal palettes.
+
+The launcher Activity uses edge-to-edge window handling. Day/night window resources set matching status-bar icon contrast and splash backgrounds. The light splash resource uses the light surface; the night splash resource uses black to ensure a dark or AMOLED preference never starts with a white frame. The Compose surfaces then take over using the selected palette.
+
+Theme changes update Compose state immediately, update the application night mode, and persist the selection. DataStore read failures fall back to the documented defaults; write failures are displayed in the settings screen rather than silently claimed as saved. Theme state is passed down as immutable data and actions flow back to the ViewModel.
+
+The screenshot smoke suite captures both the Home and Appearance screens in Light, Dark and Pure Black mode. The suite validates successful rendering and non-empty capture dimensions; it is not a pixel-perfect golden-image comparison. Physical OnePlus/ColorOS splash, system-bar, wallpaper colour and live system-theme behaviour remains a device test.

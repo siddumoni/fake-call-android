@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, initial-setup]
   push:
-    branches: [main]
+    branches: [main, pr2-theme-system]
   workflow_dispatch:
 
 permissions:
@@ -112,6 +112,21 @@ jobs:
             echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
+            mkdir -p screenshots
+            for screenshot in \
+              home-light.png appearance-light.png \
+              home-dark.png appearance-dark.png \
+              home-amoled.png appearance-amoled.png; do
+              adb exec-out run-as com.siddumoni.fakecall.debug cat "files/screenshots/$screenshot" > "screenshots/$screenshot"
+              test -s "screenshots/$screenshot"
+            done
+      - name: Upload rendered theme screenshots
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: alibicall-theme-screenshots-api37
+          path: screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
 
 
   codeql:
@@ -163,7 +178,7 @@ jobs:
 
   export-release-runtime-lock:
     name: Prepare release runtime lockfile for OSV
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/initial-setup'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -182,7 +197,7 @@ jobs:
 
   dependency-review:
     name: Dependency vulnerability review (OSV-Scanner)
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/initial-setup'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
     needs: export-release-runtime-lock
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     permissions:

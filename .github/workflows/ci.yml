@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, initial-setup]
   push:
-    branches: [main]
+    branches: [main, pr2-theme-system]
   workflow_dispatch:
 
 permissions:

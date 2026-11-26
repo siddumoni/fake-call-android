@@ -22,7 +22,7 @@ class CallerPresetValidatorTest {
 
     @Test
     fun rejectsControlCharactersAndInvalidNumberCharacters() {
-        assertEquals(CallerPresetValidationError.NAME_INVALID, CallerPresetValidator.validate("Name\n", ""))
+        assertEquals(CallerPresetValidationError.NAME_INVALID, CallerPresetValidator.validate("Na\nme", ""))
         assertEquals(CallerPresetValidationError.NUMBER_INVALID, CallerPresetValidator.validate("Name", "555 CALL"))
         assertEquals(CallerPresetValidationError.NUMBER_TOO_LONG, CallerPresetValidator.validate("Name", "1".repeat(25)))
     }

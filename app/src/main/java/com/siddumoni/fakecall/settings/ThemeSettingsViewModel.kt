@@ -24,8 +24,11 @@ class ThemeSettingsViewModel(application: Application) : AndroidViewModel(applic
     init {
         viewModelScope.launch {
             repository.settings.collect { persisted ->
+                val appearanceChanged = _settings.value.appearance != persisted.appearance
                 _settings.value = persisted
-                alibiApplication.applyApplicationNightMode(persisted.appearance)
+                if (appearanceChanged) {
+                    alibiApplication.applyApplicationNightMode(persisted.appearance)
+                }
             }
         }
     }
@@ -43,9 +46,12 @@ class ThemeSettingsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     private fun updateSettings(transform: ThemeSettings.() -> ThemeSettings) {
-        val updated = _settings.value.transform()
+        val previous = _settings.value
+        val updated = previous.transform()
         _settings.value = updated
-        alibiApplication.applyApplicationNightMode(updated.appearance)
+        if (previous.appearance != updated.appearance) {
+            alibiApplication.applyApplicationNightMode(updated.appearance)
+        }
 
         viewModelScope.launch {
             try {

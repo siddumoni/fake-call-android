@@ -1,6 +1,6 @@
 # AlibiCall
 
-AlibiCall is a private, offline Android application for scheduling a locally simulated incoming call on the device owner's phone.
+AlibiCall is a private, offline Android application being built to schedule a locally simulated incoming call on the device owner's phone.
 
 It does not place real calls, spoof carrier caller ID, create call-log entries, or contact another person. It must not impersonate emergency services, authorities, banks, government bodies, or real companies.
 
@@ -29,13 +29,13 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs the API 37.1 compile platform and selects the highest available Android 17 x86_64 emulator image (falling back to API 36 only when an Android 17 image is unavailable). The CI run summary records the actual emulator API level.
+On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and selects the highest installable Android 17 x86_64 emulator image, falling back to API 36 only when an Android 17 image cannot be installed. On Linux runners CI enables KVM access where available and uses Android Emulator TCG software emulation otherwise. The selected emulator API is recorded in the workflow summary.
 
 ## Privacy and permissions
 
-The foundation manifest intentionally has no permissions. Future features may add only reviewed permissions documented in [docs/SECURITY.md](docs/SECURITY.md), one feature at a time, with the merged manifest checked in CI.
+The application source manifest declares no feature permissions. AndroidX Core contributes one package-specific, signature-protected compatibility permission and matching permission request to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is not related to telephony, contacts, call history, SMS, microphone, camera, storage or network access.
 
-No INTERNET, telephony, contacts, call log, SMS, microphone, camera, location, analytics, advertising, trackers, crash reporting, or remote configuration.
+No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, analytics, advertising, tracking, crash reporting or remote configuration permissions are approved.
 
 ## Project documentation
 

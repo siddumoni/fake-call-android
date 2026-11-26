@@ -1,8 +1,5 @@
 package com.siddumoni.fakecall
 
-import java.io.File
-import java.io.FileOutputStream
-
 import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +17,9 @@ import com.siddumoni.fakecall.ui.AppScreen
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+
+import java.io.File
+import java.io.FileOutputStream
 
 class ThemeScreenshotSmokeTest {
     @get:Rule

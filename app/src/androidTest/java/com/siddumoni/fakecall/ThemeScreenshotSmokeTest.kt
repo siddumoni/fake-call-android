@@ -3,6 +3,7 @@ package com.siddumoni.fakecall
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -73,8 +74,9 @@ class ThemeScreenshotSmokeTest {
             }
             composeRule.waitForIdle()
 
+            composeRule.onNodeWithTag("home-screen").assertExists()
             val homeScreenshot = composeRule
-                .onNodeWithTag("home-screen")
+                .onNodeWithTag("app-root")
                 .captureToImage()
             assertTrue("Home screenshot $index has no width", homeScreenshot.width > 0)
             assertTrue("Home screenshot $index has no height", homeScreenshot.height > 0)
@@ -84,8 +86,9 @@ class ThemeScreenshotSmokeTest {
             }
             composeRule.waitForIdle()
 
+            composeRule.onNodeWithTag("theme-settings-screen").assertExists()
             val settingsScreenshot = composeRule
-                .onNodeWithTag("theme-settings-screen")
+                .onNodeWithTag("app-root")
                 .captureToImage()
             assertTrue("Settings screenshot $index has no width", settingsScreenshot.width > 0)
             assertTrue("Settings screenshot $index has no height", settingsScreenshot.height > 0)

@@ -19,10 +19,9 @@ class CallerPresetRepositoryTest {
                 CallerPresetRepository(
                     InstrumentationRegistry.getInstrumentation().targetContext,
                 )
-            val idPrefix = "repo-test-"
-            val initial = repository.presets.first().filterNot { it.id.startsWith(idPrefix) }
-            val firstId = idPrefix + "first"
-            val secondId = idPrefix + "second"
+            val firstId = "00000000-0000-4000-8000-000000000001"
+            val secondId = "00000000-0000-4000-8000-000000000002"
+            val initial = repository.presets.first().filterNot { it.id == firstId || it.id == secondId }
 
             try {
                 val first = repository.save(firstId, "CallerTest-Zeta", "555-0102")
@@ -42,7 +41,7 @@ class CallerPresetRepositoryTest {
             } finally {
                 repository.delete(firstId)
                 repository.delete(secondId)
-                assertTrue(repository.presets.first().none { it.id.startsWith(idPrefix) })
+                assertTrue(repository.presets.first().none { it.id == firstId || it.id == secondId })
                 assertTrue(initial.all { original -> repository.presets.first().any { it.id == original.id } })
             }
         }

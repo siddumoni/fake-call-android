@@ -2,44 +2,46 @@
 
 Last updated: 2026-11-26
 
-## Verified
+## Verified in GitHub
 
-- Public repository created: https://github.com/siddumoni/fake-call-android
-- Default branch: main.
-- Initial commit created on main: repository README only.
-- Working branch created: initial-setup.
-- Android 17 official docs reviewed for target-SDK behaviour changes, background audio hardening, exact alarms, and full-screen-intent fallback.
-- Compose BOM documentation currently specifies 2026.11.01.
-- Candidate toolchain pinned in version catalog: AGP 9.2.0, Gradle 9.4.1, Kotlin 2.4.21, JDK 17. AGP 9.2.0 release notes identify API 37 support and Gradle 9.4.1 minimum. Full Gradle/Kotlin/AGP build compatibility still needs a CI run.
+- Public repository: https://github.com/siddumoni/fake-call-android
+- Default branch: `main`
+- Initial commit on `main`: README only.
+- Working branch: `initial-setup`; all subsequent changes remain off main.
+- The original scaffold was incomplete: no app sources, no version catalog, no root build script and no Gradle wrapper; its module build referenced missing aliases and a custom plugin. PR 1 replaces that foundation.
 
-## Current implementation scope
+## Toolchain
 
-PR 1 is the foundation only: one application module, pinned version catalog, no-permission starting manifest, offline security defaults, central starter theme, source-manifest policy test, and project/security/device documentation. No incoming-call features are claimed implemented.
+- AGP 9.3.1, Gradle 9.7.0 and Kotlin 2.4.21 stay within Kotlin's documented fully supported Gradle / AGP compatibility range.
+- Compose BOM 2026.11.01; Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0.
+- compileSdk / targetSdk 37, minSdk 34, JDK 17.
+
+Newer standalone AGP and Gradle versions exist, but they are outside the documented fully supported KGP 2.4.21 range. Compatibility was preferred over choosing newer version numbers that the Kotlin team does not list as fully supported.
+
+## PR 1 scope
+
+Project foundation, version catalog, no-permission manifest, Compose startup shell, unit and screenshot smoke tests, Gradle wrapper bootstrap / validation, dependency verification, Android lint, ktlint, CodeQL, dependency review, secret scanning, merged-manifest allowlist check, Dependabot and release workflow.
+
+## Test evidence
+
+No Android build or test result is claimed yet. A trusted push workflow generates the official Gradle wrapper and dependency verification metadata, then runs build, tests and lint before committing the generated integrity files. PR 1 must subsequently pass every required check on its latest head SHA.
 
 ## Not yet verified
 
-- No Gradle build has run in this session.
-- No unit or instrumented tests have run.
-- No emulator API 37 test has run.
-- No screenshot tests have run.
-- No lint, ktlint, CodeQL, dependency review, secret scan, or merged-manifest allowlist CI has completed.
-- No physical OnePlus Nord 6 / ColorOS 17 validation has been performed.
-- CI action SHA pins and dependency verification metadata still need to be added and checked.
-- No signed APK or release exists.
+- No successful Android build/test/CI result yet.
+- No physical OnePlus Nord 6 / ColorOS 17 validation.
+- No release signing secrets or signed release artifact.
+- Repository rulesets, secret scanning and push protection need owner-side settings because current connector actions do not expose settings writes.
 
 ## Next steps
 
-1. Complete PR 1 CI/security workflows, including full-SHA action pins, Gradle wrapper validation, dependency verification, merged-manifest permission allowlist, lint and formatting.
-2. Add required unit and emulator/instrumented test jobs using the highest available API image and explicitly report its API.
-3. Open PR 1 and wait for every required check to finish successfully on its latest commit.
-4. Perform hostile self-review; fix findings without weakening checks.
-5. Merge only after all required checks are complete and passing.
-6. Configure repository ruleset and GitHub security settings manually because the current GitHub connector does not expose repository-settings mutation.
-7. Proceed to PR 2: theme system and dark mode with screenshot tests.
+1. Let the wrapper-bootstrap workflow generate and verify the official wrapper and checksums.
+2. Fix bootstrap build, unit-test, lint or formatting failures without weakening checks.
+3. Open PR 1; inspect every required check on the latest head SHA and perform a hostile diff review.
+4. Merge only after all required checks have completed and passed.
+5. Apply repository ruleset and security settings.
+6. Continue with PR 2 (persistent theme and dark-mode system), then the remaining feature PRs.
 
-## Blockers and limitations
+## Physical-device limitation
 
-- The GitHub connector cannot create releases or modify repository secrets/settings. Release publication and protection settings may require owner UI steps.
-- Gradle wrapper scripts/JAR and dependency-verification metadata must be generated from a real Gradle distribution and validated before claiming wrapper integrity.
-- Android SDK/API 37 emulator availability depends on CI image availability; report the selected API level and any limitation.
-- ColorOS settings labels require the physical phone.
+An Android emulator cannot validate ColorOS-specific alarm delivery, lock-screen presentation, OEM battery controls or background audio. Those remain physical-handset checks.

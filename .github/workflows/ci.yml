@@ -16,34 +16,39 @@ concurrency:
 
 jobs:
   build-test:
-    name: Build and unit tests (API 36)
+    name: Build, unit tests, lint and manifest policy (API 37)
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Set up JDK 17
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
           distribution: temurin
           java-version: '17'
+      - name: Set up Gradle and validate wrapper
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Install Android platform 37 and emulator
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
+      - name: Install Android 37 platform
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+      - name: Build and verify
         run: |
-          sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools" "emulator" "system-images;android-36;google_apis;x86_64"
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
-      - name: Gradle dependency verification
-        run: ./gradlew --write-verification-metadata sha256 help
-      - name: Verify no unexpected Android permissions
-        run: ./gradlew :app:processDebugMainManifest
-      - name: Build debug APK and run unit tests
-        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
-      - name: Upload debug APK (unsigned debug build)
-        uses: actions/upload-artifact@ea0be95b9ac956f2d6d3d5c0a0a6e6b7d9d1b7b6 # v4.6.2
+          ./gradlew --no-daemon --dependency-verification strict \
+            :app:assembleDebug \
+            :app:testDebugUnitTest \
+            :app:lintDebug \
+            :app:ktlintCheck \
+            :app:processDebugMainManifest
+      - name: Check merged-manifest permission allowlist
+        run: python3 scripts/check_merged_manifest.py
+      - name: Enforce central UI color tokens
+        run: bash scripts/check_ui_colors.sh
+      - name: Upload debug APK
         if: success()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: alibicall-debug-apk
           path: app/build/outputs/apk/debug/*.apk
@@ -51,48 +56,77 @@ jobs:
           retention-days: 14
 
   instrumentation:
-    name: Instrumented tests (API 36)
+    name: Instrumented and screenshot tests (API 37)
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Set up JDK 17
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
           distribution: temurin
           java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Install API 36 emulator
-        run: |
-          sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools" "emulator" "system-images;android-36;google_apis;x86_64"
-      - name: Start emulator and run instrumented tests
-        uses: reactivecircus/android-emulator-runner@1d8c1f2e1e3b0efb09e2b0f0d3f4c1aa5e0d9f87
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
+      - name: Run API 37 emulator tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
-          api-level: 36
+          api-level: 37
+          target: google_apis
           arch: x86_64
           profile: pixel_2
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
 
-  static-analysis:
-    name: Static analysis and secret scan
+  codeql:
+    name: CodeQL (Kotlin and Java)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: CodeQL init
-        uses: github/codeql-action/init@5f8171a6e8e17a0b0f9a1c08c7bb8d3c2a8dcb64 # v3.28.17
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934
         with:
           languages: java-kotlin
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@5f8171a6e8e17a0b0f9a1c08c7bb8d3c2a8dcb64 # v3.28.17
-      - name: CodeQL analyze
-        uses: github/codeql-action/analyze@5f8171a6e8e17a0b0f9a1c08c7bb8d3c2a8dcb64 # v3.28.17
+          build-mode: manual
+      - name: Set up JDK 17
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
+      - name: Install Android 37 platform
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+      - name: Build Kotlin sources for CodeQL
+        run: ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
+      - name: Analyze
+        uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dependency-review:
     name: Dependency review
@@ -103,22 +137,6 @@ jobs:
       pull-requests: read
     steps:
       - name: Dependency review
-        uses: actions/dependency-review-action@5a2ce3f5b6d03a96e4f7f8f4f9f9f7c8c8f2c2ad # v4.3.5
+        uses: actions/dependency-review-action@ce3cf9537a52e8119d91fd484ab5b8a807627bf8
         with:
           fail-on-severity: moderate
-
-  formatting:
-    name: Kotlin formatting
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Set up JDK 17
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
-        with:
-          distribution: temurin
-          java-version: '17'
-      - name: Check formatting
-        run: ./gradlew --no-daemon ktlintCheck

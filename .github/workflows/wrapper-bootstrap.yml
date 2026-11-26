@@ -46,6 +46,8 @@ jobs:
           ./gradlew --no-daemon --no-configuration-cache \
             --write-verification-metadata sha256 --write-locks \
             :app:assembleDebug \
+            :app:assembleRelease \
+            :app:compileDebugAndroidTestKotlin \
             :app:testDebugUnitTest \
             :app:lintDebug \
             :app:ktlintCheck \

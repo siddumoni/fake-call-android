@@ -1,0 +1,74 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+      - name: Set up JDK 17
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
+      - name: Install Android 17 SDK platform and Build Tools
+        run: python3 scripts/install_android_sdk.py --kind=compile
+      - name: Check signing secrets and decode keystore
+        id: signing
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.ALIBICALL_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.ALIBICALL_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.ALIBICALL_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ALIBICALL_KEY_PASSWORD }}
+        run: |
+          if [ -n "$SIGNING_KEY_BASE64" ] && [ -n "$SIGNING_STORE_PASSWORD" ] && [ -n "$SIGNING_KEY_ALIAS" ] && [ -n "$SIGNING_KEY_PASSWORD" ]; then
+            printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/alibicall-release.jks"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "ALIBICALL_SIGNING_READY=true" >> "$GITHUB_ENV"
+            echo "ALIBICALL_KEYSTORE_PATH=$RUNNER_TEMP/alibicall-release.jks" >> "$GITHUB_ENV"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "ALIBICALL_SIGNING_READY=false" >> "$GITHUB_ENV"
+          fi
+      - name: Build signed release or clearly labelled debug APK
+        env:
+          ALIBICALL_STORE_PASSWORD: ${{ secrets.ALIBICALL_STORE_PASSWORD }}
+          ALIBICALL_KEY_ALIAS: ${{ secrets.ALIBICALL_KEY_ALIAS }}
+          ALIBICALL_KEY_PASSWORD: ${{ secrets.ALIBICALL_KEY_PASSWORD }}
+        run: |
+          mkdir -p release
+          if [ "$ALIBICALL_SIGNING_READY" = "true" ]; then
+            ./gradlew --no-daemon --dependency-verification strict :app:assembleRelease
+            cp app/build/outputs/apk/release/*.apk release/AlibiCall-release.apk
+          else
+            ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
+            cp app/build/outputs/apk/debug/*.apk release/AlibiCall-DEBUG.apk
+          fi
+          (cd release && sha256sum *.apk > SHA256SUMS.txt)
+      - name: Verify signed release APK
+        if: steps.signing.outputs.ready == 'true'
+        run: |
+          build_tools_version="${ANDROID_BUILD_TOOLS#build-tools;}"
+          apksigner="$ANDROID_HOME/build-tools/$build_tools_version/apksigner"
+          "$apksigner" verify --verbose --print-certs release/AlibiCall-release.apk
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+        with:
+          files: release/*
+          generate_release_notes: true

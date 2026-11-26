@@ -113,11 +113,7 @@ class ThemeScreenshotSmokeTest {
         image: ImageBitmap,
     ) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val appFiles =
-            checkNotNull(context.getExternalFilesDir(null)) {
-                "App-specific external files directory is unavailable"
-            }
-        val screenshotDirectory = File(appFiles, "screenshots")
+        val screenshotDirectory = File(context.filesDir, "screenshots")
         check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
             "Could not create screenshot output directory"
         }

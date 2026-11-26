@@ -24,11 +24,11 @@ class CallerPresetRepositoryTest {
             val secondId = idPrefix + "second"
 
             try {
-                val first = repository.save(firstId, "Zeta", "555-0102")
-                val second = repository.save(secondId, "Alpha", "")
-                assertEquals(listOf("Alpha", "Zeta"), repository.presets.first().map { it.displayName }.filter { it == "Alpha" || it == "Zeta" })
+                val first = repository.save(firstId, "CallerTest-Zeta", "555-0102")
+                val second = repository.save(secondId, "CallerTest-Alpha", "")
+                assertEquals(listOf("CallerTest-Alpha", "CallerTest-Zeta"), repository.presets.first().map { it.displayName }.filter { it.startsWith("CallerTest-") })
 
-                repository.save(first.id, "Updated Zeta", "+1 555 0102")
+                repository.save(first.id, "CallerTest-Updated-Zeta", "+1 555 0102")
                 val updated = repository.presets.first().first { it.id == firstId }
                 assertEquals("Updated Zeta", updated.displayName)
                 assertEquals("+1 555 0102", updated.numberLabel)

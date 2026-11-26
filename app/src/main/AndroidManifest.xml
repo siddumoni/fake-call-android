@@ -1,25 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!--
-        AndroidX Core includes this signature permission for its pre-API-33
-        RECEIVER_NOT_EXPORTED fallback. minSdk 34 makes that fallback unreachable.
-        Remove only the exact debug/release application-ID variants; CI checks both.
-    -->
-    <permission
-        android:name="com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
-    <uses-permission
-        android:name="com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
-    <permission
-        android:name="com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
-    <uses-permission
-        android:name="com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-        tools:node="remove" />
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:name=".AlibiCallApplication"

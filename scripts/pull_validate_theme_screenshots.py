@@ -34,15 +34,21 @@ def run_adb(*args: str) -> str:
     return result.stdout
 
 
-def installed_app_packages() -> list[str]:
-    output = run_adb("shell", "pm", "list", "packages")
+def parse_app_packages(output: str) -> list[str]:
     return sorted(
         {
             line.removeprefix("package:").strip()
             for line in output.splitlines()
-            if line.startswith("package:") and "com.siddumoni.fakecall" in line
+            if line.startswith("package:")
+            and line.removeprefix("package:").strip().startswith("com.siddumoni.fakecall")
+            and not line.removeprefix("package:").strip().endswith(".test")
         }
     )
+
+
+def installed_app_packages() -> list[str]:
+    output = run_adb("shell", "pm", "list", "packages", "com.siddumoni.fakecall")
+    return parse_app_packages(output)
 
 
 def find_screenshot_package() -> str:

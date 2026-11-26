@@ -34,7 +34,7 @@ class ThemeScreenshotSmokeTest {
     private fun renderAndCapture(darkTheme: Boolean) {
         composeRule.setContent {
             AlibiCallTheme(darkTheme = darkTheme) {
-                ScreenshotSurface()
+                screenshotSurface()
             }
         }
         val image = composeRule.onNodeWithTag("screenshot-root").captureToImage()
@@ -44,7 +44,7 @@ class ThemeScreenshotSmokeTest {
 }
 
 @Composable
-private fun ScreenshotSurface() {
+private fun screenshotSurface() {
     Surface(
         modifier = Modifier.fillMaxSize().testTag("screenshot-root"),
         color = MaterialTheme.colorScheme.background,

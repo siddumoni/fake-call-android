@@ -35,7 +35,7 @@ def run_adb(*args: str) -> str:
 
 
 def installed_app_packages() -> list[str]:
-    output = run_adb("shell", "pm", "list", "packages", "-3")
+    output = run_adb("shell", "pm", "list", "packages")
     return sorted(
         {
             line.removeprefix("package:").strip()

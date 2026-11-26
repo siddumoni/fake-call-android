@@ -38,5 +38,14 @@ class ThemeColorContrastTest {
         val amoled = AccessibilityColorSchemes.last()
         assertTrue(amoled.background == Color.Black)
         assertTrue(amoled.surface == Color.Black)
+        assertTrue(amoled.surfaceBright == Color.Black)
+        assertTrue(amoled.surfaceDim == Color.Black)
+        assertTrue(amoled.surfaceContainerLowest == Color.Black)
+        assertTrue(amoled.surfaceContainerLow == Color.Black)
+        assertTrue(amoled.surfaceContainer == Color.Black)
+        assertTrue(amoled.surfaceContainerHigh == Color.Black)
+        assertTrue(amoled.surfaceContainerHighest == Color.Black)
+        assertTrue(amoled.surfaceTint == Color.Black)
+        assertTrue(amoled.surfaceVariant == Color.Black)
     }
 }

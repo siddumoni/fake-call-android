@@ -53,9 +53,9 @@ jobs:
             cp app/build/outputs/apk/release/*.apk release/AlibiCall-release.apk
           else
             ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
-            cp app/build/outputs/apk/debug/*.apk release/AlibiCall-DEBUG-UNSIGNED.apk
+            cp app/build/outputs/apk/debug/*.apk release/AlibiCall-DEBUG.apk
           fi
-          sha256sum release/*.apk > release/SHA256SUMS.txt
+          (cd release && sha256sum *.apk > SHA256SUMS.txt)
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
         with:

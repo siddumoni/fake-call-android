@@ -48,7 +48,11 @@ fun CallerPresetsScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(stringResource(R.string.caller_presets_title), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.caller_presets_disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.caller_presets_disclaimer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (saveError != null) {
             Text(
                 text = stringResource(R.string.caller_preset_error),
@@ -57,7 +61,10 @@ fun CallerPresetsScreen(
             )
         }
         Button(
-            onClick = { editing = null; showCreate = true },
+            onClick = {
+                editing = null
+                showCreate = true
+            },
             modifier = Modifier.fillMaxWidth().testTag("caller-preset-add-button"),
         ) {
             Text(stringResource(R.string.caller_preset_add))
@@ -84,7 +91,10 @@ fun CallerPresetsScreen(
     if (showCreate || editing != null) {
         CallerPresetEditorDialog(
             preset = editing,
-            onDismiss = { showCreate = false; editing = null },
+            onDismiss = {
+                showCreate = false
+                editing = null
+            },
             onSave = onSave,
         )
     }
@@ -94,7 +104,10 @@ fun CallerPresetsScreen(
             title = { Text(stringResource(R.string.caller_preset_delete_title)) },
             text = { Text(stringResource(R.string.caller_preset_delete_message, preset.displayName)) },
             confirmButton = {
-                TextButton(onClick = { onDelete(preset.id); deleting = null }) {
+                TextButton(onClick = {
+                    onDelete(preset.id)
+                    deleting = null
+                }) {
                     Text(stringResource(R.string.delete))
                 }
             },
@@ -144,14 +157,20 @@ private fun CallerPresetEditorDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextField(
                     value = name,
-                    onValueChange = { name = it; validationError = null },
+                    onValueChange = {
+                        name = it
+                        validationError = null
+                    },
                     label = { Text(stringResource(R.string.caller_preset_name)) },
                     singleLine = true,
                     modifier = Modifier.testTag("caller-preset-name"),
                 )
                 TextField(
                     value = number,
-                    onValueChange = { number = it; validationError = null },
+                    onValueChange = {
+                        number = it
+                        validationError = null
+                    },
                     label = { Text(stringResource(R.string.caller_preset_number_label)) },
                     supportingText = { Text(stringResource(R.string.caller_preset_number_hint)) },
                     singleLine = true,

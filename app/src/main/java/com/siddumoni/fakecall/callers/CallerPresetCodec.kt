@@ -28,7 +28,8 @@ internal object CallerPresetCodec {
     }
 
     private fun encodeText(value: String): String =
-        Base64.getUrlEncoder()
+        Base64
+            .getUrlEncoder()
             .withoutPadding()
             .encodeToString(value.toByteArray(StandardCharsets.UTF_8))
 

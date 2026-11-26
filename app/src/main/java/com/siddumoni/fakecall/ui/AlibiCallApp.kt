@@ -74,7 +74,19 @@ fun AlibiCallApp(
             topBar = {
                 if (screen == AppScreen.THEME_SETTINGS || screen == AppScreen.CALLER_PRESETS) {
                     TopAppBar(
-                        title = { Text(stringResource(if (screen == AppScreen.THEME_SETTINGS) R.string.theme_settings_title else R.string.caller_presets_title)) },
+                        title = {
+                            Text(
+                                stringResource(
+                                    if (screen ==
+                                        AppScreen.THEME_SETTINGS
+                                    ) {
+                                        R.string.theme_settings_title
+                                    } else {
+                                        R.string.caller_presets_title
+                                    },
+                                ),
+                            )
+                        },
                         navigationIcon = {
                             TextButton(onClick = onBack) {
                                 Text(stringResource(R.string.back))

@@ -21,11 +21,12 @@ class CallerPresetCodecTest {
 
     @Test
     fun rejectsInvalidStoredFields() {
-        val invalid = CallerPreset(
-            id = UUID.randomUUID().toString(),
-            displayName = "",
-            numberLabel = "",
-        )
+        val invalid =
+            CallerPreset(
+                id = UUID.randomUUID().toString(),
+                displayName = "",
+                numberLabel = "",
+            )
         assertNull(CallerPresetCodec.decode(CallerPresetCodec.encode(invalid)))
     }
 }

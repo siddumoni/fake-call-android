@@ -46,11 +46,12 @@ class CallerPresetRepository(
         numberLabel: String,
     ): CallerPreset {
         val (name, number) = CallerPresetValidator.normalize(displayName, numberLabel)
-        val preset = CallerPreset(
-            id = id?.let { UUID.fromString(it).toString() } ?: UUID.randomUUID().toString(),
-            displayName = name,
-            numberLabel = number,
-        )
+        val preset =
+            CallerPreset(
+                id = id?.let { UUID.fromString(it).toString() } ?: UUID.randomUUID().toString(),
+                displayName = name,
+                numberLabel = number,
+            )
 
         dataStore.edit { preferences ->
             val updated =

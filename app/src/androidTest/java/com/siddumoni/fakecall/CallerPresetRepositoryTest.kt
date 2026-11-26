@@ -28,7 +28,10 @@ class CallerPresetRepositoryTest {
                 val second = repository.save(secondId, "CallerTest-Alpha", "")
                 assertEquals(
                     listOf("CallerTest-Alpha", "CallerTest-Zeta"),
-                    repository.presets.first().map { it.displayName }.filter { it.startsWith("CallerTest-") },
+                    repository.presets
+                        .first()
+                        .map { it.displayName }
+                        .filter { it.startsWith("CallerTest-") },
                 )
 
                 repository.save(first.id, "CallerTest-Updated-Zeta", "+1 555 0102")

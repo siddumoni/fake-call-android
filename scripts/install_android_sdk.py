@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Install Android 17 SDK packages from the preview channel and select an emulator.
+"""Install Android 17 SDK packages from preview channels and select an emulator.
 
-The latest stable Compose release requires the Android 17 API 37.1 minor
-platform for compilation. The app still targets Android API 37 at runtime.
-Discover package IDs from sdkmanager rather than assuming platforms;android-37.
+The stable Compose release requires the Android 17 API 37.1 minor platform for
+compilation. The app still targets Android API 37 at runtime. SDK package IDs
+are discovered from sdkmanager rather than assumed.
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +54,54 @@ def write_github_env(name: str, value: str) -> None:
             stream.write(f"{name}={value}\n")
 
 
+def emulator_image_candidates(available: set[str]) -> list[tuple[str, str]]:
+    """Return installable images, preferring API 37.1 and standard Google APIs."""
+    candidates: list[tuple[str, str]] = []
+    for api_level in ("37.1", "37.0"):
+        for variant in (
+            "google_apis",
+            "google_apis_ps16k",
+            "google_apis_playstore",
+            "google_apis_playstore_ps16k",
+        ):
+            package = f"system-images;android-{api_level};{variant};x86_64"
+            if package in available:
+                candidates.append((package, "37"))
+
+    fallback = "system-images;android-36;google_apis;x86_64"
+    if fallback in available:
+        candidates.append((fallback, "36"))
+    return candidates
+
+
+def install_emulator_image(
+    candidates: list[tuple[str, str]],
+    *,
+    sdk_root: Path,
+) -> tuple[str, str]:
+    """Try each eligible image; a broken SDK archive must not abort API fallback."""
+    failures: list[str] = []
+    for package, runtime_api in candidates:
+        channel = 3 if runtime_api == "37" else 0
+        print(f"Attempting Android emulator image: {package}")
+        try:
+            install([package], channel=channel)
+            return package, runtime_api
+        except subprocess.CalledProcessError as error:
+            failures.append(f"{package} (sdkmanager exit {error.returncode})")
+            package_path = sdk_root.joinpath(*package.split(";"))
+            shutil.rmtree(package_path, ignore_errors=True)
+            print(
+                f"Unable to install {package}; trying the next available image.",
+                file=sys.stderr,
+            )
+
+    raise RuntimeError(
+        "Unable to install any supported emulator image. Tried: "
+        + ", ".join(failures or ["no compatible images found"])
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--kind", choices=("compile", "emulator"), required=True)
@@ -62,7 +111,11 @@ def main() -> int:
     platform = next(
         (
             item
-            for item in ("platforms;android-37.1", "platforms;android-37.0", "platforms;android-37")
+            for item in (
+                "platforms;android-37.1",
+                "platforms;android-37.0",
+                "platforms;android-37",
+            )
             if item in available
         ),
         None,
@@ -102,64 +155,33 @@ def main() -> int:
         print(f"Installed Android Build Tools: {selected_build_tools}")
         return 0
 
-    image_candidates = [
-        item
-        for item in available
-        if (
-            item.startswith("system-images;android-37.1;")
-            or item.startswith("system-images;android-37.0;")
+    sdk_root = Path(
+        os.environ.get("ANDROID_SDK_ROOT")
+        or os.environ.get("ANDROID_HOME", "")
+    )
+    try:
+        image, emulator_api = install_emulator_image(
+            emulator_image_candidates(available),
+            sdk_root=sdk_root,
         )
-        and item.endswith(";x86_64")
-    ]
-    image = None
-    for api_level in ("37.1", "37.0"):
-        for preferred in (
-            "google_apis_ps16k",
-            "google_apis_playstore_ps16k",
-            "google_apis",
-            "google_apis_playstore",
-        ):
-            image = next(
-                (
-                    item
-                    for item in image_candidates
-                    if item.split(";")[1] == f"android-{api_level}"
-                    and item.split(";")[2] == preferred
-                ),
-                None,
-            )
-            if image:
-                break
-        if image:
-            break
-    emulator_api = "37"
-    if image is None:
-        # API 37 system images may be unavailable for the x86_64 hosted runner.
-        # Keep compileSdk/targetSdk at 37, but test runtime behaviour on the
-        # highest stable x86_64 Google APIs image available (API 36).
-        fallback = "system-images;android-36;google_apis;x86_64"
-        if fallback not in available:
-            print(
-                "No Android 17 x86_64 image and no API 36 Google APIs fallback "
-                "are available.",
-                file=sys.stderr,
-            )
-            return 2
-        image = fallback
-        emulator_api = "36"
+    except RuntimeError as error:
+        print(str(error), file=sys.stderr)
+        return 2
 
-    channel = 3 if emulator_api == "37" else 0
-    install([image], channel=channel)
+    image_api = image.split(";")[1].removeprefix("android-")
     write_github_env("ANDROID_EMULATOR_IMAGE", image)
     write_github_env("ANDROID_EMULATOR_API_LEVEL", emulator_api)
-    write_github_env("ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL", image.split(";")[1].removeprefix("android-"))
+    write_github_env("ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL", image_api)
     write_github_env("ANDROID_EMULATOR_TARGET", image.split(";")[2])
     write_github_env("ANDROID_EMULATOR_ARCH", image.split(";")[3])
-    print(f"Selected emulator system image: {image} (API {emulator_api})")
+    print(
+        f"Selected emulator image: {image} "
+        f"(runtime API {emulator_api}, system image API {image_api})"
+    )
     if emulator_api != "37":
         print(
-            "API 37 x86_64 system image unavailable; emulator test uses API 36. "
-            "Compilation and targetSdk remain API 37."
+            "No installable Android 17 x86_64 image was available; emulator tests "
+            "use API 36. Compilation and targetSdk remain API 37."
         )
     return 0
 

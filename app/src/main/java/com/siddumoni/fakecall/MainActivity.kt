@@ -10,27 +10,42 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.siddumoni.fakecall.callers.CallerPreset
+import com.siddumoni.fakecall.callers.CallerPresetsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
+    private val callerPresetsViewModel: CallerPresetsViewModel by viewModels()
     private var currentScreen by mutableStateOf(AppScreen.HOME)
+    private var selectedCaller by mutableStateOf<CallerPreset?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentScreen = savedInstanceState
-            ?.getString(STATE_CURRENT_SCREEN)
-            ?.let { restored -> AppScreen.entries.firstOrNull { it.name == restored } }
-            ?: AppScreen.HOME
+        currentScreen =
+            savedInstanceState
+                ?.getString(STATE_CURRENT_SCREEN)
+                ?.let { restored -> AppScreen.entries.firstOrNull { it.name == restored } }
+                ?: AppScreen.HOME
+        selectedCaller =
+            savedInstanceState?.let {
+                val id = it.getString(STATE_CALLER_ID)
+                val name = it.getString(STATE_CALLER_NAME)
+                val number = it.getString(STATE_CALLER_NUMBER)
+                if (id != null && name != null && number != null) CallerPreset(id, name, number) else null
+            }
         enableEdgeToEdge()
         setContent {
             val settings by themeViewModel.settings.collectAsState()
             val saveFailed by themeViewModel.saveFailed.collectAsState()
+            val callerPresets by callerPresetsViewModel.presets.collectAsState()
+            val callerPresetSaveError by callerPresetsViewModel.saveError.collectAsState()
 
-            BackHandler(enabled = currentScreen == AppScreen.THEME_SETTINGS) {
+            BackHandler(enabled = currentScreen != AppScreen.HOME) {
                 currentScreen = AppScreen.HOME
+                selectedCaller = null
             }
 
             AlibiCallApp(
@@ -41,17 +56,40 @@ class MainActivity : ComponentActivity() {
                 saveFailed = saveFailed,
                 screen = currentScreen,
                 onOpenThemeSettings = { currentScreen = AppScreen.THEME_SETTINGS },
+                onOpenCallerPresets = { currentScreen = AppScreen.CALLER_PRESETS },
                 onBack = { currentScreen = AppScreen.HOME },
+                callerPresets = callerPresets,
+                callerPresetSaveError = callerPresetSaveError,
+                onSaveCallerPreset = callerPresetsViewModel::savePreset,
+                onDeleteCallerPreset = callerPresetsViewModel::deletePreset,
+                selectedCaller = selectedCaller,
+                onPreviewCaller = { caller ->
+                    selectedCaller = caller
+                    currentScreen = AppScreen.SIMULATED_CALL
+                },
+                onAnswerSimulatedCall = { currentScreen = AppScreen.SIMULATED_IN_CALL },
+                onEndSimulatedCall = {
+                    selectedCaller = null
+                    currentScreen = AppScreen.HOME
+                },
             )
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)
+        selectedCaller?.let { caller ->
+            outState.putString(STATE_CALLER_ID, caller.id)
+            outState.putString(STATE_CALLER_NAME, caller.displayName)
+            outState.putString(STATE_CALLER_NUMBER, caller.numberLabel)
+        }
         super.onSaveInstanceState(outState)
     }
 
     private companion object {
         const val STATE_CURRENT_SCREEN = "current_screen"
+        const val STATE_CALLER_ID = "selected_caller_id"
+        const val STATE_CALLER_NAME = "selected_caller_name"
+        const val STATE_CALLER_NUMBER = "selected_caller_number"
     }
 }

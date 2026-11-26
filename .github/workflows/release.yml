@@ -30,6 +30,7 @@ jobs:
       - name: Install Android 17 SDK platform and Build Tools
         run: python3 scripts/install_android_sdk.py --kind=compile
       - name: Check signing secrets and decode keystore
+        id: signing
         env:
           SIGNING_KEY_BASE64: ${{ secrets.ALIBICALL_KEYSTORE_BASE64 }}
           SIGNING_STORE_PASSWORD: ${{ secrets.ALIBICALL_STORE_PASSWORD }}
@@ -38,9 +39,11 @@ jobs:
         run: |
           if [ -n "$SIGNING_KEY_BASE64" ] && [ -n "$SIGNING_STORE_PASSWORD" ] && [ -n "$SIGNING_KEY_ALIAS" ] && [ -n "$SIGNING_KEY_PASSWORD" ]; then
             printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/alibicall-release.jks"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "ALIBICALL_SIGNING_READY=true" >> "$GITHUB_ENV"
             echo "ALIBICALL_KEYSTORE_PATH=$RUNNER_TEMP/alibicall-release.jks" >> "$GITHUB_ENV"
           else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
             echo "ALIBICALL_SIGNING_READY=false" >> "$GITHUB_ENV"
           fi
       - name: Build signed release or clearly labelled debug APK
@@ -59,7 +62,7 @@ jobs:
           fi
           (cd release && sha256sum *.apk > SHA256SUMS.txt)
       - name: Verify signed release APK
-        if: env.ALIBICALL_SIGNING_READY == 'true'
+        if: steps.signing.outputs.ready == 'true'
         run: |
           build_tools_version="${ANDROID_BUILD_TOOLS#build-tools;}"
           apksigner="$ANDROID_HOME/build-tools/$build_tools_version/apksigner"

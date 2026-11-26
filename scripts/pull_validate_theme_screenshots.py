@@ -47,7 +47,9 @@ def parse_app_packages(output: str) -> list[str]:
 
 
 def installed_app_packages() -> list[str]:
-    output = run_adb("shell", "pm", "list", "packages", "com.siddumoni.fakecall")
+    output = run_adb("shell", "pm", "list", "packages")
+    print("Package-list output for AlibiCall discovery:")
+    print(output)
     return parse_app_packages(output)
 
 
@@ -60,9 +62,12 @@ def find_screenshot_package() -> str:
     candidates = list(dict.fromkeys((*known_packages, *installed)))
     for package in candidates:
         remote_dir = f"/sdcard/Android/data/{package}/files/screenshots"
+        print(f"Checking screenshot directory for {package}: {remote_dir}")
         try:
             names = set(run_adb("shell", "ls", remote_dir).split())
-        except subprocess.CalledProcessError:
+            print(f"Found screenshot files for {package}: {sorted(names)}")
+        except subprocess.CalledProcessError as error:
+            print(f"Could not list {remote_dir}: {error.stdout or error.stderr}")
             continue
         if set(SCREENSHOT_NAMES).issubset(names):
             return package

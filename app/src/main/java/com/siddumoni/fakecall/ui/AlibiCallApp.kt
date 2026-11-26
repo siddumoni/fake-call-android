@@ -53,7 +53,9 @@ fun AlibiCallApp(
 ) {
     AlibiCallTheme(settings = settings) {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("app-root"),
             topBar = {
                 if (screen == AppScreen.THEME_SETTINGS) {
                     TopAppBar(

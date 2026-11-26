@@ -11,40 +11,45 @@ import javax.xml.parsers.DocumentBuilderFactory
 class ManifestPermissionPolicyTest {
     @Test
     fun sourceManifestDeclaresNoActivePermissions() {
-        val factory = DocumentBuilderFactory.newInstance().apply {
-            isNamespaceAware = true
-        }
-        val document = factory.newDocumentBuilder()
-            .parse(File("src/main/AndroidManifest.xml"))
-        val root = document.documentElement
-        val permissionTags = setOf(
-            "uses-permission",
-            "uses-permission-sdk-23",
-            "uses-permission-sdk-m",
-            "permission",
-        )
-        val activePermissions = buildList {
-            val nodes = root.childNodes
-            for (index in 0 until nodes.length) {
-                val element = nodes.item(index) as? Element ?: continue
-                val tag = element.localName ?: element.tagName.substringAfter(':')
-                if (tag !in permissionTags) continue
-                if (
-                    element.getAttributeNS(
-                        "http://schemas.android.com/tools",
-                        "node",
-                    ) == "remove"
-                ) {
-                    continue
-                }
-                add(
-                    element.getAttributeNS(
-                        "http://schemas.android.com/apk/res/android",
-                        "name",
-                    ),
-                )
+        val factory =
+            DocumentBuilderFactory.newInstance().apply {
+                isNamespaceAware = true
             }
-        }
+        val document =
+            factory
+                .newDocumentBuilder()
+                .parse(File("src/main/AndroidManifest.xml"))
+        val root = document.documentElement
+        val permissionTags =
+            setOf(
+                "uses-permission",
+                "uses-permission-sdk-23",
+                "uses-permission-sdk-m",
+                "permission",
+            )
+        val activePermissions =
+            buildList {
+                val nodes = root.childNodes
+                for (index in 0 until nodes.length) {
+                    val element = nodes.item(index) as? Element ?: continue
+                    val tag = element.localName ?: element.tagName.substringAfter(':')
+                    if (tag !in permissionTags) continue
+                    if (
+                        element.getAttributeNS(
+                            "http://schemas.android.com/tools",
+                            "node",
+                        ) == "remove"
+                    ) {
+                        continue
+                    }
+                    add(
+                        element.getAttributeNS(
+                            "http://schemas.android.com/apk/res/android",
+                            "name",
+                        ),
+                    )
+                }
+            }
 
         assertEquals(emptyList<String>(), activePermissions.filter { it.isNotBlank() })
     }

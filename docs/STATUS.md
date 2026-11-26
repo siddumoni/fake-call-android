@@ -52,7 +52,9 @@ Implemented:
 - Instrumented tests for DataStore persistence, theme interactions and Home/Appearance rendering in Light, Dark and AMOLED.
 - A Pure Black palette that sets all Material 3 surface-container roles to pure black, with explicit assertions.
 
-A clean-cache PR 2 build identified KtLint 1.5.0 formatting violations across the new theme implementation and tests. One-time formatting workflow [45875349572](https://github.com/siddumoni/fake-call-android/actions/runs/45875349572) completed successfully: `:app:ktlintFormat` ran, followed by `:app:ktlintCheck`, and the workflow committed the formatted source files and removed itself. A fresh full CI run against commit `0ef3787` is still required before PR 2 can be considered validated.
+A clean-cache PR 2 build identified KtLint 1.5.0 formatting violations across the new theme implementation and tests. One-time formatting workflow [45875349572](https://github.com/siddumoni/fake-call-android/actions/runs/45875349572) completed successfully: `:app:ktlintFormat` ran, followed by `:app:ktlintCheck`, and the workflow committed the formatted source files and removed itself.
+
+The latest connected API 37 instrumentation run executed all three instrumented tests successfully; `:app:connectedDebugAndroidTest` ended with `BUILD SUCCESSFUL`. The workflow then failed while exporting screenshots because it assumed the external app-files directory existed. Screenshot output is being moved to the app's private internal files directory and exported through Android's `run-as` command. A fresh CI run must verify that all six PNGs are present in the artifact before PR 2 is considered validated.
 
 The screenshot smoke suite captures Home and Appearance in Light, Dark and Pure Black. It checks render dimensions and exports PNGs; it is not a pixel-perfect golden-image comparison.
 

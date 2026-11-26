@@ -3,6 +3,7 @@ package com.siddumoni.fakecall
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -52,6 +53,7 @@ class ThemeSettingsInteractionTest {
         composeRule.onNodeWithText("Dark").assertIsSelected()
 
         composeRule.onNodeWithText("Pure black (AMOLED)").performClick()
+        composeRule.onNodeWithText("Pure black (AMOLED)").assertIsOn()
         composeRule.runOnIdle {
             assertTrue(settings.pureBlack)
             assertEquals(ThemeAppearance.DARK, settings.appearance)
@@ -62,6 +64,6 @@ class ThemeSettingsInteractionTest {
             assertTrue(!settings.dynamicColor)
             assertTrue(settings.pureBlack)
         }
-        composeRule.onNodeWithText("Dynamic colour").assertIsOn()
+        composeRule.onNodeWithText("Dynamic colour").assertIsOff()
     }
 }

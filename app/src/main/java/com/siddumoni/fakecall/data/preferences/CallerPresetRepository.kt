@@ -47,7 +47,7 @@ class CallerPresetRepository(
     ): CallerPreset {
         val (name, number) = CallerPresetValidator.normalize(displayName, numberLabel)
         val preset = CallerPreset(
-            id = id ?: UUID.randomUUID().toString(),
+            id = id?.let { UUID.fromString(it).toString() } ?: UUID.randomUUID().toString(),
             displayName = name,
             numberLabel = number,
         )

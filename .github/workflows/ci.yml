@@ -32,8 +32,8 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
-      - name: Install Android 37 platform
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+      - name: Install Android 17 preview platform and Build Tools
+        run: python3 scripts/install_android_sdk.py --kind=compile
       - name: Build and verify
         run: |
           ./gradlew --no-daemon --dependency-verification strict \
@@ -72,16 +72,33 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
-      - name: Run API 37 emulator tests
-        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        with:
-          api-level: 37
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
+      - name: Install latest available Android emulator image
+        run: python3 scripts/install_android_sdk.py --kind=emulator
+      - name: Create and boot emulator
+        run: |
+          echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "no" | avdmanager create avd --force --name alibicall-ci --package "$ANDROID_EMULATOR_IMAGE" --device pixel_2
+          nohup emulator -avd alibicall-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          adb wait-for-device
+          booted=false
+          for attempt in $(seq 1 90); do
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\\r')" = "1" ]; then
+              booted=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "$booted" != "true" ]; then
+            cat "$RUNNER_TEMP/emulator.log"
+            echo "Android emulator failed to boot." >&2
+            exit 1
+          fi
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global window_animation_scale 0
+      - name: Run instrumented and screenshot tests
+        run: ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
 
   codeql:
     name: CodeQL (Kotlin and Java)

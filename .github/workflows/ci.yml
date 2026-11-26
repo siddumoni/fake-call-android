@@ -100,6 +100,15 @@ jobs:
             echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
+            mkdir -p screenshots
+            adb pull /sdcard/Android/data/com.siddumoni.fakecall.debug/files/screenshots screenshots
+      - name: Upload rendered theme screenshots
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: alibicall-theme-screenshots-api37
+          path: screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
 
 
   codeql:

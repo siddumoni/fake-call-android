@@ -44,4 +44,4 @@ No INTERNET, telephony, contacts, call log, SMS, microphone, camera, location, a
 - [Project status](docs/STATUS.md)
 - [Release signing](docs/RELEASING.md)
 
-Release builds are signed only when all four signing secrets are configured. Until then, the tag workflow publishes a clearly labelled unsigned debug APK and SHA-256 checksum.
+Tag releases are signed when all four signing secrets are configured. Otherwise the workflow publishes a clearly labelled debug-variant APK (signed with the temporary Android debug key) and its SHA-256 checksum. See [docs/RELEASING.md](docs/RELEASING.md) for signing setup.

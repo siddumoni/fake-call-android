@@ -180,6 +180,10 @@ jobs:
     name: Dependency vulnerability review (OSV-Scanner)
     if: github.event_name == 'pull_request'
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     with:
       scan-args: |-
         --lockfile=./app/gradle.lockfile

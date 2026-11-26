@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Install Android 17 SDK packages from the preview channel and select an emulator.
 
-Android 17 API 37 is currently published as the Cinnamon Bun preview SDK.
-The package identifier carries a minor-version suffix, so discover package IDs
-from sdkmanager instead of assuming platforms;android-37.
+The latest stable Compose release requires the Android 17 API 37.1 minor
+platform for compilation. The app still targets Android API 37 at runtime.
+Discover package IDs from sdkmanager rather than assuming platforms;android-37.
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def main() -> int:
     platform = next(
         (
             item
-            for item in ("platforms;android-37.0", "platforms;android-37")
+            for item in ("platforms;android-37.1", "platforms;android-37.0", "platforms;android-37")
             if item in available
         ),
         None,
@@ -77,7 +77,7 @@ def main() -> int:
     )
     if not platform:
         print(
-            "Android 17 API 37 platform is not available in SDK Manager "
+            "Android 17 API 37.1 compile platform is not available in SDK Manager "
             "even with preview channel 3 enabled.",
             file=sys.stderr,
         )
@@ -102,26 +102,34 @@ def main() -> int:
         print(f"Installed Android Build Tools: {selected_build_tools}")
         return 0
 
-    image_candidates = sorted(
+    image_candidates = [
         item
         for item in available
-        if item.startswith("system-images;android-37.0;") and item.endswith(";x86_64")
-    )
-    image = None
-    for preferred in (
-        "google_apis_ps16k",
-        "google_apis_playstore_ps16k",
-        "google_apis",
-        "google_apis_playstore",
-    ):
-        image = next(
-            (
-                item
-                for item in image_candidates
-                if item.split(";")[2] == preferred
-            ),
-            None,
+        if (
+            item.startswith("system-images;android-37.1;")
+            or item.startswith("system-images;android-37.0;")
         )
+        and item.endswith(";x86_64")
+    ]
+    image = None
+    for api_level in ("37.1", "37.0"):
+        for preferred in (
+            "google_apis_ps16k",
+            "google_apis_playstore_ps16k",
+            "google_apis",
+            "google_apis_playstore",
+        ):
+            image = next(
+                (
+                    item
+                    for item in image_candidates
+                    if item.split(";")[1] == f"android-{api_level}"
+                    and item.split(";")[2] == preferred
+                ),
+                None,
+            )
+            if image:
+                break
         if image:
             break
     emulator_api = "37"

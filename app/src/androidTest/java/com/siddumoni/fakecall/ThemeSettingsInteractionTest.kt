@@ -3,6 +3,7 @@ package com.siddumoni.fakecall
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
@@ -13,6 +14,7 @@ import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -51,7 +53,9 @@ class ThemeSettingsInteractionTest {
             assertTrue(!settings.pureBlack)
         }
         composeRule.onNodeWithText("Dark").assertIsSelected()
+        composeRule.onNodeWithText("Dark").assertHeightIsAtLeast(48.dp)
 
+        composeRule.onNodeWithText("Pure black (AMOLED)").assertHeightIsAtLeast(48.dp)
         composeRule.onNodeWithText("Pure black (AMOLED)").performClick()
         composeRule.onNodeWithText("Pure black (AMOLED)").assertIsOn()
         composeRule.runOnIdle {

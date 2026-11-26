@@ -85,10 +85,16 @@ jobs:
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install latest available Android emulator image
         run: python3 scripts/install_android_sdk.py --kind=emulator
+      - name: Enable KVM access or select software-emulation fallback
+        run: |
+          if [ -e /dev/kvm ] && sudo chmod 666 /dev/kvm && [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "KVM is readable and writable; the emulator runner can use hardware acceleration."
+          else
+            echo "KVM is unavailable; the emulator runner will use TCG software emulation."
+            echo "ANDROID_I_WANT_MY_TCG=yes" >> "$GITHUB_ENV"
+          fi
       - name: Start emulator and run instrumented / screenshot tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
-        env:
-          ANDROID_I_WANT_MY_TCG: "yes"
         with:
           api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}
           system-image-api-level: ${{ env.ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL }}
@@ -96,7 +102,9 @@ jobs:
           arch: ${{ env.ANDROID_EMULATOR_ARCH }}
           profile: pixel_2
           avd-name: alibicall-ci
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: 900
+          disable-linux-hw-accel: auto
+          cores: 4
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
           channel: canary

@@ -49,7 +49,7 @@ class ThemeSettingsViewModel(
         viewModelScope.launch {
             try {
                 saveMutex.withLock {
-                    repository.save(updated)
+                    repository.save(_settings.value)
                 }
                 _saveFailed.value = false
             } catch (exception: Exception) {

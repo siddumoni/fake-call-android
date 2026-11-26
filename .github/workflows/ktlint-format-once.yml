@@ -33,7 +33,7 @@ jobs:
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install compile platform
         run: python3 scripts/install_android_sdk.py --kind=compile
-      - name: Format and verify Kotlin sources with pinned KtLint
+      - name: Format and verify latest Kotlin sources with pinned KtLint
         run: |
           ./gradlew --no-daemon :app:ktlintFormat
           ./gradlew --no-daemon :app:ktlintCheck

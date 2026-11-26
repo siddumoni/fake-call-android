@@ -40,13 +40,13 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary.
+On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary. Linux hosted runners do not expose KVM; the emulator uses the Android Emulator's documented TCG fallback and may take substantially longer to cold boot.
 
 ## Privacy and permissions
 
-The foundation manifest intentionally has no active Android permissions. Future features may add only reviewed permissions documented in [docs/SECURITY.md](docs/SECURITY.md), one feature at a time, with the merged manifest checked in CI.
+The application source manifest declares no feature permissions. AndroidX Core currently contributes one package-specific, signature-protected compatibility permission to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the declared protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is unrelated to telephony or access to user data.
 
-No INTERNET, telephony, contacts, call log, SMS, microphone, camera, location, analytics, advertising, trackers, crash reporting or remote configuration.
+No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, microphone, camera, location, analytics, advertising, tracking, crash reporting or remote configuration permissions are approved.
 
 ## Project documentation
 

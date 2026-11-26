@@ -112,19 +112,7 @@ jobs:
             echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
-            mkdir -p screenshots
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/home-light.png > screenshots/home-light.png
-            test -s screenshots/home-light.png
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/appearance-light.png > screenshots/appearance-light.png
-            test -s screenshots/appearance-light.png
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/home-dark.png > screenshots/home-dark.png
-            test -s screenshots/home-dark.png
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/appearance-dark.png > screenshots/appearance-dark.png
-            test -s screenshots/appearance-dark.png
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/home-amoled.png > screenshots/home-amoled.png
-            test -s screenshots/home-amoled.png
-            adb exec-out run-as com.siddumoni.fakecall.debug cat files/screenshots/appearance-amoled.png > screenshots/appearance-amoled.png
-            test -s screenshots/appearance-amoled.png
+            python3 scripts/pull_validate_theme_screenshots.py --output screenshots
       - name: Upload rendered theme screenshots
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:

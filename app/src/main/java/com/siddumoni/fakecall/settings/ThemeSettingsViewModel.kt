@@ -21,18 +21,6 @@ class ThemeSettingsViewModel(application: Application) : AndroidViewModel(applic
     private val _saveFailed = MutableStateFlow(false)
     val saveFailed: StateFlow<Boolean> = _saveFailed.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            repository.settings.collect { persisted ->
-                val appearanceChanged = _settings.value.appearance != persisted.appearance
-                _settings.value = persisted
-                if (appearanceChanged) {
-                    alibiApplication.applyApplicationNightMode(persisted.appearance)
-                }
-            }
-        }
-    }
-
     fun setAppearance(appearance: ThemeAppearance) {
         updateSettings { copy(appearance = appearance) }
     }

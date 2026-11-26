@@ -10,10 +10,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ThemeSettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val alibiApplication = application as AlibiCallApplication
     private val repository = ThemePreferencesRepository(application)
+    private val saveMutex = Mutex()
 
     private val _settings = MutableStateFlow(alibiApplication.initialThemeSettings)
     val settings: StateFlow<ThemeSettings> = _settings.asStateFlow()
@@ -43,7 +46,9 @@ class ThemeSettingsViewModel(application: Application) : AndroidViewModel(applic
 
         viewModelScope.launch {
             try {
-                repository.save(updated)
+                saveMutex.withLock {
+                    repository.save(updated)
+                }
                 _saveFailed.value = false
             } catch (exception: Exception) {
                 if (exception is CancellationException) throw exception

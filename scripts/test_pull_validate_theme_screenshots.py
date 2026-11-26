@@ -22,7 +22,7 @@ def fake_png(width: int, height: int, payload_size: int = MIN_BYTES) -> bytes:
 class ThemeScreenshotValidationTests(unittest.TestCase):
     def test_detects_debug_and_release_packages_and_excludes_test_package(self):
         packages = parse_app_packages(
-            "\\n".join(
+            "\n".join(
                 (
                     "package:com.siddumoni.fakecall",
                     "package:com.siddumoni.fakecall.debug",

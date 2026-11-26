@@ -12,3 +12,7 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Jetpack Compose's convention capitalizes @Composable UI functions; ordinary Kotlin functions remain lowercase.
+ktlint_function_naming_ignore_when_annotated_with = Composable

@@ -5,65 +5,62 @@ Last updated: 2026-11-26
 ## Repository and branch state
 
 - Public repository: https://github.com/siddumoni/fake-call-android
-- Default branch: `main`; the initial README commit is the only project commit currently on main.
-- PR 1: [Android project foundation and secure CI](https://github.com/siddumoni/fake-call-android/pull/1), head branch `initial-setup`, latest head at this update: `e067cd2797f938deec9c86815b90d58a9f59e109`.
-- PR 2 working branch: `pr2-theme-system`, stacked on the current PR 1 head. Theme implementation is prepared separately so PR 1 does not absorb theme changes.
-- No PR has been merged yet.
+- Default branch: `main`; it contains only the initial README commit.
+- PR 1: https://github.com/siddumoni/fake-call-android/pull/1, base `main`, head branch `initial-setup`.
+- PR 2: https://github.com/siddumoni/fake-call-android/pull/2, base `initial-setup`, head branch `pr2-theme-system`.
+- No PR has been merged and no direct pushes have been made to `main`.
 
 ## Toolchain
 
-- AGP 9.3.1 and Gradle 9.7.0 are within the Kotlin compatibility matrix's fully supported range for KGP 2.4.20–2.4.21.
-- Kotlin / Compose compiler plugin: 2.4.21.
-- Compose BOM 2026.09.00: latest stable BOM in Android's documented Compose setup that supports compileSdk 37.
-- AndroidX Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0; ktlint 14.2.0.
-- minSdk 34, compileSdk/targetSdk 37, JDK 17.
-- Compose BOM 2026.11.01 was rejected because it selects Compose 1.13.0, whose AAR metadata requires compileSdk 37.1, exceeding the specified SDK 37.
+- AGP 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
+- Compose BOM 2026.11.01, selecting stable Compose 1.13.0.
+- Compose 1.13.0 requires compile API 37.1. The app uses the AGP minor API DSL to compile against API 37.1 while retaining targetSdk 37 and minSdk 34.
+- SDK installer supports the API 37.1 compile platform and prefers matching Android 17 emulator images; it records the actual emulator API level.
+- AndroidX Core 1.19.1; Activity Compose 1.13.0; Lifecycle 2.11.1; Preferences DataStore 1.3.0; ktlint Gradle plugin 14.2.0.
 
 ## PR 1 — foundation
 
-The initial foundation has a successful bootstrap run [#34](https://github.com/siddumoni/fake-call-android/actions/runs/45849001891) covering:
-- Official Gradle 9.7.0 wrapper generation with distribution checksum and wrapper validation.
-- Android SDK 37 platform and Build Tools installation.
-- Dependency locks and SHA-256 verification metadata generated from clean-cache downloads.
-- Debug and release APK builds, Android test-source compilation, JVM unit tests, Android Lint and ktlint.
-- Strict dependency verification.
-- Debug and release merged-manifest allowlist checks and central UI colour-token enforcement.
+A previous bootstrap run [#34](https://github.com/siddumoni/fake-call-android/actions/runs/45849001891) passed debug/release builds, JVM unit tests, Lint, ktlint, strict dependency verification, manifest allowlist checks and central UI colour-token checks using an earlier compatible Compose configuration.
 
-The earlier PR run [#45852868319](https://github.com/siddumoni/fake-call-android/actions/runs/45852868319) passed CodeQL, build/unit/lint/manifest and Gitleaks, but the emulator boot step remained in progress. It was superseded by later commits and is no longer current. The emulator boot workflow was hardened with bounded ADB startup and a job timeout.
+The first validation after moving to Compose BOM 2026.11.01 correctly failed because the app lockfile still enforced BOM 2026.09.00. The dependency-refresh job has been updated to regenerate the lockfile from an unlocked app-lock snapshot and create new verification metadata from the actual resolved artifacts. That refresh is pending and its output is not yet verified.
 
-The latest PR 1 run at this status update is [#45856126356](https://github.com/siddumoni/fake-call-android/actions/runs/45856126356), still in progress; do not treat pending checks as passing.
+The latest API 37.1 PR 1 run is visible at https://github.com/siddumoni/fake-call-android/actions. It has confirmed the SDK package can be installed, but the build and CodeQL jobs failed on the stale lockfile. The emulator test job was still running when these logs were inspected. Secret scan passed. Dependency Review fails because the repository Dependency Graph is disabled (`GITHUB_DEPENDENCY_GRAPH_ENABLED=false`).
 
-**External blocker:** Dependency Review fails because GitHub's Dependency Graph is disabled for this repository. The connected GitHub tools do not expose repository security-setting writes. Enable it in **Settings → Code security and analysis → Dependency graph → Enable**. Do not disable or bypass Dependency Review.
+**External blocker:** Enable Dependency Graph in repository **Settings → Code security and analysis → Dependency graph → Enable**. Do not disable or bypass Dependency Review.
 
-## PR 2 — theme system (work-in-progress branch)
+## PR 2 — theme system
 
 The `pr2-theme-system` branch adds:
-- DataStore persistence for Follow system, Light, Dark, Pure black (AMOLED) and Dynamic colour.
-- Application-level night-mode setup before first Activity startup and matching day/night splash/window resources.
-- Material 3 theme palettes and runtime text contrast fallback.
-- Home and Appearance screens with accessible radio/switch controls and 48dp+ touch targets.
-- Activity state restoration when night-mode changes recreate the Activity.
-- JVM tests for setting defaults, storage mapping and palette contrast.
-- Instrumented tests for DataStore persistence, interactions, and full-app screenshot captures for Home and Appearance in Light, Dark and AMOLED modes.
+- Preferences DataStore persistence for Follow system, Light, Dark, Pure black (AMOLED) and Dynamic colour.
+- Application-level night-mode selection before first Activity startup and matching day/night splash/window resources.
+- Material 3 light, dark and AMOLED palettes with runtime WCAG AA text-role fallback.
+- Home and Appearance screens with accessible controls, screen-state restoration, edge-to-edge and predictive-back handling.
+- JVM tests for defaults, storage mapping and palette contrast.
+- Instrumented tests for DataStore persistence, theme interactions and Home/Appearance rendering in Light, Dark and AMOLED.
+- A Pure Black palette that sets all Material 3 surface-container roles to pure black, with explicit assertions.
 
-PR 2 has not yet been opened or run through CI. The branch has been synchronized with the current PR 1 base without mixing theme changes into PR 1.
+PR 2 is stacked on PR 1. Its build configuration and dependency BOM are being aligned to API 37.1 / Compose BOM 2026.11.01 so both branches use the same toolchain.
 
-## Remaining verification
+## Not yet verified
 
-- Current PR 1 checks must all complete and pass on the latest head SHA. Dependency Review currently needs the manual repository setting above.
-- PR 2 must run the full same build, test, lint, emulator, screenshot, CodeQL, Gitleaks and dependency-review suite before it can be merged.
-- No physical OnePlus Nord 6 / ColorOS 17 validation has been performed.
-- No release signing secrets or signed release artifact exist.
-- Repository ruleset, secret scanning and push protection still require owner-side configuration because the current connector does not expose repository-settings mutations.
+- Final PR checks have not all completed successfully on the latest head commits.
+- API 37 emulator instrumentation and screenshot tests have not yet completed successfully on the latest head.
+- Gradle dependency lock and verification metadata refresh is pending.
+- Dependency Review needs the repository Dependency Graph setting enabled.
+- Screenshot smoke tests capture images and validate dimensions; they are not yet pixel-perfect golden-image comparisons.
+- No physical OnePlus Nord 6 / ColorOS 17 validation.
+- No release signing secrets or signed release artifact.
+- Ruleset, native secret scanning, push protection and Dependabot alerts require owner-side repository settings; the GitHub connector has no settings-write action.
 
 ## Next steps
 
-1. Complete all PR 1 checks and merge only after Dependency Review is enabled and every required check passes on the current head.
-2. Run PR 2's full CI suite and resolve all failures without weakening checks; retarget it to `main` after PR 1 merges.
-3. Continue with presets/call screens, then scheduling/notifications/ringtone, then onboarding/settings/shortcuts/tile, and final hardening/release.
-4. Apply the documented repository ruleset and security settings.
-5. Complete the physical-device checklist on the OnePlus handset before claiming ColorOS-specific reliability.
+1. Regenerate dependency locks and verification metadata using the current Compose BOM, then validate all PR 1 checks on its latest head.
+2. Enable Dependency Graph and rerun Dependency Review.
+3. Hostile-review and merge PR 1 only after every required check passes.
+4. Rebase PR 2 onto main, run all checks on its latest head, then merge.
+5. Continue with caller presets, incoming-call screens, scheduling/notifications/ringtones, onboarding/settings/shortcuts/tile, and final security hardening.
+6. Apply repository rulesets, secret scanning, push protection and Dependabot alerts.
 
 ## Physical-device limitation
 
-An Android emulator cannot validate ColorOS-specific alarm delivery, lock-screen presentation, OEM battery controls or background audio. Those remain physical-handset checks.
+An Android emulator cannot validate ColorOS-specific alarm delivery, lock-screen presentation, OEM battery controls or background audio. Those remain handset tests documented in docs/DEVICE_TESTS.md.

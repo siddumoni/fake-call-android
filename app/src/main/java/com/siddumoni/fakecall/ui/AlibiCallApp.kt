@@ -89,6 +89,7 @@ fun AlibiCallApp(
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
                         onOpenThemeSettings = onOpenThemeSettings,
+                        onOpenCallerPresets = onOpenCallerPresets,
                     )
                 AppScreen.THEME_SETTINGS ->
                     ThemeSettingsScreen(

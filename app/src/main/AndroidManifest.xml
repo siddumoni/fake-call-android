@@ -22,6 +22,7 @@
         tools:node="remove" />
 
     <application
+        android:name=".AlibiCallApplication"
         android:allowBackup="false"
         android:appCategory="productivity"
         android:dataExtractionRules="@xml/data_extraction_rules"

@@ -41,12 +41,18 @@ jobs:
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install Android 17 preview platform and Build Tools
         run: python3 scripts/install_android_sdk.py --kind=compile
-      - name: Generate dependency verification metadata and locks
+      - name: Generate dependency verification metadata and locks from the real build
         run: |
-          ./gradlew --no-daemon --write-verification-metadata sha256 --write-locks :app:dependencies
+          ./gradlew --no-daemon --no-configuration-cache \
+            --write-verification-metadata sha256 --write-locks \
+            :app:assembleDebug \
+            :app:testDebugUnitTest \
+            :app:lintDebug \
+            :app:ktlintCheck \
+            :app:processDebugMainManifest
       - name: Run strict build, unit tests and lint
         run: |
-          ./gradlew --no-daemon --dependency-verification strict \
+          ./gradlew --no-daemon --no-configuration-cache --dependency-verification strict \
             :app:assembleDebug \
             :app:testDebugUnitTest \
             :app:lintDebug \

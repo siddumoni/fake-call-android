@@ -53,32 +53,29 @@ def installed_app_packages() -> list[str]:
 
 def find_screenshot_package() -> str:
     known_packages = ("com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
-    candidates = list(
-        dict.fromkeys((*known_packages, *installed_app_packages()))
-    )
+    try:
+        installed = installed_app_packages()
+    except subprocess.CalledProcessError:
+        installed = []
+    candidates = list(dict.fromkeys((*known_packages, *installed)))
     for package in candidates:
+        remote_dir = f"/sdcard/Android/data/{package}/files/screenshots"
         try:
-            names = set(run_adb("shell", "run-as", package, "ls", "files/screenshots").split())
+            names = set(run_adb("shell", "ls", remote_dir).split())
         except subprocess.CalledProcessError:
             continue
         if set(SCREENSHOT_NAMES).issubset(names):
             return package
 
     raise RuntimeError(
-        "No installed AlibiCall app package contains all six internal screenshots. "
+        "No installed AlibiCall app package contains all six external screenshots. "
         f"Candidates checked: {candidates}"
     )
 
 
 def pull_screenshot(package: str, name: str, destination: Path) -> None:
-    remote_file = f"files/screenshots/{name}"
-    with destination.open("wb") as output:
-        subprocess.run(
-            ["adb", "exec-out", "run-as", package, "cat", remote_file],
-            check=True,
-            stdout=output,
-            stderr=subprocess.PIPE,
-        )
+    remote_file = f"/sdcard/Android/data/{package}/files/screenshots/{name}"
+    run_adb("pull", remote_file, str(destination))
 
 
 def png_dimensions(data: bytes) -> tuple[int, int]:

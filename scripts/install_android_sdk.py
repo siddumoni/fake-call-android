@@ -144,6 +144,9 @@ def main() -> int:
     install([image], channel=channel)
     write_github_env("ANDROID_EMULATOR_IMAGE", image)
     write_github_env("ANDROID_EMULATOR_API_LEVEL", emulator_api)
+    write_github_env("ANDROID_EMULATOR_SYSTEM_IMAGE_API_LEVEL", image.split(";")[1].removeprefix("android-"))
+    write_github_env("ANDROID_EMULATOR_TARGET", image.split(";")[2])
+    write_github_env("ANDROID_EMULATOR_ARCH", image.split(";")[3])
     print(f"Selected emulator system image: {image} (API {emulator_api})")
     if emulator_api != "37":
         print(

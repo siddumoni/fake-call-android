@@ -9,13 +9,13 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 - Application ID: `com.siddumoni.fakecall`
 - Minimum SDK: 34
 - Compile / target SDK: 37
-- Kotlin: 2.4.21
+- Kotlin Gradle Plugin and Compose compiler: 2.4.21
 - Android Gradle Plugin: 9.3.1
 - Gradle: 9.7.0
-- Compose BOM: 2026.09.00
+- Compose BOM: 2026.11.01
 - JDK: 17
 
-The AGP / Gradle / Kotlin combination stays inside the documented fully supported Kotlin Gradle Plugin compatibility range for Kotlin 2.4.21. The November 2026 Compose release requires compile SDK 37.
+AGP 9.3.1 and Gradle 9.7.0 are deliberately paired with Kotlin 2.4.21 because the Kotlin team's published compatibility matrix lists 9.3.1 and 9.7.0 as the upper fully supported AGP and Gradle versions for KGP 2.4.20–2.4.21. Newer AGP/Gradle releases exist, but they are outside that fully supported matrix. AGP 9.3 supports API 37. The Compose 2026.11.01 BOM is the latest stable BOM documented by Android and maps the stable Compose UI/Foundation 1.13.0 and Material3 1.5.0 line.
 
 ## Build
 
@@ -28,7 +28,7 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs Android SDK 37 and runs screenshot smoke tests on an API 37 emulator.
+On Windows use `gradlew.bat`. GitHub Actions installs Android SDK 37 and runs screenshot smoke tests on the highest available x86_64 Android emulator image, recording the selected API level in the run summary.
 
 ## Privacy and permissions
 

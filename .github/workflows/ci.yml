@@ -38,6 +38,8 @@ jobs:
         run: |
           ./gradlew --no-daemon --dependency-verification strict \
             :app:assembleDebug \
+            :app:assembleRelease \
+            :app:compileDebugAndroidTestKotlin \
             :app:testDebugUnitTest \
             :app:lintDebug \
             :app:ktlintCheck \
@@ -123,8 +125,8 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
-      - name: Install Android 37 platform
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+      - name: Install Android 17 preview platform and Build Tools
+        run: python3 scripts/install_android_sdk.py --kind=compile
       - name: Build Kotlin sources for CodeQL
         run: ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
       - name: Analyze

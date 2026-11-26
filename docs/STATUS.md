@@ -27,7 +27,7 @@ Previously completed bootstrap run [#34](https://github.com/siddumoni/fake-call-
 
 A later PR 1 run [#18](https://github.com/siddumoni/fake-call-android/actions/runs/45858026588) passed the build/unit/Lint/manifest job, CodeQL and secret scan. Its emulator job was cancelled after subsequent CI configuration updates; it is not evidence of a passing connected emulator suite.
 
-The current API 37.1 PR 1 validation is running in [workflow run #?](https://github.com/siddumoni/fake-call-android/actions). At the time of this status update, the secret scan has completed successfully, while the build, CodeQL and Android 17 emulator jobs are still running. Dependency Review currently fails before evaluating dependencies because the repository dependency graph is disabled (`GITHUB_DEPENDENCY_GRAPH_ENABLED=false`). The workflow has not been weakened or bypassed.
+The latest API 37.1 PR 1 validation runs are listed in [GitHub Actions](https://github.com/siddumoni/fake-call-android/actions). A prior run confirmed the API 37.1 SDK installation but its build and CodeQL stages failed because the checked-in app lockfile still enforced Compose BOM 2026.09.00. The dedicated dependency-refresh workflow is regenerating the lock and verification metadata from the resolved 2026.11.01 dependency graph. Dependency Review also fails before evaluating dependencies because the repository dependency graph is disabled (`GITHUB_DEPENDENCY_GRAPH_ENABLED=false`). The workflow has not been weakened or bypassed.
 
 The dedicated Gradle metadata-refresh run is also still running. Its regenerated checksums and lockfiles must be committed and validated by the final PR checks before merge.
 

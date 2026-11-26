@@ -15,9 +15,10 @@ class CallerPresetRepositoryTest {
     @Test
     fun callerProfilesCanBeCreatedUpdatedSortedAndDeleted() =
         runBlocking {
-            val repository = CallerPresetRepository(
-                InstrumentationRegistry.getInstrumentation().targetContext,
-            )
+            val repository =
+                CallerPresetRepository(
+                    InstrumentationRegistry.getInstrumentation().targetContext,
+                )
             val idPrefix = "repo-test-"
             val initial = repository.presets.first().filterNot { it.id.startsWith(idPrefix) }
             val firstId = idPrefix + "first"
@@ -26,11 +27,14 @@ class CallerPresetRepositoryTest {
             try {
                 val first = repository.save(firstId, "CallerTest-Zeta", "555-0102")
                 val second = repository.save(secondId, "CallerTest-Alpha", "")
-                assertEquals(listOf("CallerTest-Alpha", "CallerTest-Zeta"), repository.presets.first().map { it.displayName }.filter { it.startsWith("CallerTest-") })
+                assertEquals(
+                    listOf("CallerTest-Alpha", "CallerTest-Zeta"),
+                    repository.presets.first().map { it.displayName }.filter { it.startsWith("CallerTest-") },
+                )
 
                 repository.save(first.id, "CallerTest-Updated-Zeta", "+1 555 0102")
                 val updated = repository.presets.first().first { it.id == firstId }
-                assertEquals("Updated Zeta", updated.displayName)
+                assertEquals("CallerTest-Updated-Zeta", updated.displayName)
                 assertEquals("+1 555 0102", updated.numberLabel)
 
                 repository.delete(second.id)

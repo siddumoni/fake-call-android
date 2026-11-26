@@ -7,7 +7,7 @@ import org.junit.Test
 
 class ThemeSettingsTest {
     @Test
-    fun defaultAppearanceFollowsSystemWithIndependentOptionsOff() {
+    fun defaultAppearanceFollowsSystemWithPureBlackOffAndDynamicColorOn() {
         assertEquals(
             ThemeSettings(
                 appearance = ThemeAppearance.FOLLOW_SYSTEM,

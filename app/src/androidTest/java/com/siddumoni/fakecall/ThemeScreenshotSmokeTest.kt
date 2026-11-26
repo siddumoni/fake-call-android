@@ -128,15 +128,15 @@ class ThemeScreenshotSmokeTest {
             }
             output.flush()
         }
+        val hasPngSignature =
+            screenshotFile.inputStream().use { input ->
+                input.readNBytes(8).contentEquals(
+                    byteArrayOf(137.toByte(), 80, 78, 71, 13, 10, 26, 10),
+                )
+            }
         assertTrue(
             "$fileName was not written as a real PNG",
-            screenshotFile.isFile &&
-                screenshotFile.length() > 512L &&
-                screenshotFile.inputStream().use { input ->
-                    input.readNBytes(8).contentEquals(
-                        byteArrayOf(137.toByte(), 80, 78, 71, 13, 10, 26, 10),
-                    )
-                },
+            screenshotFile.isFile && screenshotFile.length() > 512L && hasPngSignature,
         )
     }
 }

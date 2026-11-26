@@ -10,10 +10,11 @@ class ManifestPermissionPolicyTest {
     @Test
     fun foundationManifestDeclaresNoAndroidPermissions() {
         val manifest = File("src/main/AndroidManifest.xml").readText()
-        val permissions = Regex("""<uses-permission(?:-sdk-23|-sdk-m)?\b""")
-            .findAll(manifest)
-            .map { it.value }
-            .toList()
+        val permissions =
+            Regex("""<uses-permission(?:-sdk-23|-sdk-m)?\b""")
+                .findAll(manifest)
+                .map { it.value }
+                .toList()
         assertEquals(emptyList<String>(), permissions)
     }
 

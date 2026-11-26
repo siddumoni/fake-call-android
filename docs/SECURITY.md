@@ -6,7 +6,7 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The initial foundation declares no Android permissions. Later features may add only individually reviewed permissions from this candidate set:
+The foundation app's final debug and release merged manifests must contain no Android permissions. Later feature work may add only individually reviewed permissions from this candidate set:
 
 | Permission | Purpose | Gate |
 |---|---|---|
@@ -15,6 +15,10 @@ The initial foundation declares no Android permissions. Later features may add o
 | SCHEDULE_EXACT_ALARM | User-specified precise call schedule | Check canScheduleExactAlarms and handle revocation |
 | VIBRATE | Optional vibration pattern | Confirm platform permission requirement at implementation time |
 | RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Add only with tested boot receiver |
+
+### AndroidX Core compatibility permission
+
+AndroidX Core's AAR manifest contributes a package-scoped permission named `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, together with a matching `uses-permission`. The permission is signature-protected and exists for the library's `RECEIVER_NOT_EXPORTED` compatibility fallback on Android versions before API 33. Android's security guidance requires this fallback permission only when `minSdk < 33`. This app requires API 34 or newer, so that legacy path cannot execute. The manifest merger removes only these two declarations from the `androidx.core` dependency using a name-specific `tools:selector` / `tools:node="remove"` rule. The CI allowlist remains empty and checks both final merged variants, including permission declarations as well as requested permissions. If minSdk is ever lowered below 33 or the compatibility strategy changes, this decision must be revisited and any retained permission added to the explicit allowlist with a rationale.
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, or broad external storage permissions. Foreground-service declarations require a separate technical justification before implementation.
 

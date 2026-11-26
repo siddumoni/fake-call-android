@@ -26,6 +26,10 @@ Project foundation, version catalog, no-permission manifest, Compose startup she
 
 No Android build or test result is claimed yet. A trusted push workflow generates the official Gradle wrapper and dependency verification metadata, then runs build, tests and lint before committing the generated integrity files. PR 1 must subsequently pass every required check on its latest head SHA.
 
+## AndroidX Core permission review
+
+AndroidX Core contributes a signature-protected `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` plus a matching uses-permission for its legacy `RECEIVER_NOT_EXPORTED` fallback. Android security guidance requires that fallback only when minSdk is below API 33. This project uses minSdk 34, so the exact two dependency declarations are removed with scoped manifest-merger rules. The merged-manifest policy check covers both debug and release variants and checks both requested permissions and permission declarations.
+
 ## Not yet verified
 
 - No successful Android build/test/CI result yet.

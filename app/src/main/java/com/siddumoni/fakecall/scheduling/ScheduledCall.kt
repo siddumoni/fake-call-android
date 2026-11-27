@@ -70,3 +70,20 @@ enum class ScheduledCallAction {
     TIMEOUT,
     END,
 }
+
+/** Resolve a wall-clock selection deterministically across timezone DST gaps and overlaps. */
+object ScheduleTimeResolver {
+    fun resolve(localDateTime: java.time.LocalDateTime, zoneId: java.time.ZoneId): java.time.Instant {
+        val rules = zoneId.rules
+        val offsets = rules.getValidOffsets(localDateTime)
+        return when {
+            offsets.size == 1 -> localDateTime.toInstant(offsets[0])
+            offsets.size >= 2 -> localDateTime.toInstant(offsets[0])
+            else -> {
+                val transition = rules.getTransition(localDateTime)
+                    ?: throw java.time.DateTimeException("Unable to resolve local date-time")
+                transition.dateTimeAfter.toInstant(transition.offsetAfter)
+            }
+        }
+    }
+}

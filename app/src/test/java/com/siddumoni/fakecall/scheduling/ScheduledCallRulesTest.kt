@@ -43,3 +43,15 @@ class ScheduledCallRulesTest {
         assertEquals(ScheduledCallState.ENDED, ScheduledCallRules.transition(ScheduledCallState.IN_CALL, ScheduledCallAction.END))
     }
 }
+
+    @Test fun daylightSavingGapAdvancesToFirstValidTime() {
+        val zone = java.time.ZoneId.of("America/New_York")
+        val local = java.time.LocalDateTime.of(2026, 3, 8, 2, 30)
+        assertEquals(java.time.Instant.parse("2026-03-08T07:00:00Z"), ScheduleTimeResolver.resolve(local, zone))
+    }
+
+    @Test fun daylightSavingOverlapUsesEarlierOccurrence() {
+        val zone = java.time.ZoneId.of("America/New_York")
+        val local = java.time.LocalDateTime.of(2026, 11, 1, 1, 30)
+        assertEquals(java.time.Instant.parse("2026-11-01T05:30:00Z"), ScheduleTimeResolver.resolve(local, zone))
+    }

@@ -49,10 +49,12 @@ class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             refreshSchedulePermissions()
+            scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
         }
     private val exactAlarmSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             refreshSchedulePermissions()
+            scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
         }
     private var currentScreen by mutableStateOf(AppScreen.HOME)
     private var selectedCaller by mutableStateOf<CallerPreset?>(null)

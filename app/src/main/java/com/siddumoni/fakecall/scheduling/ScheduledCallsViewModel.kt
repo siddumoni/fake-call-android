@@ -227,9 +227,10 @@ class ScheduledCallsViewModel(
             scheduler.cancel(id)
         } else {
             repository.upsert(previous)
-            check(scheduler.schedule(previous) == ScheduleAlarmResult.SCHEDULED) {
-                "Unable to restore the previous alarm after a failed update."
-            }
+            // Preserve the previous record even when exact-alarm access was revoked between
+            // the preflight check and AlarmManager registration. Foreground reconciliation
+            // will re-register it after the user grants access again.
+            scheduler.schedule(previous)
         }
     }
 }

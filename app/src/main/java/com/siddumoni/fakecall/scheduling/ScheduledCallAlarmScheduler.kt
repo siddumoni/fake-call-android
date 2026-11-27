@@ -97,7 +97,7 @@ class ScheduledCallAlarmScheduler(
             AlarmManager.ELAPSED_REALTIME_WAKEUP,
             elapsedDeadline,
             timeoutPendingIntent(scheduleId),
-        
+        )
     }
 
     fun cancelTimeout(scheduleId: String) {

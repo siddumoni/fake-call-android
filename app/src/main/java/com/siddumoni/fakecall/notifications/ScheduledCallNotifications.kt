@@ -20,7 +20,7 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import java.util.UUID
 
 object ScheduledCallNotifications {
-    const val CHANNEL_ID = "scheduled_simulations"
+    const val CHANNEL_ID = "scheduled_simulations_v2"
 
     fun canPost(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -53,6 +53,18 @@ object ScheduledCallNotifications {
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
                 description = context.getString(R.string.schedule_notification_channel_description)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0L, 300L, 200L, 300L)
+                val sound = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                if (sound != null) {
+                    setSound(
+                        sound,
+                        android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                }
             },
         )
     }

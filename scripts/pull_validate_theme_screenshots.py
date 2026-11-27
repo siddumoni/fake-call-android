@@ -41,7 +41,6 @@ def parse_app_packages(output: str) -> list[str]:
             for line in output.splitlines()
             if line.startswith("package:")
             and line.removeprefix("package:").strip().startswith("com.siddumoni.fakecall")
-            and not line.removeprefix("package:").strip().endswith(".test")
         }
     )
 
@@ -54,13 +53,13 @@ def installed_app_packages() -> list[str]:
 
 
 def list_screenshot_names(package: str) -> set[str]:
-    # Android's shell UID cannot reliably browse /Android/data on recent Android
-    # releases. The app is debuggable in CI, so run-as accesses its private files.
+    # The instrumentation APK owns these files. run-as accesses its private
+    # storage after connectedAndroidTest completes without relying on scoped storage.
     return set(run_adb("shell", "run-as", package, "ls", "files/screenshots").split())
 
 
 def find_screenshot_package() -> str:
-    known_packages = ("com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
+    known_packages = ("com.siddumoni.fakecall.debug.test", "com.siddumoni.fakecall.test", "com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
     try:
         installed = installed_app_packages()
     except subprocess.CalledProcessError:

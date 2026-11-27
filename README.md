@@ -46,7 +46,7 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. PR #23 adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), and expanded (600 dp) display configurations plus 200% font scaling on compact configurations. This matrix is not considered complete until PR #23 is merged and every matrix job passes. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
+On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. PR #23 adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), expanded (600 dp), and compact-landscape (640×360 dp) configurations plus 200% font scaling on compact portrait configurations. This matrix is not considered complete until PR #23 is merged and every matrix job passes. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
 ## Privacy and permissions
 

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -20,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -39,8 +42,9 @@ fun CallerPresetsScreen(
     onPreview: (CallerPreset) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var editing by remember { mutableStateOf<CallerPreset?>(null) }
-    var showCreate by remember { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showCreate by rememberSaveable { mutableStateOf(false) }
+    val editing = presets.firstOrNull { it.id == editingId }
     var deleting by remember { mutableStateOf<CallerPreset?>(null) }
 
     Column(
@@ -62,7 +66,7 @@ fun CallerPresetsScreen(
         }
         Button(
             onClick = {
-                editing = null
+                editingId = null
                 showCreate = true
             },
             modifier = Modifier.fillMaxWidth().testTag("caller-preset-add-button"),
@@ -80,7 +84,7 @@ fun CallerPresetsScreen(
                     CallerPresetCard(
                         preset = preset,
                         onPreview = { onPreview(preset) },
-                        onEdit = { editing = preset },
+                        onEdit = { editingId = preset.id },
                         onDelete = { deleting = preset },
                     )
                 }
@@ -93,7 +97,7 @@ fun CallerPresetsScreen(
             preset = editing,
             onDismiss = {
                 showCreate = false
-                editing = null
+                editingId = null
             },
             onSave = onSave,
         )
@@ -146,15 +150,18 @@ private fun CallerPresetEditorDialog(
     onDismiss: () -> Unit,
     onSave: (String?, String, String) -> Boolean,
 ) {
-    var name by remember(preset?.id) { mutableStateOf(preset?.displayName.orEmpty()) }
-    var number by remember(preset?.id) { mutableStateOf(preset?.numberLabel.orEmpty()) }
+    var name by rememberSaveable(preset?.id) { mutableStateOf(preset?.displayName.orEmpty()) }
+    var number by rememberSaveable(preset?.id) { mutableStateOf(preset?.numberLabel.orEmpty()) }
     var validationError by remember(preset?.id) { mutableStateOf<CallerPresetValidationError?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (preset == null) R.string.caller_preset_add else R.string.caller_preset_edit)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 TextField(
                     value = name,
                     onValueChange = {

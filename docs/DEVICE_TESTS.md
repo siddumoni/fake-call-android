@@ -1,6 +1,6 @@
 # Physical device validation checklist
 
-Target: OnePlus Nord 6 (CPH2793), India, ColorOS 17, Android 17 / API 37.
+Scope: Android 15 (API 35) and later phones from any manufacturer. Record the device model and OS build for every result. No physical device has been tested.
 
 The development environment cannot validate this physical device. Mark each item only after a real test and record app version, OS build, date and outcome. Do not infer an outcome from emulator tests.
 
@@ -17,7 +17,7 @@ The development environment cannot validate this physical device. Mark each item
 ## Before testing
 
 - Install the debug APK from the CI artifact.
-- Record Android build fingerprint and ColorOS build.
+- Record the device model, Android build fingerprint and OEM software version.
 - Grant notification permission and exact-alarm access only when prompted by the app.
 - Confirm the app does not request USE_FULL_SCREEN_INTENT and uses heads-up / notification fallback instead.
 - Confirm the test profile is fictional and does not resemble an emergency service, bank, authority or real business.
@@ -82,7 +82,7 @@ For Follow system, Light, Dark, and each supported combination of Pure black and
 
 ## OEM reliability settings
 
-The names and exact paths of ColorOS 17 battery optimisation, auto-launch, lock-screen notification and pop-up permissions are not independently verified yet. Capture the displayed labels on the target handset before adding exact instructions here.
+The names and exact paths of OEM battery optimisation, auto-launch, lock-screen notification and pop-up permissions are not independently verified yet. Capture the displayed labels on each tested handset before adding exact instructions here.
 
 - [ ] Battery optimisation state recorded.
 - [ ] Auto-launch/background launch state recorded, if present.

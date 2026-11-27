@@ -23,7 +23,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -345,14 +344,12 @@ private fun ScheduleEditorDialog(
                     style = MaterialTheme.typography.titleSmall,
                 )
                 DeliveryModeOption(
-                    mode = ScheduledCallDeliveryMode.EXACT,
                     selected = selectedMode == ScheduledCallDeliveryMode.EXACT,
                     title = stringResource(R.string.schedule_exact_title),
                     description = stringResource(R.string.schedule_exact_description),
                     onSelect = { selectedMode = ScheduledCallDeliveryMode.EXACT },
                 )
                 DeliveryModeOption(
-                    mode = ScheduledCallDeliveryMode.APPROXIMATE,
                     selected = selectedMode == ScheduledCallDeliveryMode.APPROXIMATE,
                     title = stringResource(R.string.schedule_approximate_title),
                     description = stringResource(R.string.schedule_approximate_description),
@@ -414,7 +411,6 @@ private fun ScheduleEditorDialog(
 
 @Composable
 private fun DeliveryModeOption(
-    mode: ScheduledCallDeliveryMode,
     selected: Boolean,
     title: String,
     description: String,

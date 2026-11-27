@@ -76,14 +76,17 @@ class ScheduledCallsViewModel(
                     return@withLock
                 }
 
+                var previous: ScheduledCall? = null
+                var persisted = false
                 try {
                     val savedPresets = presetRepository.presets.first()
                     if (savedPresets.none { preset -> preset.id == call.callerPresetId }) {
                         _operationState.value = ScheduledCallOperationState.CALLER_PROFILE_MISSING
                         return@withLock
                     }
-                    val previous = repository.calls.first().firstOrNull { saved -> saved.id == call.id }
+                    previous = repository.calls.first().firstOrNull { saved -> saved.id == call.id }
                     repository.upsert(call)
+                    persisted = true
                     when (scheduler.schedule(call)) {
                         ScheduleAlarmResult.SCHEDULED -> {
                             _operationState.value = ScheduledCallOperationState.SAVED
@@ -95,6 +98,9 @@ class ScheduledCallsViewModel(
                     }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
+                    if (persisted) {
+                        runCatching { restorePrevious(previous, call.id) }
+                    }
                     _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
                 }
             }
@@ -159,7 +165,9 @@ class ScheduledCallsViewModel(
             scheduler.cancel(id)
         } else {
             repository.upsert(previous)
-            scheduler.schedule(previous)
+            check(scheduler.schedule(previous) == ScheduleAlarmResult.SCHEDULED) {
+                "Unable to restore the previous alarm after a failed update."
+            }
         }
     }
 }

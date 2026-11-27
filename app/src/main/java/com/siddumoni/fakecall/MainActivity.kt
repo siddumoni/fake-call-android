@@ -1,25 +1,23 @@
-package com.siddumoni.fakecall
-
-import android.Manifest
 import android.app.AlarmManager
 import android.content.Intent
+import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
 import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
@@ -33,9 +31,11 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
+import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
+package com.siddumoni.fakecall
+
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()

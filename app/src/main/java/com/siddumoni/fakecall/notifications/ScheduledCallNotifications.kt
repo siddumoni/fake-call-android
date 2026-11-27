@@ -103,8 +103,7 @@ object ScheduledCallNotifications {
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
                 .setContentText(
                     context.getString(R.string.schedule_notification_text, caller.displayName),
-                )
-                .setSubText(context.getString(R.string.simulated_call_banner))
+                ).setSubText(context.getString(R.string.simulated_call_banner))
                 .setPublicVersion(publicVersion)
                 .setContentIntent(contentIntent)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
@@ -117,8 +116,7 @@ object ScheduledCallNotifications {
                     0,
                     context.getString(R.string.schedule_notification_dismiss),
                     dismissIntent,
-                )
-                .build()
+                ).build()
 
         return try {
             NotificationManagerCompat
@@ -130,7 +128,10 @@ object ScheduledCallNotifications {
         }
     }
 
-    fun cancel(context: Context, scheduleId: String) {
+    fun cancel(
+        context: Context,
+        scheduleId: String,
+    ) {
         if (isUuid(scheduleId)) {
             NotificationManagerCompat.from(context).cancel(notificationId(scheduleId))
         }

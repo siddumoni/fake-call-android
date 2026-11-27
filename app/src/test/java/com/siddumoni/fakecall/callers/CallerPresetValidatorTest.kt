@@ -29,8 +29,14 @@ class CallerPresetValidatorTest {
 
     @Test
     fun rejectsBidirectionalFormattingControlsButAllowsRtlText() {
-        assertEquals(CallerPresetValidationError.NAME_INVALID, CallerPresetValidator.validate("Alice\\u202E", ""))
-        assertEquals(CallerPresetValidationError.NAME_INVALID, CallerPresetValidator.validate("\\u2066Alice\\u2069", ""))
+        assertEquals(
+            CallerPresetValidationError.NAME_INVALID,
+            CallerPresetValidator.validate("Alice" + Char(0x202E), ""),
+        )
+        assertEquals(
+            CallerPresetValidationError.NAME_INVALID,
+            CallerPresetValidator.validate(Char(0x2066) + "Alice" + Char(0x2069), ""),
+        )
         assertNull(CallerPresetValidator.validate("محمد", ""))
     }
 

@@ -37,7 +37,11 @@ object CallerPresetValidator {
     }
 
     private fun Char.isBidiFormattingControl(): Boolean =
-        code in 0x202A..0x202E || code in 0x2066..0x206F || code == 0x061C || code == 0x200E || code == 0x200F
+        code in 0x202A..0x202E ||
+            code in 0x2066..0x206F ||
+            code == 0x061C ||
+            code == 0x200E ||
+            code == 0x200F
 
     fun normalize(
         displayName: String,

@@ -146,7 +146,7 @@ jobs:
       - name: Install Android 17 preview platform and Build Tools
         run: python3 scripts/install_android_sdk.py --kind=compile
       - name: Build Kotlin sources for CodeQL
-        run: ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
+        run: ./gradlew --no-daemon --no-build-cache --dependency-verification strict clean :app:assembleDebug
       - name: Analyze
         uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934
 

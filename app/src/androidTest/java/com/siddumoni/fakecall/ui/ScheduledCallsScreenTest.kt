@@ -45,7 +45,7 @@ class ScheduledCallsScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("schedule-add-button").performClick()
+        composeRule.onNodeWithTag("schedule-add-button").performScrollTo().performClick()
         composeRule.onNodeWithText("Approximate").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Exact").performScrollTo().performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()

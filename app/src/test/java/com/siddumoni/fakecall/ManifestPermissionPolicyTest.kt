@@ -54,6 +54,7 @@ class ManifestPermissionPolicyTest {
         assertEquals(
             setOf(
                 "android.permission.POST_NOTIFICATIONS",
+                "android.permission.RECEIVE_BOOT_COMPLETED",
                 "android.permission.SCHEDULE_EXACT_ALARM",
             ),
             activePermissions.filter { it.isNotBlank() }.toSet(),

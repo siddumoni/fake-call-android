@@ -50,7 +50,7 @@ Last updated: 2026-11-27
 - Concurrent duplicate alarm delivery and illegal transitions are rejected by serialized DataStore edits.
 - JVM model/codec/time-rule tests and emulator repository instrumentation tests cover DST, validation, persistence, concurrent duplicate delivery and illegal transitions.
 - PR #16 merged at `b847454dc7bd12e86473e706866196f549c098d2`; its complete PR CI passed, including build/unit/lint/manifest, emulator instrumentation/screenshots, CodeQL, secret scan and OSV dependency review.
-- PR #19 is open and under CI review. It contains schedule create/edit/cancel/delete UI, exact-versus-approximate choice, contextual notification/exact-alarm permission flows, AlarmManager trigger/timeout adapters, non-exported receivers, a private heads-up notification, notification-to-local-simulation navigation and a Dismiss action. The branch includes rollback on alarm-registration failure, foreground alarm reconciliation, race-fenced pending deletion, UI/notification/scheduler tests, and the v1→v2 codec migration. It is not merged into `main`; CI for the latest PR head is still pending. Reboot restoration and physical-device validation remain outstanding.
+- PR #19 (schedule management, alarms and notification delivery) is merged.
 
 ## Current CI maintenance
 
@@ -60,14 +60,18 @@ Last updated: 2026-11-27
 
 ## Remaining product work
 
-1. Merge PR #19 only after complete green CI, focused review, and verified race/rollback tests.
-2. Add reboot recovery with a non-exported receiver, RECEIVE_BOOT_COMPLETED allowlist rationale, and valid-future-schedule reconciliation.
-3. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
-4. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
-5. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
+1. Verify restart recovery on a physical device.
+2. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
+3. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
+4. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
 
 All feature changes should be focused PRs with tests and complete green CI. Keep the app local/offline, avoid real telephony or caller-ID spoofing, and never impersonate emergency services, authorities, banks, government bodies, or real companies.
 
 ## Physical-device validation limitation
 
 A target OnePlus / ColorOS handset is not available in this environment. OEM alarm delivery, exact-alarm settings, lock-screen/full-screen notification behaviour, battery restrictions, audio routing and system-theme/splash behavior remain unverified on physical hardware. Do not mark these checks complete based on emulator CI alone.
+
+## Restart recovery and schedule fixes
+
+- PR #19 was squash-merged at `28d2ded` after all PR checks passed. It also keeps late approximate alarms pending for one hour (exact: two minutes) and closes stale ringing or orphaned answered records.
+- Restart recovery is added: future schedules are re-registered; expired, ringing and answered records are closed. A real device restart has not been tested.

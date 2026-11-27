@@ -56,4 +56,21 @@ class ScheduleRecoveryPolicyTest {
             assertNull(ScheduleRecoveryPolicy.expiryActionFor(call(ScheduledCallDeliveryMode.EXACT, state), now))
         }
     }
+
+    @Test
+    fun rebootKeepsOnlyFutureSchedules() {
+        val pending = call(ScheduledCallDeliveryMode.APPROXIMATE)
+
+        assertNull(ScheduleRecoveryPolicy.rebootActionFor(pending, trigger - 1))
+        assertEquals(ScheduledCallAction.TIMEOUT, ScheduleRecoveryPolicy.rebootActionFor(pending, trigger))
+    }
+
+    @Test
+    fun rebootClosesInterruptedCalls() {
+        val ringing = call(ScheduledCallDeliveryMode.EXACT, ScheduledCallState.RINGING)
+        val answered = call(ScheduledCallDeliveryMode.EXACT, ScheduledCallState.IN_CALL)
+
+        assertEquals(ScheduledCallAction.TIMEOUT, ScheduleRecoveryPolicy.rebootActionFor(ringing, trigger))
+        assertEquals(ScheduledCallAction.END, ScheduleRecoveryPolicy.rebootActionFor(answered, trigger))
+    }
 }

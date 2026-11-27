@@ -12,3 +12,4 @@ captures/
 *.jks
 *.keystore
 secrets.properties
+__pycache__/

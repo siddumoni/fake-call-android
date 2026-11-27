@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import com.siddumoni.fakecall.notifications.ScheduledCallAlarmReceiver
 import com.siddumoni.fakecall.notifications.ScheduledCallTimeoutReceiver
 import java.util.UUID
@@ -86,11 +87,17 @@ class ScheduledCallAlarmScheduler(
         timeoutAtEpochMillis: Long,
     ) {
         if (!isUuid(scheduleId)) return
+        val elapsedDeadline =
+            ScheduleRecoveryPolicy.timeoutAlarmElapsedRealtime(
+                timeoutAtEpochMillis,
+                System.currentTimeMillis(),
+                SystemClock.elapsedRealtime(),
+            )
         alarmManager.setAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            timeoutAtEpochMillis,
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            elapsedDeadline,
             timeoutPendingIntent(scheduleId),
-        )
+        
     }
 
     fun cancelTimeout(scheduleId: String) {

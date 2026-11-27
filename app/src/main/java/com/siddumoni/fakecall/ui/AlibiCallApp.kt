@@ -75,6 +75,7 @@ fun AlibiCallApp(
     notificationsAllowed: Boolean = true,
     exactAlarmAllowed: Boolean = false,
     onOpenSchedules: () -> Unit = {},
+    onOpenScheduleNotificationSettings: () -> Unit = {},
     onSaveSchedule: (com.siddumoni.fakecall.scheduling.ScheduledCall) -> Unit = {},
     onCancelSchedule: (String) -> Unit = {},
     onDeleteSchedule: (String) -> Unit = {},
@@ -141,6 +142,7 @@ fun AlibiCallApp(
                         onDelete = onDeleteSchedule,
                         onRequestNotifications = onRequestNotificationPermission,
                         onRequestExactAlarms = onRequestExactAlarmPermission,
+                        onOpenNotificationSettings = onOpenScheduleNotificationSettings,
                         onClearOperationState = onClearScheduleOperation,
                     )
                 AppScreen.THEME_SETTINGS ->

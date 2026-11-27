@@ -56,6 +56,8 @@ Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 1
 - [ ] Bluetooth headset connected.
 - [ ] Volume changed during notification.
 - [ ] Notification channel sound disabled by user.
+- [ ] Notification channel vibration pattern enabled/disabled in Android settings.
+- [ ] Use the in-app sound/vibration settings link and verify it opens the channel or app-notification fallback.
 - [ ] Custom SAF audio selection, if supported by implementation.
 - [ ] Confirm no duplicate ringing.
 - [ ] Run strict audio test: `adb shell cmd audio set-enable-hardening throw`; capture logs and verify expected failures are handled. This mode is stricter than default and removes the exact-alarm audio exemption.

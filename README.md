@@ -48,6 +48,10 @@ Use the checked-in Gradle Wrapper:
 
 On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. PR #23 adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), expanded (600 dp), and compact-landscape (640×360 dp) configurations plus 200% font scaling on compact portrait configurations. This matrix is not considered complete until PR #23 is merged and every matrix job passes. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
+## Notification sound and vibration
+
+Scheduled-call notifications use the system default notification sound and a short vibration pattern. Users can customize or disable these in Android notification-channel settings from the schedule screen. Custom ringtone files are not supported.
+
 ## Privacy and permissions
 
 The application source manifest declares no feature permissions. AndroidX Core currently contributes one package-specific, signature-protected compatibility permission to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the declared protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is unrelated to telephony or access to user data.

@@ -6,12 +6,12 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -24,8 +24,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,21 +36,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.R
+import com.siddumoni.fakecall.callers.CallerPreset
+import com.siddumoni.fakecall.scheduling.ScheduleTimeResolver
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
 import com.siddumoni.fakecall.scheduling.ScheduledCallOperationState
 import com.siddumoni.fakecall.scheduling.ScheduledCallRules
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
-import com.siddumoni.fakecall.scheduling.ScheduleTimeResolver
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import java.util.UUID
 
@@ -267,10 +267,10 @@ private fun ScheduleEditorDialog(
     val defaultDateTime =
         remember(existing?.id) {
             existing?.let { saved ->
-                Instant
-                    .ofEpochMilli(saved.triggerAtEpochMillis)
-                    .atZone(zone)
-                    .toLocalDateTime()
+                LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(saved.triggerAtEpochMillis),
+                    zone,
+                )
             } ?: LocalDateTime.now(zone).plusMinutes(5).withSecond(0).withNano(0)
         }
     var selectedDate by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }

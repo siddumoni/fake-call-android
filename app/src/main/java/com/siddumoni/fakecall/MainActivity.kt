@@ -2,6 +2,7 @@ package com.siddumoni.fakecall
 
 import android.Manifest
 import android.app.AlarmManager
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -124,6 +125,7 @@ class MainActivity : ComponentActivity() {
                 onOpenThemeSettings = { currentScreen = AppScreen.THEME_SETTINGS },
                 onOpenCallerPresets = { currentScreen = AppScreen.CALLER_PRESETS },
                 onOpenSchedules = { currentScreen = AppScreen.SCHEDULES },
+                onOpenScheduleNotificationSettings = ::openScheduleNotificationSettings,
                 onBack = {
                     finishScheduledCallIfNeeded()
                     currentScreen = AppScreen.HOME
@@ -197,6 +199,21 @@ class MainActivity : ComponentActivity() {
                 Uri.parse("package:$packageName"),
             )
         exactAlarmSettingsLauncher.launch(request)
+    }
+
+    private fun openScheduleNotificationSettings() {
+        val channelSettings =
+            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                .putExtra(Settings.EXTRA_CHANNEL_ID, ScheduledCallNotifications.CHANNEL_ID)
+        try {
+            startActivity(channelSettings)
+        } catch (_: ActivityNotFoundException) {
+            startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName),
+            )
+        }
     }
 
     private fun handleScheduledCallIntent(intent: Intent?) {

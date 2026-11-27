@@ -5,8 +5,10 @@ import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -26,5 +28,10 @@ class ScheduledCallNotificationsTest {
             context.getString(com.siddumoni.fakecall.R.string.schedule_notification_channel_description),
             channel?.description,
         )
+        val actualChannel = requireNotNull(channel)
+        assertTrue(actualChannel.shouldVibrate())
+        assertArrayEquals(longArrayOf(0L, 300L, 200L, 300L), actualChannel.vibrationPattern)
+        val defaultSound = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+        if (defaultSound != null) assertEquals(defaultSound, actualChannel.sound)
     }
 }

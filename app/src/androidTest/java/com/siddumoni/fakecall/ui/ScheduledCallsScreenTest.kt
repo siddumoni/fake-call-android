@@ -134,4 +134,29 @@ class ScheduledCallsScreenTest {
         composeRule.onNodeWithText("Open Alarms & reminders settings").assertExists()
         composeRule.onNodeWithText("Enable notifications").assertExists()
     }
+
+    @Test
+    fun notificationSettingsButtonDelegatesToSystemSettings() {
+        var opened = false
+        composeRule.setContent {
+            AlibiCallTheme(settings = ThemeSettings.Default) {
+                ScheduledCallsScreen(
+                    calls = emptyList(),
+                    callerPresets = emptyList(),
+                    operationState = ScheduledCallOperationState.IDLE,
+                    notificationsAllowed = true,
+                    exactAlarmAllowed = true,
+                    onSave = {},
+                    onCancel = {},
+                    onDelete = {},
+                    onRequestNotifications = {},
+                    onRequestExactAlarms = {},
+                    onOpenNotificationSettings = { opened = true },
+                    onClearOperationState = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("schedule-notification-settings").performClick()
+        composeRule.runOnIdle { assertEquals(true, opened) }
+    }
 }

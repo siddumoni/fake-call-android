@@ -5,7 +5,8 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.SCHEDULE_EXACT_ALARM",
-        "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+        "android.permission.VIBRATE"
       ],
       "defined_permissions": {
         "com.siddumoni.fakecall.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "signature"
@@ -16,7 +17,8 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.SCHEDULE_EXACT_ALARM",
-        "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+        "android.permission.VIBRATE"
       ],
       "defined_permissions": {
         "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "signature"
@@ -28,6 +30,7 @@
     "com.siddumoni.fakecall.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION": "AndroidX Core AAR manifest compatibility declaration for RECEIVER_NOT_EXPORTED runtime receivers on Android before API 33. It is signature-protected. minSdk 35 means the legacy runtime fallback is unreachable, but the dependency manifest entry remains merged.",
     "android.permission.POST_NOTIFICATIONS": "Allows the user-approved scheduled simulated-call notification on Android 13+. Runtime permission is requested in context; if denied or later revoked, the app does not launch an Activity or silently downgrade the schedule.",
     "android.permission.SCHEDULE_EXACT_ALARM": "Allows a user-selected exact simulated-call schedule only after checking canScheduleExactAlarms() and sending the user to Alarms & reminders special app access when needed. Approximate mode uses an inexact alarm and never requests this access.",
-    "android.permission.RECEIVE_BOOT_COMPLETED": "Restores pending future simulated-call alarms after a device restart through a non-exported receiver. Expired and interrupted records are closed."
+    "android.permission.RECEIVE_BOOT_COMPLETED": "Restores pending future simulated-call alarms after a device restart through a non-exported receiver. Expired and interrupted records are closed.",
+    "android.permission.VIBRATE": "Allows the scheduled-simulation notification channel to use its configured vibration pattern. The user can disable vibration or change sound in Android notification-channel settings."
   }
 }

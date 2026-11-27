@@ -6,7 +6,7 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The app declares only `POST_NOTIFICATIONS` and `SCHEDULE_EXACT_ALARM` for the scheduled-simulation feature, in addition to AndroidX Core's signature-protected package permission described below. Notification permission is requested only in context. Exact scheduling is available only after `canScheduleExactAlarms()` reports user-granted Alarms & reminders access; approximate mode does not require it. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
+The app declares `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM` and `VIBRATE` for the scheduled-simulation feature, in addition to AndroidX Core's signature-protected package permission described below. Notification permission is requested only in context. Exact scheduling is available only after `canScheduleExactAlarms()` reports user-granted Alarms & reminders access; approximate mode does not require it. `VIBRATE` enables the notification channel's short pattern; sound and vibration are user-controlled in Android channel settings through the schedule screen. Custom ringtone files and independent background audio are not supported. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
 
 The current merged-manifest allowlist contains only AndroidX Core's package-specific signature permission:
 
@@ -21,7 +21,7 @@ Future permission additions require a separate reviewed PR and exact allowlist u
 |---|---|---|
 | RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Declared; non-exported receiver |
 
-`USE_FULL_SCREEN_INTENT` is deliberately not declared: AlibiCall is a fictional local simulation, not a phone/video calling app or a conventional alarm-clock app. It uses a high-importance notification with the system heads-up/lock-screen presentation instead of requesting restricted full-screen takeover. No VIBRATE permission or custom background audio capability is requested.
+`USE_FULL_SCREEN_INTENT` is deliberately not declared: AlibiCall is a fictional local simulation, not a phone/video calling app or a conventional alarm-clock app. It uses a high-importance notification with the system heads-up/lock-screen presentation instead of requesting restricted full-screen takeover. VIBRATE is limited to notification-channel vibration; no custom background audio capability is requested.
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, or broad external storage permissions. Foreground-service declarations require a separate technical justification before implementation.
 

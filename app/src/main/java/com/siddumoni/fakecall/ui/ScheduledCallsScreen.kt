@@ -69,6 +69,7 @@ fun ScheduledCallsScreen(
     onDelete: (String) -> Unit,
     onRequestNotifications: () -> Unit,
     onRequestExactAlarms: () -> Unit,
+    onOpenNotificationSettings: () -> Unit = {},
     onClearOperationState: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -102,6 +103,12 @@ fun ScheduledCallsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        TextButton(
+            onClick = onOpenNotificationSettings,
+            modifier = Modifier.fillMaxWidth().testTag("schedule-notification-settings"),
+        ) {
+            Text(stringResource(R.string.schedule_notification_settings))
+        }
         if (!notificationsAllowed &&
             !creating &&
             editing == null &&

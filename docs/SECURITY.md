@@ -6,7 +6,7 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The app source manifest requests no platform permissions. First-run onboarding is informational only and requests no runtime or special app access. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
+The app declares only `POST_NOTIFICATIONS` and `SCHEDULE_EXACT_ALARM` for the scheduled-simulation feature, in addition to AndroidX Core's signature-protected package permission described below. Notification permission is requested only in context. Exact scheduling is available only after `canScheduleExactAlarms()` reports user-granted Alarms & reminders access; approximate mode does not require it. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
 
 The current merged-manifest allowlist contains only AndroidX Core's package-specific signature permission:
 
@@ -15,21 +15,19 @@ The current merged-manifest allowlist contains only AndroidX Core's package-spec
 
 AndroidX Core's AAR manifest declares `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` with `android:protectionLevel="signature"` and requests that permission. It is used by `ContextCompat.RECEIVER_NOT_EXPORTED` as a compatibility guard for runtime receivers on Android versions before API 33. AlibiCall has `minSdk 34`, so that legacy fallback path cannot execute; the dependency's manifest declarations nevertheless remain in the merged manifest. The custom permission does not grant telephony, contacts, call-log, SMS, microphone, camera, storage or network access. Signature protection limits it to applications signed with the same certificate. CI verifies the exact build-variant name and rejects a change from `signature` protection.
 
-Later feature work may add only individually reviewed permissions from this candidate set:
+Future permission additions require a separate reviewed PR and exact allowlist update:
 
 | Permission | Purpose | Gate |
 |---|---|---|
-| POST_NOTIFICATIONS | Incoming-call / schedule notifications | Request at runtime on applicable versions after explanation |
-| USE_FULL_SCREEN_INTENT | Full-screen simulated-call UI | Check canUseFullScreenIntent and provide heads-up fallback |
-| SCHEDULE_EXACT_ALARM | User-specified precise call schedule | Check canScheduleExactAlarms and handle revocation |
-| VIBRATE | Optional vibration pattern | Confirm platform permission requirement at implementation time |
-| RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Add only with tested boot receiver |
+| RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Add only with a tested non-exported boot receiver |
+
+`USE_FULL_SCREEN_INTENT` is deliberately not declared: AlibiCall is a fictional local simulation, not a phone/video calling app or a conventional alarm-clock app. It uses a high-importance notification with the system heads-up/lock-screen presentation instead of requesting restricted full-screen takeover. No VIBRATE permission or custom background audio capability is requested.
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, or broad external storage permissions. Foreground-service declarations require a separate technical justification before implementation.
 
 ## Component exposure
 
-Every component is non-exported by default. The launcher Activity is the only currently exported component. Future notification actions, alarm receivers and reboot entry points must use explicit immutable PendingIntents and the narrowest possible exported state. The lock-screen Activity must not expose navigation to the main app or reveal anything other than the currently scheduled simulated caller.
+Every component is non-exported by default except the launcher Activity. The scheduled-alarm, timeout and notification-dismiss receivers are explicitly non-exported. Alarm and notification action PendingIntents are explicit and immutable, and use unique data URIs per schedule. Notification content opens the launcher Activity with the app-specific `alibicall://scheduled-call/<UUID>` URI; the Activity accepts only ACTION_VIEW with the exact scheme/authority and a single validated UUID path segment, then reloads schedule state and caller data from private storage. It does not trust intent extras.
 
 ## Data protection
 

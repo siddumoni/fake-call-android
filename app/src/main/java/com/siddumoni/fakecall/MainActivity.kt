@@ -1,27 +1,61 @@
 package com.siddumoni.fakecall
 
+import android.Manifest
+import android.app.AlarmManager
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
+import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
+import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
+import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import com.siddumoni.fakecall.onboarding.OnboardingViewModel
+import com.siddumoni.fakecall.scheduling.ScheduledCallAction
+import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
+import com.siddumoni.fakecall.scheduling.ScheduledCallState
+import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
     private val callerPresetsViewModel: CallerPresetsViewModel by viewModels()
     private val onboardingViewModel: OnboardingViewModel by viewModels()
+    private val scheduledCallsViewModel: ScheduledCallsViewModel by viewModels()
+    private var activeScheduledCallId by mutableStateOf<String?>(null)
+    private var notificationsAllowed by mutableStateOf(false)
+    private var exactAlarmAllowed by mutableStateOf(false)
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            refreshSchedulePermissions()
+            scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
+        }
+    private val exactAlarmSettingsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            refreshSchedulePermissions()
+            scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
+        }
     private var currentScreen by mutableStateOf(AppScreen.HOME)
     private var selectedCaller by mutableStateOf<CallerPreset?>(null)
 
@@ -40,6 +74,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 AppScreen.ONBOARDING
             }
+        activeScheduledCallId = savedInstanceState?.getString(STATE_SCHEDULED_CALL_ID)
         selectedCaller =
             savedInstanceState?.let {
                 val id = it.getString(STATE_CALLER_ID)
@@ -47,7 +82,12 @@ class MainActivity : ComponentActivity() {
                 val number = it.getString(STATE_CALLER_NUMBER)
                 if (id != null && name != null && number != null) CallerPreset(id, name, number) else null
             }
+        if (savedInstanceState == null) {
+            scheduledCallsViewModel.endOrphanedCalls()
+        }
         enableEdgeToEdge()
+        ScheduledCallNotifications.ensureChannel(this)
+        refreshSchedulePermissions()
         setContent {
             val settings by themeViewModel.settings.collectAsState()
             val saveFailed by themeViewModel.saveFailed.collectAsState()
@@ -55,6 +95,8 @@ class MainActivity : ComponentActivity() {
             val callerPresetSaveError by callerPresetsViewModel.saveError.collectAsState()
             val onboardingCompleted by onboardingViewModel.completed.collectAsState()
             val onboardingSaveFailed by onboardingViewModel.saveFailed.collectAsState()
+            val scheduledCalls by scheduledCallsViewModel.calls.collectAsState()
+            val scheduleOperationState by scheduledCallsViewModel.operationState.collectAsState()
 
             LaunchedEffect(onboardingCompleted) {
                 if (onboardingCompleted && currentScreen == AppScreen.ONBOARDING) {
@@ -65,6 +107,7 @@ class MainActivity : ComponentActivity() {
             BackHandler(
                 enabled = currentScreen != AppScreen.HOME && currentScreen != AppScreen.ONBOARDING,
             ) {
+                finishScheduledCallIfNeeded()
                 currentScreen = AppScreen.HOME
                 selectedCaller = null
             }
@@ -80,7 +123,11 @@ class MainActivity : ComponentActivity() {
                 screen = currentScreen,
                 onOpenThemeSettings = { currentScreen = AppScreen.THEME_SETTINGS },
                 onOpenCallerPresets = { currentScreen = AppScreen.CALLER_PRESETS },
-                onBack = { currentScreen = AppScreen.HOME },
+                onOpenSchedules = { currentScreen = AppScreen.SCHEDULES },
+                onBack = {
+                    finishScheduledCallIfNeeded()
+                    currentScreen = AppScreen.HOME
+                },
                 callerPresets = callerPresets,
                 callerPresetSaveError = callerPresetSaveError,
                 onSaveCallerPreset = callerPresetsViewModel::savePreset,
@@ -90,17 +137,156 @@ class MainActivity : ComponentActivity() {
                     selectedCaller = caller
                     currentScreen = AppScreen.SIMULATED_CALL
                 },
-                onAnswerSimulatedCall = { currentScreen = AppScreen.SIMULATED_IN_CALL },
+                onAnswerSimulatedCall = { answerScheduledCall() },
                 onEndSimulatedCall = {
+                    finishScheduledCallIfNeeded()
                     selectedCaller = null
                     currentScreen = AppScreen.HOME
                 },
+                scheduledCalls = scheduledCalls,
+                scheduleOperationState = scheduleOperationState,
+                notificationsAllowed = notificationsAllowed,
+                exactAlarmAllowed = exactAlarmAllowed,
+                onSaveSchedule = scheduledCallsViewModel::save,
+                onCancelSchedule = scheduledCallsViewModel::cancel,
+                onDeleteSchedule = scheduledCallsViewModel::delete,
+                onRequestNotificationPermission = ::requestNotificationPermission,
+                onRequestExactAlarmPermission = ::requestExactAlarmPermission,
+                onClearScheduleOperation = scheduledCallsViewModel::clearOperationState,
+            )
+        }
+        handleScheduledCallIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleScheduledCallIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshSchedulePermissions()
+        scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
+    }
+
+    private fun refreshSchedulePermissions() {
+        notificationsAllowed = ScheduledCallNotifications.canPost(this)
+        val manager = getSystemService(ALARM_SERVICE) as AlarmManager
+        exactAlarmAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms()
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName),
             )
         }
     }
 
+    private fun requestExactAlarmPermission() {
+        val request =
+            Intent(
+                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                Uri.parse("package:$packageName"),
+            )
+        exactAlarmSettingsLauncher.launch(request)
+    }
+
+    private fun handleScheduledCallIntent(intent: Intent?) {
+        val data = intent?.data ?: return
+        // Only our explicit notification URI is accepted. Do not trust caller-supplied extras
+        // or arbitrary schemes/authorities on this exported launcher Activity.
+        if (
+            intent.action != Intent.ACTION_VIEW ||
+            data.scheme != "alibicall" ||
+            data.authority != "scheduled-call" ||
+            data.pathSegments.size != 1
+        ) {
+            return
+        }
+        val id = data.pathSegments.single()
+        if (!isUuid(id)) return
+        lifecycleScope.launch {
+            val call =
+                ScheduledCallRepository(this@MainActivity)
+                    .calls
+                    .first()
+                    .firstOrNull { it.id == id }
+                    ?: return@launch
+            if (call.state != ScheduledCallState.RINGING && call.state != ScheduledCallState.IN_CALL) {
+                return@launch
+            }
+            val caller =
+                CallerPresetRepository(this@MainActivity)
+                    .presets
+                    .first()
+                    .firstOrNull { it.id == call.callerPresetId }
+                    ?: return@launch
+            selectedCaller = caller
+            activeScheduledCallId = id
+            currentScreen =
+                if (call.state == ScheduledCallState.IN_CALL) {
+                    AppScreen.SIMULATED_IN_CALL
+                } else {
+                    AppScreen.SIMULATED_CALL
+                }
+        }
+    }
+
+    private fun answerScheduledCall() {
+        val id = activeScheduledCallId
+        if (id == null) {
+            currentScreen = AppScreen.SIMULATED_IN_CALL
+            return
+        }
+        lifecycleScope.launch {
+            if (
+                ScheduledCallRepository(this@MainActivity)
+                    .transition(id, ScheduledCallAction.ANSWER)
+            ) {
+                ScheduledCallAlarmScheduler(this@MainActivity).cancelTimeout(id)
+                ScheduledCallNotifications.cancel(this@MainActivity, id)
+                currentScreen = AppScreen.SIMULATED_IN_CALL
+            } else {
+                // The call already timed out or was dismissed: do not leave a dead Answer button.
+                activeScheduledCallId = null
+                selectedCaller = null
+                currentScreen = AppScreen.HOME
+            }
+        }
+    }
+
+    private fun finishScheduledCallIfNeeded() {
+        val id = activeScheduledCallId ?: return
+        val action =
+            if (currentScreen == AppScreen.SIMULATED_IN_CALL) {
+                ScheduledCallAction.END
+            } else {
+                ScheduledCallAction.DECLINE
+            }
+        lifecycleScope.launch {
+            ScheduledCallRepository(this@MainActivity).transition(id, action)
+            ScheduledCallAlarmScheduler(this@MainActivity).cancelTimeout(id)
+            ScheduledCallNotifications.cancel(this@MainActivity, id)
+            activeScheduledCallId = null
+        }
+    }
+
+    private fun isUuid(value: String): Boolean =
+        runCatching {
+            UUID.fromString(value).toString() == value.lowercase()
+        }.getOrDefault(false)
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)
+        activeScheduledCallId?.let { id -> outState.putString(STATE_SCHEDULED_CALL_ID, id) }
         selectedCaller?.let { caller ->
             outState.putString(STATE_CALLER_ID, caller.id)
             outState.putString(STATE_CALLER_NAME, caller.displayName)
@@ -111,6 +297,7 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         const val STATE_CURRENT_SCREEN = "current_screen"
+        const val STATE_SCHEDULED_CALL_ID = "active_scheduled_call_id"
         const val STATE_CALLER_ID = "selected_caller_id"
         const val STATE_CALLER_NAME = "selected_caller_name"
         const val STATE_CALLER_NUMBER = "selected_caller_number"

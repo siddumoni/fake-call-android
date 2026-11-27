@@ -11,11 +11,17 @@ enum class ScheduledCallState {
     TIMED_OUT,
 }
 
+enum class ScheduledCallDeliveryMode {
+    EXACT,
+    APPROXIMATE,
+}
+
 data class ScheduledCall(
     val id: String,
     val callerPresetId: String,
     val triggerAtEpochMillis: Long,
     val state: ScheduledCallState = ScheduledCallState.SCHEDULED,
+    val deliveryMode: ScheduledCallDeliveryMode = ScheduledCallDeliveryMode.APPROXIMATE,
 )
 
 enum class ScheduleValidationError {
@@ -61,6 +67,8 @@ object ScheduledCallRules {
                 ScheduledCallState.RINGING
             ScheduledCallState.SCHEDULED to ScheduledCallAction.CANCEL ->
                 ScheduledCallState.CANCELLED
+            ScheduledCallState.SCHEDULED to ScheduledCallAction.TIMEOUT ->
+                ScheduledCallState.TIMED_OUT
             ScheduledCallState.RINGING to ScheduledCallAction.ANSWER ->
                 ScheduledCallState.IN_CALL
             ScheduledCallState.RINGING to ScheduledCallAction.DECLINE ->

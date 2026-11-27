@@ -82,6 +82,10 @@ class ScheduledCallRulesTest {
         )
         assertEquals(
             ScheduledCallState.TIMED_OUT,
+            ScheduledCallRules.transition(ScheduledCallState.SCHEDULED, ScheduledCallAction.TIMEOUT),
+        )
+        assertEquals(
+            ScheduledCallState.TIMED_OUT,
             ScheduledCallRules.transition(ScheduledCallState.RINGING, ScheduledCallAction.TIMEOUT),
         )
         assertEquals(

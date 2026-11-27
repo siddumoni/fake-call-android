@@ -30,8 +30,7 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Preview incoming and answered simulated-call screens with an explicit simulation banner; no telephony or network integration.
 - Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
 - First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
-
-User-facing schedule creation/edit/delete, AlarmManager delivery, alarm permission handling, notifications, ringtones and boot recovery are not implemented yet.
+- Schedule management and local alarm/notification delivery are under review in PR #19; they are not yet merged into `main`. The branch adds create/edit/cancel/delete UI, explicit exact/approximate delivery, contextual permission handling, private notification navigation and action/timeout handling. Reboot recovery is not implemented.
 
 ## Build
 

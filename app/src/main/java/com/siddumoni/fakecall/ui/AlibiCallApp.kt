@@ -42,6 +42,7 @@ enum class AppScreen {
     HOME,
     THEME_SETTINGS,
     CALLER_PRESETS,
+    SCHEDULES,
     SIMULATED_CALL,
     SIMULATED_IN_CALL,
 }
@@ -68,6 +69,18 @@ fun AlibiCallApp(
     onPreviewCaller: (CallerPreset) -> Unit = {},
     onAnswerSimulatedCall: () -> Unit = {},
     onEndSimulatedCall: () -> Unit = {},
+    scheduledCalls: List<com.siddumoni.fakecall.scheduling.ScheduledCall> = emptyList(),
+    scheduleOperationState: com.siddumoni.fakecall.scheduling.ScheduledCallOperationState =
+        com.siddumoni.fakecall.scheduling.ScheduledCallOperationState.IDLE,
+    notificationsAllowed: Boolean = true,
+    exactAlarmAllowed: Boolean = false,
+    onOpenSchedules: () -> Unit = {},
+    onSaveSchedule: (com.siddumoni.fakecall.scheduling.ScheduledCall) -> Unit = {},
+    onCancelSchedule: (String) -> Unit = {},
+    onDeleteSchedule: (String) -> Unit = {},
+    onRequestNotificationPermission: () -> Unit = {},
+    onRequestExactAlarmPermission: () -> Unit = {},
+    onClearScheduleOperation: () -> Unit = {},
 ) {
     AlibiCallTheme(settings = settings) {
         Scaffold(
@@ -76,17 +89,18 @@ fun AlibiCallApp(
                     .fillMaxSize()
                     .testTag("app-root"),
             topBar = {
-                if (screen == AppScreen.THEME_SETTINGS || screen == AppScreen.CALLER_PRESETS) {
+                if (screen == AppScreen.THEME_SETTINGS ||
+                    screen == AppScreen.CALLER_PRESETS ||
+                    screen == AppScreen.SCHEDULES
+                ) {
                     TopAppBar(
                         title = {
                             Text(
                                 stringResource(
-                                    if (screen ==
-                                        AppScreen.THEME_SETTINGS
-                                    ) {
-                                        R.string.theme_settings_title
-                                    } else {
-                                        R.string.caller_presets_title
+                                    when (screen) {
+                                        AppScreen.THEME_SETTINGS -> R.string.theme_settings_title
+                                        AppScreen.CALLER_PRESETS -> R.string.caller_presets_title
+                                        else -> R.string.schedules_title
                                     },
                                 ),
                             )
@@ -112,6 +126,22 @@ fun AlibiCallApp(
                         modifier = Modifier.padding(innerPadding),
                         onOpenThemeSettings = onOpenThemeSettings,
                         onOpenCallerPresets = onOpenCallerPresets,
+                        onOpenSchedules = onOpenSchedules,
+                    )
+                AppScreen.SCHEDULES ->
+                    ScheduledCallsScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        calls = scheduledCalls,
+                        callerPresets = callerPresets,
+                        operationState = scheduleOperationState,
+                        notificationsAllowed = notificationsAllowed,
+                        exactAlarmAllowed = exactAlarmAllowed,
+                        onSave = onSaveSchedule,
+                        onCancel = onCancelSchedule,
+                        onDelete = onDeleteSchedule,
+                        onRequestNotifications = onRequestNotificationPermission,
+                        onRequestExactAlarms = onRequestExactAlarmPermission,
+                        onClearOperationState = onClearScheduleOperation,
                     )
                 AppScreen.THEME_SETTINGS ->
                     ThemeSettingsScreen(
@@ -145,6 +175,7 @@ fun AlibiCallApp(
                             modifier = Modifier.padding(innerPadding),
                             onOpenThemeSettings = onOpenThemeSettings,
                             onOpenCallerPresets = onOpenCallerPresets,
+                            onOpenSchedules = onOpenSchedules,
                         )
                     }
             }
@@ -224,6 +255,7 @@ private fun HomeScreen(
     modifier: Modifier = Modifier,
     onOpenThemeSettings: () -> Unit,
     onOpenCallerPresets: () -> Unit,
+    onOpenSchedules: () -> Unit,
 ) {
     Column(
         modifier =
@@ -252,6 +284,24 @@ private fun HomeScreen(
                 Text(text = stringResource(R.string.caller_presets_home_description), style = MaterialTheme.typography.bodyMedium)
                 TextButton(onClick = onOpenCallerPresets) {
                     Text(stringResource(R.string.caller_presets_open))
+                }
+            }
+        }
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.schedules_title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.schedules_home_description),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                TextButton(onClick = onOpenSchedules) {
+                    Text(stringResource(R.string.schedules_open))
                 }
             }
         }

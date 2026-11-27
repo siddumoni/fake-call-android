@@ -19,7 +19,7 @@ The development environment cannot validate this physical device. Mark each item
 - Install the debug APK from the CI artifact.
 - Record Android build fingerprint and ColorOS build.
 - Grant notification permission and exact-alarm access only when prompted by the app.
-- Verify full-screen intent access separately.
+- Confirm the app does not request USE_FULL_SCREEN_INTENT and uses heads-up / notification fallback instead.
 - Confirm the test profile is fictional and does not resemble an emergency service, bank, authority or real business.
 
 ## Call delivery
@@ -32,8 +32,11 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] App process killed: verify delivery and recovery.
 - [ ] Reboot with a pending schedule: verify only valid future calls are restored.
 - [ ] Cancel before trigger: verify no call notification appears.
-- [ ] Repeated Answer/Decline/Dismiss: verify idempotent state transitions.
-- [ ] Ring timeout: verify ringing stops and state becomes TimedOut.
+- [ ] Edit a pending schedule; verify its original trigger is replaced and no duplicate is delivered.
+- [ ] Delete a pending schedule immediately before trigger; verify cancellation wins or active delivery is protected (never stale/duplicate UI).
+- [ ] Tap the notification; verify it opens only the persisted schedule and fictional profile in the app.
+- [ ] Answer, Decline, End and Dismiss; verify idempotent state transitions and timeout cancellation.
+- [ ] Ring timeout: verify notification is removed and state becomes TimedOut.
 
 ## Audio and interruption modes
 
@@ -52,11 +55,12 @@ The development environment cannot validate this physical device. Mark each item
 
 ## Permission failure and revocation
 
-- [ ] Notifications denied at onboarding.
-- [ ] Notifications revoked from system settings after onboarding.
-- [ ] Exact alarm access denied.
-- [ ] Exact alarm access revoked while a schedule exists.
-- [ ] Full-screen intent access denied; verify heads-up fallback.
+- [ ] Notifications denied when creating a schedule; verify schedule is not silently created without delivery.
+- [ ] Notifications revoked from system settings after a schedule exists; verify no Activity is launched from background and state is recorded safely.
+- [ ] Exact alarm access denied; exact schedule is blocked with clear explanation.
+- [ ] Exact alarm access revoked while a schedule exists; verify exact mode is not downgraded silently.
+- [ ] Approximate schedule remains available without exact-alarm special access.
+- [ ] Verify heads-up / lock-screen notification fallback; app must not request full-screen intent access.
 - [ ] Return from settings and confirm permission-health state refreshes.
 
 ## Themes and accessibility

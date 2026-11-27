@@ -143,7 +143,7 @@ def main() -> int:
         (
             item
             for item in available
-            if re.fullmatch(r"build-tools;37\\.\\d+\\.\\d+", item)
+            if re.fullmatch(r"build-tools;37\.\d+\.\d+", item)
         ),
         key=version_key,
     )

@@ -19,8 +19,6 @@ import com.siddumoni.fakecall.ui.AppScreen
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.FileOutputStream
 
 class ThemeScreenshotSmokeTest {
     @get:Rule

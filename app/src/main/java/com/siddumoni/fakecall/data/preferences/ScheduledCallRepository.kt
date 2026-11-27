@@ -23,39 +23,45 @@ class ScheduledCallRepository(context: Context) {
         dataStore.data.map { preferences ->
             preferences[CALLS_KEY]
                 .orEmpty()
-                .mapNotNull(ScheduledCallCodec::decode)
-                .sortedBy { it.triggerAtEpochMillis }
+                .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
+                .sortedBy { call -> call.triggerAtEpochMillis }
         }
 
     suspend fun upsert(call: ScheduledCall) {
         dataStore.edit { preferences ->
-            val entries =
+            val entries = mutableSetOf<String>()
+            entries.addAll(
                 preferences[CALLS_KEY]
                     .orEmpty()
-                    .mapNotNull(ScheduledCallCodec::decode)
-                    .filterNot { it.id == call.id }
-                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
-            entries += ScheduledCallCodec::encode(call)
+                    .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
+                    .filterNot { existing -> existing.id == call.id }
+                    .map { existing -> ScheduledCallCodec.encode(existing) },
+            )
+            entries.add(ScheduledCallCodec.encode(call))
             preferences[CALLS_KEY] = entries
         }
     }
 
-    suspend fun updateState(id: String, state: ScheduledCallState): Boolean {
+    suspend fun updateState(
+        id: String,
+        state: ScheduledCallState,
+    ): Boolean {
         var found = false
         dataStore.edit { preferences ->
-            val entries =
+            val entries = mutableSetOf<String>()
+            entries.addAll(
                 preferences[CALLS_KEY]
                     .orEmpty()
-                    .mapNotNull(ScheduledCallCodec::decode)
+                    .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
                     .map { call ->
                         if (call.id == id) {
                             found = true
-                            call.copy(state = state)
+                            ScheduledCallCodec.encode(call.copy(state = state))
                         } else {
-                            call
+                            ScheduledCallCodec.encode(call)
                         }
-                    }
-                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+                    },
+            )
             preferences[CALLS_KEY] = entries
         }
         return found
@@ -63,25 +69,33 @@ class ScheduledCallRepository(context: Context) {
 
     suspend fun remove(id: String) {
         dataStore.edit { preferences ->
-            preferences[CALLS_KEY] =
-                preferences[CALLS_KEY].orEmpty()
-                    .mapNotNull(ScheduledCallCodec::decode)
-                    .filterNot { it.id == id }
-                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+            val entries = mutableSetOf<String>()
+            entries.addAll(
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
+                    .filterNot { call -> call.id == id }
+                    .map { call -> ScheduledCallCodec.encode(call) },
+            )
+            preferences[CALLS_KEY] = entries
         }
     }
 
     suspend fun removeTerminalRecords() {
         dataStore.edit { preferences ->
-            preferences[CALLS_KEY] =
-                preferences[CALLS_KEY].orEmpty()
-                    .mapNotNull(ScheduledCallCodec::decode)
+            val entries = mutableSetOf<String>()
+            entries.addAll(
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
                     .filter { call ->
                         call.state == ScheduledCallState.SCHEDULED ||
                             call.state == ScheduledCallState.RINGING ||
                             call.state == ScheduledCallState.IN_CALL
                     }
-                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+                    .map { call -> ScheduledCallCodec.encode(call) },
+            )
+            preferences[CALLS_KEY] = entries
         }
     }
 

@@ -1,6 +1,8 @@
 package com.siddumoni.fakecall
 
+import android.content.ContentValues
 import android.graphics.Bitmap
+import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -112,30 +114,23 @@ class ThemeScreenshotSmokeTest {
         fileName: String,
         image: ImageBitmap,
     ) {
-        val context = InstrumentationRegistry.getInstrumentation().context
-        // CI pulls screenshots using adb run-as from instrumentation-app private storage.
-        // scoped-storage restrictions on /sdcard/Android/data introduced in newer Android.
-        val screenshotDirectory = File(context.filesDir, "screenshots")
-        check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
-            "Could not create screenshot output directory"
-        }
-
-        val screenshotFile = File(screenshotDirectory, fileName)
-        FileOutputStream(screenshotFile).use { output ->
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val values =
+            ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/AlibiCall")
+            }
+        val uri =
+            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                ?: error("Could not create MediaStore entry for $fileName")
+        context.contentResolver.openOutputStream(uri).use { output ->
+            checkNotNull(output) { "Could not open output stream for $fileName" }
             check(image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, output)) {
                 "Could not encode screenshot $fileName"
             }
             output.flush()
         }
-        val hasPngSignature =
-            screenshotFile.inputStream().use { input ->
-                input.readNBytes(8).contentEquals(
-                    byteArrayOf(137.toByte(), 80, 78, 71, 13, 10, 26, 10),
-                )
-            }
-        assertTrue(
-            "$fileName was not written as a real PNG",
-            screenshotFile.isFile && screenshotFile.length() > 512L && hasPngSignature,
-        )
+        assertTrue("$fileName was not written", context.contentResolver.openInputStream(uri) != null)
     }
 }

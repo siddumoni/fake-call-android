@@ -10,13 +10,24 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 - Minimum SDK: 34
 - Compile platform: Android 17 API 37.1 (minor API level 1)
 - Target SDK: 37
+- Kotlin Gradle Plugin and Compose compiler: 2.4.21
 - Android Gradle Plugin: 9.3.1
 - Gradle: 9.7.0
-- Kotlin Gradle Plugin and Compose compiler: 2.4.21
 - Compose BOM: 2026.11.01 (stable)
 - JDK: 17
 
-The Compose 1.13.0 release selected by the November 2026 stable BOM requires API 37.1 at compile time. The Gradle Android DSL sets the API 37 minor level explicitly; the app still targets API 37 as requested. AGP 9.3.1 and Gradle 9.7.0 remain within the published fully-supported Kotlin Gradle Plugin compatibility range for Kotlin 2.4.20–2.4.21.
+AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradle Plugin compatibility range for Kotlin 2.4.20–2.4.21. The November 2026 stable Compose BOM selects Compose 1.13.0, which requires compile API 37.1. The project compiles against API 37.1 through AGP's minor API DSL while retaining targetSdk 37.
+
+## Implemented in the current development branch
+
+- Preferences DataStore-backed appearance settings.
+- Follow system, Light and Dark appearance options.
+- Independent Pure black (AMOLED) and Dynamic colour toggles.
+- Central Material 3 light, dark and AMOLED palettes with WCAG AA text contrast checks.
+- Application-level night mode selection before the first Activity, edge-to-edge surfaces and saved screen state through mode changes.
+- Screenshot, interaction, preference and colour-contrast tests for the theme slice.
+
+The simulated-call feature set is being delivered in subsequent focused pull requests. No call scheduling, incoming-call UI or ringtone functionality is claimed complete yet.
 
 ## Build
 
@@ -29,13 +40,13 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and selects the highest installable Android 17 x86_64 emulator image, falling back to API 36 only when an Android 17 image cannot be installed. On Linux runners CI enables KVM access where available and uses Android Emulator TCG software emulation otherwise. The selected emulator API is recorded in the workflow summary.
+On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
 ## Privacy and permissions
 
-The application source manifest declares no feature permissions. AndroidX Core contributes one package-specific, signature-protected compatibility permission and matching permission request to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is not related to telephony, contacts, call history, SMS, microphone, camera, storage or network access.
+The application source manifest declares no feature permissions. AndroidX Core currently contributes one package-specific, signature-protected compatibility permission to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the declared protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is unrelated to telephony or access to user data.
 
-No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, analytics, advertising, tracking, crash reporting or remote configuration permissions are approved.
+No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, microphone, camera, location, analytics, advertising, tracking, crash reporting or remote configuration permissions are approved.
 
 ## Project documentation
 

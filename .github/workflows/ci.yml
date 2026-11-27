@@ -32,8 +32,6 @@ jobs:
           java-version: '17'
       - name: Set up Gradle with a clean dependency cache
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
-        with:
-          cache-disabled: true
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Test Android SDK installer selection
@@ -112,6 +110,14 @@ jobs:
             echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
+            python3 scripts/pull_validate_theme_screenshots.py --output screenshots
+      - name: Upload rendered theme screenshots
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: alibicall-theme-screenshots-api37
+          path: screenshots/*.png
+          if-no-files-found: error
+          retention-days: 14
 
 
   codeql:
@@ -135,8 +141,6 @@ jobs:
           java-version: '17'
       - name: Set up Gradle with a clean dependency cache
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
-        with:
-          cache-disabled: true
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install Android 17 preview platform and Build Tools
@@ -163,7 +167,7 @@ jobs:
 
   export-release-runtime-lock:
     name: Prepare release runtime lockfile for OSV
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/initial-setup'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -182,7 +186,7 @@ jobs:
 
   dependency-review:
     name: Dependency vulnerability review (OSV-Scanner)
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/initial-setup'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
     needs: export-release-runtime-lock
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     permissions:

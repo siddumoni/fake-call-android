@@ -63,7 +63,10 @@ Last updated: 2026-11-27
 1. Verify restart recovery on a physical device.
 2. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
 3. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
-4. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
+4. PR #23 adds the Android 15/16/17 display/font-scale matrix; the initial 200% font test failure was caused by tests not scrolling content, and the corrected run is pending.
+5. PR #24 uses elapsed realtime for the ring timeout; its CI is pending.
+6. PR #25 adds notification sound/vibration channel settings and a system-settings shortcut; CI is pending.
+7. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
 
 All feature changes should be focused PRs with tests and complete green CI. Keep the app local/offline, avoid real telephony or caller-ID spoofing, and never impersonate emergency services, authorities, banks, government bodies, or real companies.
 

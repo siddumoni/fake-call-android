@@ -56,14 +56,14 @@ object ScheduledCallNotifications {
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0L, 300L, 200L, 300L)
                 val sound =
-                    android.media.RingtoneManager
-                        .getDefaultUri(
-                            android.media.RingtoneManager.TYPE_NOTIFICATION,
-                        )
+                    android.media.RingtoneManager.getDefaultUri(
+                        android.media.RingtoneManager.TYPE_NOTIFICATION,
+                    )
                 if (sound != null) {
                     setSound(
                         sound,
-                        android.media.AudioAttributes.Builder()
+                        android.media.AudioAttributes
+                            .Builder()
                             .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
                             .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build(),

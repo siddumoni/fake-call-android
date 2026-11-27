@@ -26,7 +26,8 @@ class ScheduledCallCodecTest {
         val id = "550e8400-e29b-41d4-a716-446655440000"
         val callerId = "6ba7b810-9dad-41d1-80b4-00c04fd430c8"
         val encodedCaller =
-            Base64.getUrlEncoder().withoutPadding()
+            Base64.getUrlEncoder()
+                .withoutPadding()
                 .encodeToString(callerId.toByteArray(StandardCharsets.UTF_8))
         val legacy = listOf("1", id, encodedCaller, "1800000000000", "SCHEDULED").joinToString("|")
 
@@ -68,7 +69,8 @@ class ScheduledCallCodecTest {
         )
         val callerId = "not-a-uuid"
         val encodedCaller =
-            Base64.getUrlEncoder().withoutPadding()
+            Base64.getUrlEncoder()
+                .withoutPadding()
                 .encodeToString(callerId.toByteArray(StandardCharsets.UTF_8))
         assertNull(
             ScheduledCallCodec.decode(

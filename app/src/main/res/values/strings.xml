@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AlibiCall</string>
+    <string name="onboarding_title">Welcome to AlibiCall</string>
+    <string name="onboarding_summary">Set up a personal, clearly labelled simulated incoming-call experience. You stay in control of when it appears.</string>
+    <string name="onboarding_privacy_heading">Private by design</string>
+    <string name="onboarding_privacy_offline">Offline only: your profiles and schedules stay in app-private storage. The app does not connect to a server or send analytics.</string>
+    <string name="onboarding_privacy_simulation">Simulation only: caller profiles are fictional display details used only inside this app.</string>
+    <string name="onboarding_privacy_no_telephony">No real calls: AlibiCall does not dial numbers, spoof caller ID, access contacts or call logs, or impersonate real people or organisations.</string>
+    <string name="onboarding_continue">I understand — continue</string>
+    <string name="onboarding_save_error">Your onboarding choice could not be saved. Please try again.</string>
     <string name="home_subtitle">A simulated call, on your schedule.</string>
     <string name="home_theme_card_title">Make it yours</string>
     <string name="home_theme_card_description">Choose the appearance that feels right for you.</string>

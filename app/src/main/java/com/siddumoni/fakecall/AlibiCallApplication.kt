@@ -2,6 +2,7 @@ package com.siddumoni.fakecall
 
 import android.app.Application
 import android.app.UiModeManager
+import com.siddumoni.fakecall.data.preferences.OnboardingRepository
 import com.siddumoni.fakecall.data.preferences.ThemePreferencesRepository
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
@@ -13,13 +14,21 @@ class AlibiCallApplication : Application() {
     lateinit var initialThemeSettings: ThemeSettings
         private set
 
+    var initialOnboardingCompleted: Boolean = false
+        private set
+
+    fun markOnboardingCompleted() {
+        initialOnboardingCompleted = true
+    }
+
     override fun onCreate() {
         super.onCreate()
-        val repository = ThemePreferencesRepository(this)
-        initialThemeSettings =
-            runBlocking(Dispatchers.IO) {
-                repository.settings.first()
-            }
+        val themeRepository = ThemePreferencesRepository(this)
+        val onboardingRepository = OnboardingRepository(this)
+        runBlocking(Dispatchers.IO) {
+            initialThemeSettings = themeRepository.settings.first()
+            initialOnboardingCompleted = onboardingRepository.completed.first()
+        }
         applyApplicationNightMode(initialThemeSettings.appearance)
     }
 

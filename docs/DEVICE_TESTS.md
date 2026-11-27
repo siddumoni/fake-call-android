@@ -4,6 +4,16 @@ Target: OnePlus Nord 6 (CPH2793), India, ColorOS 17, Android 17 / API 37.
 
 The development environment cannot validate this physical device. Mark each item only after a real test and record app version, OS build, date and outcome. Do not infer an outcome from emulator tests.
 
+## First-run onboarding
+
+- [ ] Fresh install opens the privacy explanation before Home.
+- [ ] Offline-only, fictional-profile and no-real-calls statements are readable with TalkBack.
+- [ ] Continue advances only after the local acknowledgement is saved.
+- [ ] A storage failure keeps onboarding visible and displays an error.
+- [ ] System Back exits onboarding instead of opening Home.
+- [ ] Force-stop and relaunch after acknowledgement opens Home without repeating onboarding.
+- [ ] Onboarding does not request notification, alarm, contacts, telephony or other permissions.
+
 ## Before testing
 
 - Install the debug APK from the CI artifact.

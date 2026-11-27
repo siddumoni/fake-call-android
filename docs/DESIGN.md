@@ -10,9 +10,13 @@ Single Android application module. The UI uses Jetpack Compose Material 3 and fo
 
 The app is offline-only. There is no networking, analytics, crash reporting, advertising, remote configuration, or server component.
 
+## First-run onboarding
+
+On a fresh install, the launcher presents a privacy-first onboarding screen before Home. It explains that the app is offline-only, caller profiles are fictional display details, and the app does not make real calls, spoof caller ID, access contacts or call logs, or impersonate people or organisations. The screen does not request permissions. A single acknowledgement boolean is stored in app-private Preferences DataStore. Home is shown only after the write succeeds; a storage failure is displayed and leaves onboarding visible. The system Back action exits rather than silently bypassing the acknowledgement. The content is regular Compose text and a labelled button so TalkBack can read it.
+
 ## Call lifecycle
 
-A scheduled call is a local state machine: Draft -> Scheduled -> Ringing -> InCall -> Ended, with Cancelled and TimedOut terminal alternatives. State transitions must be idempotent. An incoming-call Activity is isolated from normal navigation and receives only a validated opaque schedule identifier; it reloads caller data from app-private storage. Never trust caller text, number, media URI, or timing fields delivered as arbitrary intent extras.
+A scheduled call is a local state machine. The persisted model currently supports SCHEDULED → RINGING → IN_CALL → ENDED, with CANCELLED and TIMED_OUT terminal alternatives; draft creation remains UI-only future work. State transitions are action-based and atomically applied by the DataStore repository, so duplicate alarm delivery and illegal transitions are rejected. An incoming-call Activity is isolated from normal navigation and receives only a validated opaque schedule identifier; it reloads caller data from app-private storage. Never trust caller text, number, media URI, or timing fields delivered as arbitrary intent extras.
 
 Scheduling uses AlarmManager exact alarms only after checking canScheduleExactAlarms(). Permission denial or revocation is an explicit UI state; do not silently downgrade a user-requested exact schedule to an inaccurate one. Re-check permission after returning from system settings and restore only still-valid schedules after boot. Persist the schedule before setting the alarm and make receiver handling idempotent.
 

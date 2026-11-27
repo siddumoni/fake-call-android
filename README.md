@@ -28,8 +28,10 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Screenshot, interaction, preference and colour-contrast tests for the theme slice.
 - Local caller-profile CRUD (fictional display name and optional number label), persisted in app-private Preferences DataStore.
 - Preview incoming and answered simulated-call screens with an explicit simulation banner; no telephony or network integration.
+- Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
+- First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
 
-Caller profiles and a manually launched simulated-call preview are implemented in the next feature branch. Scheduled delivery, notifications, ringtones and boot recovery are not implemented yet.
+User-facing schedule creation/edit/delete, AlarmManager delivery, alarm permission handling, notifications, ringtones and boot recovery are not implemented yet.
 
 ## Build
 

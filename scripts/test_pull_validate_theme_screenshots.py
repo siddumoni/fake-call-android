@@ -2,14 +2,15 @@ import struct
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from pull_validate_theme_screenshots import (
     MIN_BYTES,
     PNG_SIGNATURE,
-    parse_app_packages,
     png_dimensions,
+    screenshot_pull_command,
+    pull_screenshot,
     validate_png,
-    screenshot_read_command,
 )
 
 
@@ -21,26 +22,10 @@ def fake_png(width: int, height: int, payload_size: int = MIN_BYTES) -> bytes:
 
 
 class ThemeScreenshotValidationTests(unittest.TestCase):
-    def test_reads_screenshot_from_app_private_storage_with_run_as(self):
+    def test_pulls_from_public_media_store_path(self):
         self.assertEqual(
-            ["adb", "exec-out", "run-as", "com.siddumoni.fakecall.debug.test", "cat", "files/screenshots/home-light.png"],
-            screenshot_read_command("com.siddumoni.fakecall.debug.test", "home-light.png"),
-        )
-
-    def test_detects_debug_and_release_packages_and_excludes_test_package(self):
-        packages = parse_app_packages(
-            "\n".join(
-                (
-                    "package:com.siddumoni.fakecall",
-                    "package:com.siddumoni.fakecall.debug",
-                    "package:com.siddumoni.fakecall.debug.test",
-                    "package:com.other.app",
-                ),
-            ),
-        )
-        self.assertEqual(
-            ["com.siddumoni.fakecall", "com.siddumoni.fakecall.debug", "com.siddumoni.fakecall.debug.test"],
-            packages,
+            ["adb", "pull", "/sdcard/Pictures/AlibiCall/home-light.png", "/tmp/home-light.png"],
+            screenshot_pull_command("home-light.png", Path("/tmp/home-light.png")),
         )
 
     def test_reads_dimensions_from_png_header(self):
@@ -48,7 +33,7 @@ class ThemeScreenshotValidationTests(unittest.TestCase):
 
     def test_rejects_non_png_content(self):
         with self.assertRaisesRegex(ValueError, "valid PNG"):
-            png_dimensions(b"run-as: unknown package")
+            png_dimensions(b"not a png")
 
     def test_rejects_too_small_image_dimensions(self):
         with self.assertRaisesRegex(ValueError, "too small"):

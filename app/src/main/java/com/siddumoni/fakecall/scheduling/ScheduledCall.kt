@@ -38,7 +38,12 @@ object ScheduledCallRules {
         if (!isUuid(id)) return ScheduleValidationError.INVALID_ID
         if (!isUuid(callerPresetId)) return ScheduleValidationError.INVALID_CALLER_ID
         if (triggerAtEpochMillis <= nowEpochMillis) return ScheduleValidationError.TIME_NOT_IN_FUTURE
-        if (triggerAtEpochMillis - nowEpochMillis > MAX_SCHEDULE_HORIZON_MILLIS) {
+        val timeUntilTrigger = runCatching {
+            Math.subtractExact(triggerAtEpochMillis, nowEpochMillis)
+        }.getOrElse {
+            return ScheduleValidationError.TIME_TOO_FAR
+        }
+        if (timeUntilTrigger > MAX_SCHEDULE_HORIZON_MILLIS) {
             return ScheduleValidationError.TIME_TOO_FAR
         }
         return null

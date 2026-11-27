@@ -10,11 +10,6 @@ import com.siddumoni.fakecall.notifications.ScheduledCallAlarmReceiver
 import com.siddumoni.fakecall.notifications.ScheduledCallTimeoutReceiver
 import java.util.UUID
 
-enum class ScheduleAlarmResult {
-    SCHEDULED,
-    EXACT_ALARM_PERMISSION_REQUIRED,
-}
-
 /**
  * AlarmManager adapter for persisted schedule records.
  *
@@ -32,9 +27,8 @@ class ScheduledCallAlarmScheduler(
         Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
     fun schedule(call: ScheduledCall): ScheduleAlarmResult {
-        if (call.deliveryMode == ScheduledCallDeliveryMode.EXACT && !canScheduleExactAlarms()) {
-            return ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED
-        }
+        val permissionResult = ScheduleDeliveryPolicy.resultFor(call.deliveryMode, canScheduleExactAlarms())
+        if (permissionResult != ScheduleAlarmResult.SCHEDULED) return permissionResult
 
         val pendingIntent = alarmPendingIntent(call.id)
         return try {

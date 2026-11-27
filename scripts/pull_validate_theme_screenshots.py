@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull the six Android emulator theme screenshots and reject invalid artifacts."""
+"""Pull six Android emulator theme screenshots from app-private storage and validate them."""
 
 from __future__ import annotations
 
@@ -53,6 +53,12 @@ def installed_app_packages() -> list[str]:
     return parse_app_packages(output)
 
 
+def list_screenshot_names(package: str) -> set[str]:
+    # Android's shell UID cannot reliably browse /Android/data on recent Android
+    # releases. The app is debuggable in CI, so run-as accesses its private files.
+    return set(run_adb("shell", "run-as", package, "ls", "files/screenshots").split())
+
+
 def find_screenshot_package() -> str:
     known_packages = ("com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
     try:
@@ -61,26 +67,34 @@ def find_screenshot_package() -> str:
         installed = []
     candidates = list(dict.fromkeys((*known_packages, *installed)))
     for package in candidates:
-        remote_dir = f"/sdcard/Android/data/{package}/files/screenshots"
-        print(f"Checking screenshot directory for {package}: {remote_dir}")
+        print(f"Checking app-private screenshot directory for {package}")
         try:
-            names = set(run_adb("shell", "ls", remote_dir).split())
+            names = list_screenshot_names(package)
             print(f"Found screenshot files for {package}: {sorted(names)}")
         except subprocess.CalledProcessError as error:
-            print(f"Could not list {remote_dir}: {error.stdout or error.stderr}")
+            print(f"Could not list private screenshots for {package}: {error.stdout or error.stderr}")
             continue
         if set(SCREENSHOT_NAMES).issubset(names):
             return package
 
     raise RuntimeError(
-        "No installed AlibiCall app package contains all six external screenshots. "
+        "No installed AlibiCall app package contains all six private screenshots. "
         f"Candidates checked: {candidates}"
     )
 
 
+def screenshot_read_command(package: str, name: str) -> list[str]:
+    return ["adb", "exec-out", "run-as", package, "cat", f"files/screenshots/{name}"]
+
+
 def pull_screenshot(package: str, name: str, destination: Path) -> None:
-    remote_file = f"/sdcard/Android/data/{package}/files/screenshots/{name}"
-    run_adb("pull", remote_file, str(destination))
+    result = subprocess.run(
+        screenshot_read_command(package, name),
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    destination.write_bytes(result.stdout)
 
 
 def png_dimensions(data: bytes) -> tuple[int, int]:

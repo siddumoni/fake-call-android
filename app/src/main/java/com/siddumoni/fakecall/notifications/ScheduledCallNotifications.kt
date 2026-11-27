@@ -89,7 +89,8 @@ object ScheduledCallNotifications {
             )
 
         val publicVersion =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
                 .setContentText(context.getString(R.string.schedule_notification_public_text))
@@ -119,7 +120,8 @@ object ScheduledCallNotifications {
                 .build()
 
         return try {
-            NotificationManagerCompat.from(context)
+            NotificationManagerCompat
+                .from(context)
                 .notify(notificationId(call.id), notification)
             true
         } catch (_: SecurityException) {
@@ -136,7 +138,8 @@ object ScheduledCallNotifications {
     private fun notificationId(id: String): Int = id.hashCode()
 
     private fun scheduleUri(id: String): Uri =
-        Uri.Builder()
+        Uri
+            .Builder()
             .scheme("alibicall")
             .authority("scheduled-call")
             .appendPath(id)

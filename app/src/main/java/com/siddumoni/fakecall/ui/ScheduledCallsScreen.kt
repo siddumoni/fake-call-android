@@ -271,7 +271,11 @@ private fun ScheduleEditorDialog(
                     Instant.ofEpochMilli(saved.triggerAtEpochMillis),
                     zone,
                 )
-            } ?: LocalDateTime.now(zone).plusMinutes(5).withSecond(0).withNano(0)
+            } ?: LocalDateTime
+                .now(zone)
+                .plusMinutes(5)
+                .withSecond(0)
+                .withNano(0)
         }
     var selectedDate by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }
     var selectedTime by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalTime()) }

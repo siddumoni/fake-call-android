@@ -134,7 +134,8 @@ class ScheduledCallAlarmScheduler(
         scheduleId: String,
         action: String,
     ): Uri =
-        Uri.Builder()
+        Uri
+            .Builder()
             .scheme("alibicall")
             .authority("scheduled-call")
             .appendPath(scheduleId)

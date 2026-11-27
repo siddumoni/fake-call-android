@@ -37,9 +37,8 @@ object ScheduledCallCodec {
         }.getOrNull()
     }
 
-    private fun isUuid(value: String): Boolean {
-        return runCatching {
+    private fun isUuid(value: String): Boolean =
+        runCatching {
             UUID.fromString(value).toString() == value.lowercase()
         }.getOrDefault(false)
-    }
 }

@@ -55,8 +55,8 @@ object ScheduledCallRules {
     fun transition(
         current: ScheduledCallState,
         action: ScheduledCallAction,
-    ): ScheduledCallState? {
-        return when (current to action) {
+    ): ScheduledCallState? =
+        when (current to action) {
             ScheduledCallState.SCHEDULED to ScheduledCallAction.ALARM_FIRED ->
                 ScheduledCallState.RINGING
             ScheduledCallState.SCHEDULED to ScheduledCallAction.CANCEL ->
@@ -71,13 +71,11 @@ object ScheduledCallRules {
                 ScheduledCallState.ENDED
             else -> null
         }
-    }
 
-    private fun isUuid(value: String): Boolean {
-        return runCatching {
+    private fun isUuid(value: String): Boolean =
+        runCatching {
             UUID.fromString(value).toString() == value.lowercase()
         }.getOrDefault(false)
-    }
 }
 
 enum class ScheduledCallAction {
@@ -101,8 +99,9 @@ object ScheduleTimeResolver {
             offsets.size == 1 -> localDateTime.toInstant(offsets[0])
             offsets.size >= 2 -> localDateTime.toInstant(offsets[0])
             else -> {
-                val transition = rules.getTransition(localDateTime)
-                    ?: throw java.time.DateTimeException("Unable to resolve local date-time")
+                val transition =
+                    rules.getTransition(localDateTime)
+                        ?: throw java.time.DateTimeException("Unable to resolve local date-time")
                 transition.dateTimeAfter.toInstant(transition.offsetAfter)
             }
         }

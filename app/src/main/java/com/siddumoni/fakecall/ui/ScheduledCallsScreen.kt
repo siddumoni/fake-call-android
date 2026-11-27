@@ -4,6 +4,8 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -215,6 +217,7 @@ fun ScheduledCallsScreen(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun ScheduledCallCard(
     call: ScheduledCall,
     caller: CallerPreset?,
@@ -254,7 +257,11 @@ private fun ScheduledCallCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (call.state == ScheduledCallState.SCHEDULED) {
                     TextButton(onClick = onEdit, modifier = Modifier.testTag("schedule-edit-${call.id}")) {
                         Text(stringResource(R.string.edit))

@@ -55,8 +55,8 @@ object ScheduledCallRules {
     fun transition(
         current: ScheduledCallState,
         action: ScheduledCallAction,
-    ): ScheduledCallState? =
-        when (current to action) {
+    ): ScheduledCallState? {
+        return when (current to action) {
             ScheduledCallState.SCHEDULED to ScheduledCallAction.ALARM_FIRED ->
                 ScheduledCallState.RINGING
             ScheduledCallState.SCHEDULED to ScheduledCallAction.CANCEL ->
@@ -71,10 +71,13 @@ object ScheduledCallRules {
                 ScheduledCallState.ENDED
             else -> null
         }
+    }
 
-    private fun isUuid(value: String): Boolean = runCatching {
-        UUID.fromString(value).toString() == value.lowercase()
-    }.getOrDefault(false)
+    private fun isUuid(value: String): Boolean {
+        return runCatching {
+            UUID.fromString(value).toString() == value.lowercase()
+        }.getOrDefault(false)
+    }
 }
 
 enum class ScheduledCallAction {

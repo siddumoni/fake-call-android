@@ -50,7 +50,7 @@ Last updated: 2026-11-27
 - Concurrent duplicate alarm delivery and illegal transitions are rejected by serialized DataStore edits.
 - JVM model/codec/time-rule tests and emulator repository instrumentation tests cover DST, validation, persistence, concurrent duplicate delivery and illegal transitions.
 - PR #16 merged at `b847454dc7bd12e86473e706866196f549c098d2`; its complete PR CI passed, including build/unit/lint/manifest, emulator instrumentation/screenshots, CodeQL, secret scan and OSV dependency review.
-- PR #19 (schedule management, alarms and notification delivery) is merged.
+- PR #19 (schedule management, alarms and notification delivery), PR #20 (restart recovery), and PR #22 (manual clock/timezone recovery) are merged.
 
 ## Current CI maintenance
 
@@ -60,7 +60,7 @@ Last updated: 2026-11-27
 
 ## Remaining product work
 
-1. Verify restart recovery on a physical device.
+1. Verify reboot, app-update, exact-alarm-grant, manual-clock and timezone recovery on a physical device.
 2. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
 3. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
 4. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
@@ -74,4 +74,4 @@ A target OnePlus / ColorOS handset is not available in this environment. OEM ala
 ## Restart recovery and schedule fixes
 
 - PR #19 was squash-merged at `28d2ded` after all PR checks passed. It also keeps late approximate alarms pending for one hour (exact: two minutes) and closes stale ringing or orphaned answered records.
-- Restart recovery is added: future schedules are re-registered; expired, ringing and answered records are closed. A real device restart has not been tested.
+- Restart recovery is added: future schedules are re-registered; expired, ringing and answered records are closed. Clock/timezone changes re-register future alarms and re-arm overdue schedules still inside their grace window, preserving the persisted absolute trigger instant. Real device restart and clock/timezone change have not been tested.

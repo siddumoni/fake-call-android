@@ -27,7 +27,7 @@ No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SM
 
 ## Restart recovery
 
-`RECEIVE_BOOT_COMPLETED` is declared only to restore pending alarms. `ScheduleRestoreReceiver` is not exported, handles only boot-completed, package-replaced and exact-alarm-grant actions, and logs no record details.
+`RECEIVE_BOOT_COMPLETED` is declared only to restore pending alarms. `ScheduleRestoreReceiver` is not exported. It handles boot-completed, package-replaced, exact-alarm-grant, system clock-change and timezone-change actions. It logs no record details. Saved schedule timestamps remain absolute epoch instants; a timezone change affects display, not the persisted target instant.
 
 ## Component exposure
 

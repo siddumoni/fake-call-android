@@ -18,14 +18,14 @@ import java.util.UUID
  */
 class ScheduledCallAlarmScheduler(
     context: Context,
-) {
+) : ScheduleAlarmOperations {
     private val appContext = context.applicationContext
     private val alarmManager =
         appContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun canScheduleExactAlarms(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
-    fun schedule(call: ScheduledCall): ScheduleAlarmResult {
+    override fun schedule(call: ScheduledCall): ScheduleAlarmResult {
         require(call.state == ScheduledCallState.SCHEDULED) {
             "Only a pending schedule can be registered with AlarmManager."
         }
@@ -76,7 +76,7 @@ class ScheduledCallAlarmScheduler(
         pendingIntent.cancel()
     }
 
-    fun cancel(scheduleId: String) {
+    override fun cancel(scheduleId: String) {
         cancelTrigger(scheduleId)
         cancelTimeout(scheduleId)
     }

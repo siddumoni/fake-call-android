@@ -31,7 +31,7 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
 - First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
 - Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout and notification actions.
-- Restart, app-update and exact-alarm-grant recovery through a non-exported receiver. A restart restores only future schedules and closes expired or interrupted records.
+- Restart, app-update, exact-alarm-grant, manual clock and timezone recovery through a non-exported receiver. Future schedules are re-registered; expired or interrupted records are closed, and overdue schedules inside their delivery grace window are re-armed without changing their persisted absolute trigger.
 
 Ringtone and vibration controls are not implemented yet. Physical-device delivery is unverified.
 

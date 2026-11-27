@@ -58,6 +58,25 @@ class ScheduleRecoveryPolicyTest {
     }
 
     @Test
+    fun overdueScheduleWithinGraceIsRearmedForImmediateDelivery() {
+        val now = trigger + 30_000
+        val pending = call(ScheduledCallDeliveryMode.APPROXIMATE)
+
+        assertEquals(
+            now + ScheduleRecoveryPolicy.OVERDUE_REDELIVERY_DELAY_MILLIS,
+            ScheduleRecoveryPolicy.alarmTriggerAt(pending, now),
+        )
+    }
+
+    @Test
+    fun futureScheduleKeepsItsOriginalTriggerInstant() {
+        val now = trigger - 30_000
+        val pending = call(ScheduledCallDeliveryMode.EXACT)
+
+        assertEquals(trigger, ScheduleRecoveryPolicy.alarmTriggerAt(pending, now))
+    }
+
+    @Test
     fun rebootKeepsOnlyFutureSchedules() {
         val pending = call(ScheduledCallDeliveryMode.APPROXIMATE)
 

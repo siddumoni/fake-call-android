@@ -136,11 +136,12 @@ class ScheduledCallAlarmScheduler(
         action: String,
     ): Uri =
         Uri.Builder()
-            .scheme("alibicall")
-            .authority("scheduled-call")
-            .appendPath(scheduleId)
-            .appendPath(action)
-            .build()
+            .apply {
+                scheme("alibicall")
+                authority("scheduled-call")
+                appendPath(scheduleId)
+                appendPath(action)
+            }.build()
 
     private fun isUuid(value: String): Boolean =
         runCatching {

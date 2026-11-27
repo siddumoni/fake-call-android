@@ -13,9 +13,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
@@ -198,23 +198,32 @@ class MainActivity : ComponentActivity() {
         val data = intent?.data ?: return
         // Only our explicit notification URI is accepted. Do not trust caller-supplied extras
         // or arbitrary schemes/authorities on this exported launcher Activity.
-        if (intent.action != Intent.ACTION_VIEW ||
+        if (
+            intent.action != Intent.ACTION_VIEW ||
             data.scheme != "alibicall" ||
             data.authority != "scheduled-call" ||
             data.pathSegments.size != 1
-        ) return
+        ) {
+            return
+        }
         val id = data.pathSegments.single()
         if (!isUuid(id)) return
         lifecycleScope.launch {
-            val call = ScheduledCallRepository(this@MainActivity).calls.first()
-                .firstOrNull { it.id == id }
-                ?: return@launch
+            val call =
+                ScheduledCallRepository(this@MainActivity)
+                    .calls
+                    .first()
+                    .firstOrNull { it.id == id }
+                    ?: return@launch
             if (call.state != ScheduledCallState.RINGING && call.state != ScheduledCallState.IN_CALL) {
                 return@launch
             }
-            val caller = CallerPresetRepository(this@MainActivity).presets.first()
-                .firstOrNull { it.id == call.callerPresetId }
-                ?: return@launch
+            val caller =
+                CallerPresetRepository(this@MainActivity)
+                    .presets
+                    .first()
+                    .firstOrNull { it.id == call.callerPresetId }
+                    ?: return@launch
             selectedCaller = caller
             activeScheduledCallId = id
             currentScreen =
@@ -233,7 +242,10 @@ class MainActivity : ComponentActivity() {
             return
         }
         lifecycleScope.launch {
-            if (ScheduledCallRepository(this@MainActivity).transition(id, ScheduledCallAction.ANSWER)) {
+            if (
+                ScheduledCallRepository(this@MainActivity)
+                    .transition(id, ScheduledCallAction.ANSWER)
+            ) {
                 ScheduledCallAlarmScheduler(this@MainActivity).cancelTimeout(id)
                 ScheduledCallNotifications.cancel(this@MainActivity, id)
                 currentScreen = AppScreen.SIMULATED_IN_CALL
@@ -257,8 +269,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isUuid(value: String): Boolean =
-        runCatching { UUID.fromString(value).toString() == value.lowercase() }.getOrDefault(false)
+    private fun isUuid(value: String): Boolean {
+        return runCatching {
+            UUID.fromString(value).toString() == value.lowercase()
+        }.getOrDefault(false)
+    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)

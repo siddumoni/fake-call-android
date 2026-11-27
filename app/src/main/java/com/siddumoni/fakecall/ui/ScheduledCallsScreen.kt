@@ -3,7 +3,6 @@ package com.siddumoni.fakecall.ui
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.text.format.DateFormat
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -267,8 +266,11 @@ private fun ScheduleEditorDialog(
     val zone = remember { ZoneId.systemDefault() }
     val defaultDateTime =
         remember(existing?.id) {
-            existing?.let { Instant.ofEpochMilli(it.triggerAtEpochMillis).atZone(zone).toLocalDateTime() }
-                ?: LocalDateTime.now(zone).plusMinutes(5).withSecond(0).withNano(0)
+            existing?.let { saved ->
+                Instant.ofEpochMilli(saved.triggerAtEpochMillis)
+                    .atZone(zone)
+                    .toLocalDateTime()
+            } ?: LocalDateTime.now(zone).plusMinutes(5).withSecond(0).withNano(0)
         }
     var selectedDate by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }
     var selectedTime by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalTime()) }
@@ -498,7 +500,6 @@ private fun OperationMessage(
         -> Unit
     }
 }
-
 
 private fun scheduleStateLabel(state: ScheduledCallState): Int =
     when (state) {

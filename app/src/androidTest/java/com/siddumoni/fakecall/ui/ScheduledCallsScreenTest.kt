@@ -1,7 +1,7 @@
 package com.siddumoni.fakecall.ui
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -45,7 +45,7 @@ class ScheduledCallsScreenTest {
         }
 
         composeRule.onNodeWithTag("schedule-add-button").performClick()
-        composeRule.onNodeWithText("Approximate").assertExists()
+        composeRule.onNodeWithText("Approximate").assertIsDisplayed()
         composeRule.onNodeWithText("Exact").performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()
 

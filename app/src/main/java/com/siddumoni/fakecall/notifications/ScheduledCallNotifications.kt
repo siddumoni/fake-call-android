@@ -15,8 +15,8 @@ import androidx.core.content.ContextCompat
 import com.siddumoni.fakecall.MainActivity
 import com.siddumoni.fakecall.R
 import com.siddumoni.fakecall.callers.CallerPreset
-import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import com.siddumoni.fakecall.scheduling.ScheduledCall
+import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import java.util.UUID
 
 object ScheduledCallNotifications {
@@ -31,8 +31,9 @@ object ScheduledCallNotifications {
         }
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = context.getSystemService(NotificationManager::class.java)
-                .getNotificationChannel(CHANNEL_ID)
+            val channel =
+                context.getSystemService(NotificationManager::class.java)
+                    .getNotificationChannel(CHANNEL_ID)
             if (channel != null && channel.importance == NotificationManager.IMPORTANCE_NONE) {
                 return false
             }
@@ -86,19 +87,22 @@ object ScheduledCallNotifications {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
+        val publicVersion =
+            NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(context.getString(R.string.schedule_notification_title))
+                .setContentText(context.getString(R.string.schedule_notification_public_text))
+                .build()
+
         val notification =
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
-                .setContentText(context.getString(R.string.schedule_notification_text, caller.displayName))
-                .setSubText(context.getString(R.string.simulated_call_banner))
-                .setPublicVersion(
-                    NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_notification)
-                        .setContentTitle(context.getString(R.string.schedule_notification_title))
-                        .setContentText(context.getString(R.string.schedule_notification_public_text))
-                        .build(),
+                .setContentText(
+                    context.getString(R.string.schedule_notification_text, caller.displayName),
                 )
+                .setSubText(context.getString(R.string.simulated_call_banner))
+                .setPublicVersion(publicVersion)
                 .setContentIntent(contentIntent)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -114,7 +118,9 @@ object ScheduledCallNotifications {
                 .build()
 
         return try {
-            NotificationManagerCompat.from(context).notify(notificationId(call.id), notification)
+            NotificationManagerCompat
+                .from(context)
+                .notify(notificationId(call.id), notification)
             true
         } catch (_: SecurityException) {
             false
@@ -130,7 +136,12 @@ object ScheduledCallNotifications {
     private fun notificationId(id: String): Int = id.hashCode()
 
     private fun scheduleUri(id: String): Uri =
-        Uri.Builder().scheme("alibicall").authority("scheduled-call").appendPath(id).build()
+        Uri.Builder()
+            .apply {
+                scheme("alibicall")
+                authority("scheduled-call")
+                appendPath(id)
+            }.build()
 
     private fun scheduleActionUri(
         id: String,
@@ -143,8 +154,11 @@ object ScheduledCallNotifications {
             .appendPath(action)
             .build()
 
-    private fun isUuid(value: String): Boolean =
-        runCatching { UUID.fromString(value).toString() == value.lowercase() }.getOrDefault(false)
+    private fun isUuid(value: String): Boolean {
+        return runCatching {
+            UUID.fromString(value).toString() == value.lowercase()
+        }.getOrDefault(false)
+    }
 
     const val ACTION_DISMISS = "com.siddumoni.fakecall.action.DISMISS_SIMULATION"
     const val EXTRA_SCHEDULE_ID = "com.siddumoni.fakecall.extra.SCHEDULE_ID"

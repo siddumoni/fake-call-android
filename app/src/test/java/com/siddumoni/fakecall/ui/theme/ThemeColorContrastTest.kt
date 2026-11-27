@@ -44,8 +44,9 @@ class ThemeColorContrastTest {
         assertTrue(amoled.surfaceContainerLowest == Color.Black)
         assertTrue(amoled.surfaceContainerLow == Color.Black)
         assertTrue(amoled.surfaceContainer == Color.Black)
-        assertTrue(amoled.surfaceContainerHigh == Color.Black)
-        assertTrue(amoled.surfaceContainerHighest == Color.Black)
+        // Cards and dialogs must stay distinguishable from the black background.
+        assertTrue(amoled.surfaceContainerHigh != Color.Black)
+        assertTrue(amoled.surfaceContainerHighest != Color.Black)
         assertTrue(amoled.surfaceTint == Color.Black)
         assertTrue(amoled.surfaceVariant == Color.Black)
     }

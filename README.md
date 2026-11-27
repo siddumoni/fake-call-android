@@ -7,7 +7,7 @@ It does not place real calls, spoof carrier caller ID, create call-log entries, 
 ## Platform and toolchain
 
 - Application ID: `com.siddumoni.fakecall`
-- Minimum SDK: 34
+- Minimum SDK: 35 (Android 15)
 - Compile platform: Android 17 API 37.1 (minor API level 1)
 - Target SDK: 37
 - Kotlin Gradle Plugin and Compose compiler: 2.4.21

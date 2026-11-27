@@ -13,7 +13,7 @@ Last updated: 2026-11-27
 ## Toolchain
 
 - Android Gradle Plugin 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
-- Compose BOM 2026.11.01; compile API 37.1; target SDK 37; minimum SDK 34.
+- Compose BOM 2026.11.01; compile API 37.1; target SDK 37; minimum SDK 35 (Android 15).
 - CI uses an Android 17 emulator when the image is available, with KVM acceleration where supported.
 
 ## Merged implementation

@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,14 +72,15 @@ fun ScheduledCallsScreen(
     onClearOperationState: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var editing by remember { mutableStateOf<ScheduledCall?>(null) }
-    var creating by remember { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    val editing = calls.firstOrNull { it.id == editingId }
     var deleting by remember { mutableStateOf<ScheduledCall?>(null) }
 
     LaunchedEffect(operationState) {
         if (operationState == ScheduledCallOperationState.SAVED) {
             creating = false
-            editing = null
+            editingId = null
             onClearOperationState()
         }
     }
@@ -114,7 +116,7 @@ fun ScheduledCallsScreen(
         Button(
             onClick = {
                 onClearOperationState()
-                editing = null
+                editingId = null
                 creating = true
             },
             enabled = callerPresets.isNotEmpty(),
@@ -151,7 +153,7 @@ fun ScheduledCallsScreen(
                         caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
                         onEdit = {
                             onClearOperationState()
-                            editing = call
+                            editingId = call.id
                         },
                         onCancel = { onCancel(call.id) },
                         onDelete = { deleting = call },
@@ -170,7 +172,7 @@ fun ScheduledCallsScreen(
             notificationsAllowed = notificationsAllowed,
             onDismiss = {
                 creating = false
-                editing = null
+                editingId = null
             },
             onSave = onSave,
             onRequestNotifications = onRequestNotifications,
@@ -292,13 +294,13 @@ private fun ScheduleEditorDialog(
                 .withSecond(0)
                 .withNano(0)
         }
-    var selectedDate by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }
-    var selectedTime by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalTime()) }
-    val scheduleId = remember(existing?.id) { existing?.id ?: UUID.randomUUID().toString() }
-    var selectedCallerId by remember(existing?.id) {
+    var selectedDate by rememberSaveable(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }
+    var selectedTime by rememberSaveable(existing?.id) { mutableStateOf(defaultDateTime.toLocalTime()) }
+    val scheduleId = rememberSaveable(existing?.id) { existing?.id ?: UUID.randomUUID().toString() }
+    var selectedCallerId by rememberSaveable(existing?.id) {
         mutableStateOf(existing?.callerPresetId ?: callerPresets.firstOrNull()?.id.orEmpty())
     }
-    var selectedMode by remember(existing?.id) {
+    var selectedMode by rememberSaveable(existing?.id) {
         mutableStateOf(existing?.deliveryMode ?: ScheduledCallDeliveryMode.APPROXIMATE)
     }
     var callerMenuExpanded by remember { mutableStateOf(false) }

@@ -136,13 +136,11 @@ object ScheduledCallNotifications {
     private fun notificationId(id: String): Int = id.hashCode()
 
     private fun scheduleUri(id: String): Uri =
-        Uri
-            .Builder()
-            .apply {
-                scheme("alibicall")
-                authority("scheduled-call")
-                appendPath(id)
-            }.build()
+        Uri.Builder()
+            .scheme("alibicall")
+            .authority("scheduled-call")
+            .appendPath(id)
+            .build()
 
     private fun scheduleActionUri(
         id: String,

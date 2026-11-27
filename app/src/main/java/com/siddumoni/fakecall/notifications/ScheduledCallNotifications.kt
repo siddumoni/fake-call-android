@@ -55,7 +55,7 @@ object ScheduledCallNotifications {
                 description = context.getString(R.string.schedule_notification_channel_description)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0L, 300L, 200L, 300L)
-                val sound = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                val sound =\n                    android.media.RingtoneManager.getDefaultUri(\n                        android.media.RingtoneManager.TYPE_NOTIFICATION,\n                    )
                 if (sound != null) {
                     setSound(
                         sound,

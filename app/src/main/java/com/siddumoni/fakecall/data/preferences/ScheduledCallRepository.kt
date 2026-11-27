@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private val Context.scheduledCallsDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "scheduled_calls")
+    preferencesDataStore(
+        name = "scheduled_calls",
+    )
 
 /** App-private persistence for scheduled-call records. Alarm scheduling remains a separate layer. */
 class ScheduledCallRepository(context: Context) {
@@ -92,8 +94,7 @@ class ScheduledCallRepository(context: Context) {
                         call.state == ScheduledCallState.SCHEDULED ||
                             call.state == ScheduledCallState.RINGING ||
                             call.state == ScheduledCallState.IN_CALL
-                    }
-                    .map { call -> ScheduledCallCodec.encode(call) },
+                    }.map { call -> ScheduledCallCodec.encode(call) },
             )
             preferences[CALLS_KEY] = entries
         }

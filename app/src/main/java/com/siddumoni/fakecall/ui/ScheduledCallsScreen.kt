@@ -122,7 +122,6 @@ fun ScheduledCallsScreen(
         }
         OperationMessage(
             state = operationState,
-            exactAlarmAllowed = exactAlarmAllowed,
             onRequestNotifications = onRequestNotifications,
             onRequestExactAlarms = onRequestExactAlarms,
         )
@@ -452,7 +451,6 @@ private fun PermissionNotice(
 @Composable
 private fun OperationMessage(
     state: ScheduledCallOperationState,
-    exactAlarmAllowed: Boolean,
     onRequestNotifications: () -> Unit,
     onRequestExactAlarms: () -> Unit,
 ) {

@@ -27,7 +27,21 @@ class ScheduledCallAlarmScheduler(
         Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
     fun schedule(call: ScheduledCall): ScheduleAlarmResult {
-        val permissionResult = ScheduleDeliveryPolicy.resultFor(call.deliveryMode, canScheduleExactAlarms())
+        require(call.state == ScheduledCallState.SCHEDULED) {
+            "Only a pending schedule can be registered with AlarmManager."
+        }
+        require(
+            ScheduledCallRules.validate(
+                id = call.id,
+                callerPresetId = call.callerPresetId,
+                triggerAtEpochMillis = call.triggerAtEpochMillis,
+                nowEpochMillis = System.currentTimeMillis(),
+            ) == null,
+        ) {
+            "Only a valid future schedule can be registered with AlarmManager."
+        }
+        val permissionResult =
+            ScheduleDeliveryPolicy.resultFor(call.deliveryMode, canScheduleExactAlarms())
         if (permissionResult != ScheduleAlarmResult.SCHEDULED) return permissionResult
 
         val pendingIntent = alarmPendingIntent(call.id)

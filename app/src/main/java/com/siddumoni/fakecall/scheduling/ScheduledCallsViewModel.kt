@@ -3,7 +3,7 @@ package com.siddumoni.fakecall.scheduling
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.siddumoni.fakecall.callers.CallerPresetRepository
+import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import kotlinx.coroutines.CancellationException

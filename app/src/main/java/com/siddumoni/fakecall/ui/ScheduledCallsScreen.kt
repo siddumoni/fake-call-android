@@ -98,13 +98,6 @@ fun ScheduledCallsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (!notificationsAllowed) {
-            PermissionNotice(
-                message = stringResource(R.string.schedule_notifications_required),
-                actionLabel = stringResource(R.string.schedule_enable_notifications),
-                onAction = onRequestNotifications,
-            )
-        }
         Button(
             onClick = {
                 editing = null
@@ -121,11 +114,13 @@ fun ScheduledCallsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        OperationMessage(
-            state = operationState,
-            onRequestNotifications = onRequestNotifications,
-            onRequestExactAlarms = onRequestExactAlarms,
-        )
+        if (!creating && editing == null) {
+            OperationMessage(
+                state = operationState,
+                onRequestNotifications = onRequestNotifications,
+                onRequestExactAlarms = onRequestExactAlarms,
+            )
+        }
         if (calls.isEmpty()) {
             Text(
                 text = stringResource(R.string.schedules_empty),

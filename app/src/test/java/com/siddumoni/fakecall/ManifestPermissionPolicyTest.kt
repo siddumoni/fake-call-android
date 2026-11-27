@@ -10,7 +10,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class ManifestPermissionPolicyTest {
     @Test
-    fun sourceManifestDeclaresNoActivePermissions() {
+    fun sourceManifestDeclaresOnlyScheduleDeliveryPermissions() {
         val factory =
             DocumentBuilderFactory.newInstance().apply {
                 isNamespaceAware = true
@@ -51,7 +51,13 @@ class ManifestPermissionPolicyTest {
                 }
             }
 
-        assertEquals(emptyList<String>(), activePermissions.filter { it.isNotBlank() })
+        assertEquals(
+            setOf(
+                "android.permission.POST_NOTIFICATIONS",
+                "android.permission.SCHEDULE_EXACT_ALARM",
+            ),
+            activePermissions.filter { it.isNotBlank() }.toSet(),
+        )
     }
 
     @Test

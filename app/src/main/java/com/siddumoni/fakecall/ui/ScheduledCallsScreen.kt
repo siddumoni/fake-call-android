@@ -489,3 +489,14 @@ private fun OperationMessage(
         -> Unit
     }
 }
+
+
+private fun scheduleStateLabel(state: ScheduledCallState): Int =
+    when (state) {
+        ScheduledCallState.SCHEDULED -> R.string.schedule_state_scheduled
+        ScheduledCallState.RINGING -> R.string.schedule_state_ringing
+        ScheduledCallState.IN_CALL -> R.string.schedule_state_in_call
+        ScheduledCallState.ENDED -> R.string.schedule_state_ended
+        ScheduledCallState.CANCELLED -> R.string.schedule_state_cancelled
+        ScheduledCallState.TIMED_OUT -> R.string.schedule_state_timed_out
+    }

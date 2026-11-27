@@ -1,0 +1,165 @@
+package com.siddumoni.fakecall.scheduling
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.siddumoni.fakecall.callers.CallerPresetRepository
+import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
+import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.io.IOException
+
+enum class ScheduledCallOperationState {
+    IDLE,
+    SAVING,
+    SAVED,
+    CANCELLED,
+    DELETED,
+    NOTIFICATION_PERMISSION_REQUIRED,
+    EXACT_ALARM_PERMISSION_REQUIRED,
+    CALLER_PROFILE_MISSING,
+    ACTIVE_CALL_CANNOT_BE_DELETED,
+    STORAGE_OR_ALARM_ERROR,
+}
+
+class ScheduledCallsViewModel(
+    application: Application,
+) : AndroidViewModel(application) {
+    private val repository = ScheduledCallRepository(application)
+    private val presetRepository = CallerPresetRepository(application)
+    private val scheduler = ScheduledCallAlarmScheduler(application)
+    private val writeMutex = Mutex()
+
+    private val _calls = MutableStateFlow<List<ScheduledCall>>(emptyList())
+    val calls: StateFlow<List<ScheduledCall>> = _calls.asStateFlow()
+
+    private val _operationState = MutableStateFlow(ScheduledCallOperationState.IDLE)
+    val operationState: StateFlow<ScheduledCallOperationState> = _operationState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.calls
+                .catch { exception ->
+                    if (exception is IOException) {
+                        _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                        emit(emptyList())
+                    } else {
+                        throw exception
+                    }
+                }.collect { _calls.value = it }
+        }
+    }
+
+    fun save(call: ScheduledCall) {
+        viewModelScope.launch {
+            writeMutex.withLock {
+                _operationState.value = ScheduledCallOperationState.SAVING
+                if (!ScheduledCallNotifications.canPost(getApplication())) {
+                    _operationState.value = ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
+                    return@withLock
+                }
+                val permissionResult =
+                    ScheduleDeliveryPolicy.resultFor(
+                        call.deliveryMode,
+                        scheduler.canScheduleExactAlarms(),
+                    )
+                if (permissionResult != ScheduleAlarmResult.SCHEDULED) {
+                    _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
+                    return@withLock
+                }
+
+                try {
+                    val savedPresets = presetRepository.presets.first()
+                    if (savedPresets.none { preset -> preset.id == call.callerPresetId }) {
+                        _operationState.value = ScheduledCallOperationState.CALLER_PROFILE_MISSING
+                        return@withLock
+                    }
+                    val previous = repository.calls.first().firstOrNull { saved -> saved.id == call.id }
+                    repository.upsert(call)
+                    when (scheduler.schedule(call)) {
+                        ScheduleAlarmResult.SCHEDULED -> {
+                            _operationState.value = ScheduledCallOperationState.SAVED
+                        }
+                        ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED -> {
+                            restorePrevious(previous, call.id)
+                            _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
+                        }
+                    }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                }
+            }
+        }
+    }
+
+    fun cancel(id: String) {
+        viewModelScope.launch {
+            writeMutex.withLock {
+                try {
+                    val changed = repository.transition(id, ScheduledCallAction.CANCEL)
+                    if (changed) {
+                        scheduler.cancel(id)
+                        ScheduledCallNotifications.cancel(getApplication(), id)
+                        _operationState.value = ScheduledCallOperationState.CANCELLED
+                    } else {
+                        _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                    }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                }
+            }
+        }
+    }
+
+    fun delete(id: String) {
+        viewModelScope.launch {
+            writeMutex.withLock {
+                try {
+                    val call = repository.calls.first().firstOrNull { saved -> saved.id == id }
+                    if (call == null) {
+                        _operationState.value = ScheduledCallOperationState.DELETED
+                        return@withLock
+                    }
+                    if (call.state == ScheduledCallState.RINGING || call.state == ScheduledCallState.IN_CALL) {
+                        _operationState.value = ScheduledCallOperationState.ACTIVE_CALL_CANNOT_BE_DELETED
+                        return@withLock
+                    }
+                    scheduler.cancel(id)
+                    ScheduledCallNotifications.cancel(getApplication(), id)
+                    repository.remove(id)
+                    _operationState.value = ScheduledCallOperationState.DELETED
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                }
+            }
+        }
+    }
+
+    fun clearOperationState() {
+        _operationState.value = ScheduledCallOperationState.IDLE
+    }
+
+    private suspend fun restorePrevious(
+        previous: ScheduledCall?,
+        id: String,
+    ) {
+        if (previous == null) {
+            repository.remove(id)
+            scheduler.cancel(id)
+        } else {
+            repository.upsert(previous)
+            scheduler.schedule(previous)
+        }
+    }
+}

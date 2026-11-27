@@ -67,6 +67,8 @@ object ScheduledCallRules {
                 ScheduledCallState.RINGING
             ScheduledCallState.SCHEDULED to ScheduledCallAction.CANCEL ->
                 ScheduledCallState.CANCELLED
+            ScheduledCallState.SCHEDULED to ScheduledCallAction.TIMEOUT ->
+                ScheduledCallState.TIMED_OUT
             ScheduledCallState.RINGING to ScheduledCallAction.ANSWER ->
                 ScheduledCallState.IN_CALL
             ScheduledCallState.RINGING to ScheduledCallAction.DECLINE ->

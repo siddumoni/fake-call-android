@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AlibiCall</string>
+    <string name="schedule_notification_channel">Scheduled simulations</string>
+    <string name="schedule_notification_channel_description">Notifications for user-scheduled local simulated calls. No real calls are made.</string>
+    <string name="schedule_notification_title">SIMULATED CALL</string>
+    <string name="schedule_notification_text">A local simulation for %1$s is ready.</string>
+    <string name="schedule_notification_public_text">A local simulated call is ready. No real call.</string>
+    <string name="schedule_notification_dismiss">Dismiss</string>
     <string name="onboarding_title">Welcome to AlibiCall</string>
     <string name="onboarding_summary">Set up a personal, clearly labelled simulated incoming-call experience. You stay in control of when it appears.</string>
     <string name="onboarding_privacy_heading">Private by design</string>

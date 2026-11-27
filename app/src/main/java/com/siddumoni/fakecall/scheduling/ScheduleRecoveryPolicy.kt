@@ -60,12 +60,7 @@ object ScheduleRecoveryPolicy {
             // Ring timeout is measured from alarm delivery using elapsed realtime, not the
             // original wall-clock schedule time. Clock/timezone reconciliation must not end
             // an already ringing simulation early.
-            ScheduledCallState.RINGING,
-            ScheduledCallState.IN_CALL,
-            ScheduledCallState.ENDED,
-            ScheduledCallState.CANCELLED,
-            ScheduledCallState.TIMED_OUT,
-            -> null
+            else -> null
         }
     }
 }

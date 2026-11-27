@@ -36,6 +36,7 @@ class ScheduledCallsViewModel(
     private val repository = ScheduledCallRepository(application)
     private val presetRepository = CallerPresetRepository(application)
     private val scheduler = ScheduledCallAlarmScheduler(application)
+    private val reconciler = ScheduleReconciler(application)
     private val writeMutex = Mutex()
 
     private val _calls = MutableStateFlow<List<ScheduledCall>>(emptyList())
@@ -186,28 +187,12 @@ class ScheduledCallsViewModel(
                     ) {
                         _operationState.value = ScheduledCallOperationState.IDLE
                     }
-                    val now = System.currentTimeMillis()
-                    repository.calls.first().forEach { call ->
-                        val expiry = ScheduleRecoveryPolicy.expiryActionFor(call, now)
-                        if (expiry != null) {
-                            repository.transition(call.id, expiry)
-                            scheduler.cancel(call.id)
-                            ScheduledCallNotifications.cancel(getApplication(), call.id)
-                            return@forEach
-                        }
-                        if (call.state != ScheduledCallState.SCHEDULED) return@forEach
-                        if (!notificationsAllowed) {
-                            scheduler.cancel(call.id)
+                    when (reconciler.reconcile(notificationsAllowed)) {
+                        ReconcileResult.COMPLETE -> Unit
+                        ReconcileResult.NOTIFICATION_PERMISSION_REQUIRED ->
                             _operationState.value = ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
-                            return@forEach
-                        }
-                        // Overdue but inside the grace window: leave the pending alarm to deliver.
-                        if (call.triggerAtEpochMillis <= System.currentTimeMillis()) return@forEach
-                        when (scheduler.schedule(call)) {
-                            ScheduleAlarmResult.SCHEDULED -> Unit
-                            ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED ->
-                                _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
-                        }
+                        ReconcileResult.EXACT_ALARM_PERMISSION_REQUIRED ->
+                            _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
                     }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception

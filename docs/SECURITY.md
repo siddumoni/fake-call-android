@@ -19,11 +19,15 @@ Future permission additions require a separate reviewed PR and exact allowlist u
 
 | Permission | Purpose | Gate |
 |---|---|---|
-| RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Add only with a tested non-exported boot receiver |
+| RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Declared; non-exported receiver |
 
 `USE_FULL_SCREEN_INTENT` is deliberately not declared: AlibiCall is a fictional local simulation, not a phone/video calling app or a conventional alarm-clock app. It uses a high-importance notification with the system heads-up/lock-screen presentation instead of requesting restricted full-screen takeover. No VIBRATE permission or custom background audio capability is requested.
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, RECORD_AUDIO, CAMERA, location, or broad external storage permissions. Foreground-service declarations require a separate technical justification before implementation.
+
+## Restart recovery
+
+`RECEIVE_BOOT_COMPLETED` is declared only to restore pending alarms. `ScheduleRestoreReceiver` is not exported, handles only boot-completed, package-replaced and exact-alarm-grant actions, and logs no record details.
 
 ## Component exposure
 

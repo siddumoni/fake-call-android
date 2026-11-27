@@ -1,20 +1,20 @@
 package com.siddumoni.fakecall.notifications
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.Manifest
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.MainActivity
 import com.siddumoni.fakecall.R
-import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import java.util.UUID
@@ -32,7 +32,8 @@ object ScheduledCallNotifications {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel =
-                context.getSystemService(NotificationManager::class.java)
+                context
+                    .getSystemService(NotificationManager::class.java)
                     .getNotificationChannel(CHANNEL_ID)
             if (channel != null && channel.importance == NotificationManager.IMPORTANCE_NONE) {
                 return false
@@ -88,14 +89,16 @@ object ScheduledCallNotifications {
             )
 
         val publicVersion =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
                 .setContentText(context.getString(R.string.schedule_notification_public_text))
                 .build()
 
         val notification =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
                 .setContentText(
@@ -136,7 +139,8 @@ object ScheduledCallNotifications {
     private fun notificationId(id: String): Int = id.hashCode()
 
     private fun scheduleUri(id: String): Uri =
-        Uri.Builder()
+        Uri
+            .Builder()
             .apply {
                 scheme("alibicall")
                 authority("scheduled-call")
@@ -154,11 +158,10 @@ object ScheduledCallNotifications {
             .appendPath(action)
             .build()
 
-    private fun isUuid(value: String): Boolean {
-        return runCatching {
+    private fun isUuid(value: String): Boolean =
+        runCatching {
             UUID.fromString(value).toString() == value.lowercase()
         }.getOrDefault(false)
-    }
 
     const val ACTION_DISMISS = "com.siddumoni.fakecall.action.DISMISS_SIMULATION"
     const val EXTRA_SCHEDULE_ID = "com.siddumoni.fakecall.extra.SCHEDULE_ID"

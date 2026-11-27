@@ -1,8 +1,8 @@
 package com.siddumoni.fakecall
 
-import android.Manifest
 import android.app.AlarmManager
 import android.content.Intent
+import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,9 +13,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
@@ -33,9 +33,9 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
-import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
@@ -269,11 +269,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isUuid(value: String): Boolean {
-        return runCatching {
+    private fun isUuid(value: String): Boolean =
+        runCatching {
             UUID.fromString(value).toString() == value.lowercase()
         }.getOrDefault(false)
-    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)

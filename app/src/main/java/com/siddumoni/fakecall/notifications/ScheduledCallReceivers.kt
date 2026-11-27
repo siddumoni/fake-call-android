@@ -7,12 +7,12 @@ import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.scheduling.ScheduledCallAction
 import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
-import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
+import java.util.UUID
 import com.siddumoni.fakecall.data.preferences.CallerPresetRepository as PresetRepository
 
 class ScheduledCallAlarmReceiver : BroadcastReceiver() {
@@ -84,11 +84,10 @@ class ScheduledCallAlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun isUuid(value: String): Boolean {
-        return runCatching {
+    private fun isUuid(value: String): Boolean =
+        runCatching {
             UUID.fromString(value).toString() == value.lowercase()
         }.getOrDefault(false)
-    }
 }
 
 class ScheduledCallTimeoutReceiver : BroadcastReceiver() {

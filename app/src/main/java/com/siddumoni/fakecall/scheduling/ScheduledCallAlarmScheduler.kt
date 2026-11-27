@@ -135,7 +135,8 @@ class ScheduledCallAlarmScheduler(
         scheduleId: String,
         action: String,
     ): Uri =
-        Uri.Builder()
+        Uri
+            .Builder()
             .apply {
                 scheme("alibicall")
                 authority("scheduled-call")

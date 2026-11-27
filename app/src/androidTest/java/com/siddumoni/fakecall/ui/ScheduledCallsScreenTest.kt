@@ -10,8 +10,8 @@ import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
 import com.siddumoni.fakecall.scheduling.ScheduledCallOperationState
-import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
 import com.siddumoni.fakecall.settings.ThemeSettings
+import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -55,16 +55,16 @@ class ScheduledCallsScreenTest {
         }
     }
 
- 
     @Test
     fun editRetainsScheduleIdentityAndDeleteFencesThePendingRecord() {
         val caller = CallerPreset(UUID.randomUUID().toString(), "Fictional caller", "")
-        val schedule = ScheduledCall(
-            id = UUID.randomUUID().toString(),
-            callerPresetId = caller.id,
-            triggerAtEpochMillis = System.currentTimeMillis() + 60_000,
-            deliveryMode = ScheduledCallDeliveryMode.APPROXIMATE,
-        )
+        val schedule =
+            ScheduledCall(
+                id = UUID.randomUUID().toString(),
+                callerPresetId = caller.id,
+                triggerAtEpochMillis = System.currentTimeMillis() + 60_000,
+                deliveryMode = ScheduledCallDeliveryMode.APPROXIMATE,
+            )
         var edited: ScheduledCall? = null
         var cancelled: String? = null
         var deleted: String? = null
@@ -106,6 +106,7 @@ class ScheduledCallsScreenTest {
         composeRule.onNodeWithTag("schedule-delete-confirm").performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
     }
+
     @Test
     fun exactModeExplainsSpecialAccessAndNotificationRequirement() {
         val caller = CallerPreset(UUID.randomUUID().toString(), "Fictional caller", "")

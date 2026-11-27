@@ -37,7 +37,7 @@ Caller presets and schedules belong in app-private storage. Android cloud backup
 
 ## Input validation
 
-Treat all Intent extras, notification action identifiers, timestamps, text fields and content URIs as untrusted. Resolve caller records from local storage using validated opaque identifiers. Bound image dimensions, file size and audio duration. Handle revoked SAF grants and decode errors safely. Do not log caller details, phone-like strings, user-selected paths or content.
+Treat all Intent extras, notification action identifiers, timestamps, text fields and content URIs as untrusted. Resolve caller records from local storage using validated opaque identifiers. Caller display names reject Unicode bidirectional formatting controls to reduce visual-order spoofing; ordinary right-to-left text remains allowed. Bound image dimensions, file size and audio duration. Handle revoked SAF grants and decode errors safely. Do not log caller details, phone-like strings, user-selected paths or content.
 
 ## Build and release
 

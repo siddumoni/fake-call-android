@@ -93,8 +93,8 @@ class ScheduledCallsScreenTest {
         }
 
         composeRule.onNodeWithTag("schedule-edit-${schedule.id}").performScrollTo().performClick()
-        composeRule.onNodeWithText("Exact").performClick()
-        composeRule.onNodeWithTag("schedule-save-button").performClick()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
+        composeRule.onNodeWithTag("schedule-save-button").performScrollTo().performClick()
         composeRule.runOnIdle {
             assertEquals(schedule.id, edited?.id)
             assertEquals(ScheduledCallDeliveryMode.EXACT, edited?.deliveryMode)
@@ -104,7 +104,7 @@ class ScheduledCallsScreenTest {
         composeRule.runOnIdle { assertEquals(schedule.id, cancelled) }
 
         composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performScrollTo().performClick()
-        composeRule.onNodeWithTag("schedule-delete-confirm").assertExists().performClick()
+        composeRule.onNodeWithTag("schedule-delete-confirm").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
     }
 
@@ -131,8 +131,8 @@ class ScheduledCallsScreenTest {
         }
 
         composeRule.onNodeWithTag("schedule-add-button").performClick()
-        composeRule.onNodeWithText("Exact").performClick()
-        composeRule.onNodeWithText("Open Alarms & reminders settings").assertExists()
-        composeRule.onNodeWithText("Enable notifications").assertExists()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
+        composeRule.onNodeWithText("Open Alarms & reminders settings").performScrollTo().assertExists()
+        composeRule.onNodeWithText("Enable notifications").performScrollTo().assertExists()
     }
 }

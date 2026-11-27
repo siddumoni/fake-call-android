@@ -42,9 +42,9 @@ Last updated: 2026-11-27
 
 ## Current CI maintenance
 
-- PR #11 fixed CodeQL extraction failing when Kotlin compilation was served from Gradle's build cache. It was merged as `936175326dca4e03eefaf694ef16cdbed2324a4b` after all six required CI jobs passed.
-- Post-merge main CI is being verified.
-- Dependabot PRs #3–#9 are being rebased and validated. Merge only after every required check passes and the update is reviewed for compatibility and security.
+- PR #11 fixed CodeQL extraction failing when Kotlin compilation was served from Gradle's build cache.
+- PR #12 corrected this status document and was merged after its Android CI run succeeded.
+- Dependency updates #3–#7 are merged. The Gradle wrapper (#8) and Android Gradle Plugin (#9) upgrades remain blocked on strict dependency-verification metadata refresh; they are not merged.
 
 ## Remaining product work
 

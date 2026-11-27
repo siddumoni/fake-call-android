@@ -1,9 +1,9 @@
 package com.siddumoni.fakecall.scheduling
 
-import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.UUID
 
 class ScheduledCallRulesTest {
     private val id = UUID.randomUUID().toString()

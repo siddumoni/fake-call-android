@@ -68,7 +68,7 @@ jobs:
           apksigner="$ANDROID_HOME/build-tools/$build_tools_version/apksigner"
           "$apksigner" verify --verbose --print-certs release/AlibiCall-release.apk
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
         with:
           files: release/*
           generate_release_notes: true

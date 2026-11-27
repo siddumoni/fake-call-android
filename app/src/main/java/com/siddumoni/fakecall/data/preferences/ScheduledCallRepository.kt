@@ -104,10 +104,12 @@ class ScheduledCallRepository(
                 preferences[CALLS_KEY]
                     .orEmpty()
                     .mapNotNull { encoded -> ScheduledCallCodec.decode(encoded) }
-            val current = records.firstOrNull { saved -> saved.id == id }
-                ?: return@edit
-            val nextState = ScheduledCallRules.transition(current.state, action)
-                ?: return@edit
+            val current =
+                records.firstOrNull { saved -> saved.id == id }
+                    ?: return@edit
+            val nextState =
+                ScheduledCallRules.transition(current.state, action)
+                    ?: return@edit
 
             val entries =
                 records

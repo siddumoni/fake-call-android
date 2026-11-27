@@ -5,65 +5,59 @@ Last updated: 2026-11-27
 ## Repository and delivery state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- PR 1 (foundation and secure CI) is merged into `main`.
-- PR 2 (persistent appearance / theme) is open and being validated.
-- PR 3 (caller profiles and local simulated-call preview) is in development on a branch stacked on PR 2.
-- Features are delivered in focused PRs; no direct feature pushes to `main`.
-- CI action references are pinned to commit SHAs. Dependency lockfiles and verification metadata are committed.
-- Release signing is not configured yet. CI can build a debug APK, but a production-signed release is not available.
+- Foundation, appearance/theme system, and caller profiles/local simulated-call preview are merged into `main`.
+- CI workflows are SHA-pinned, dependency verification is enabled, and the merged-manifest permission policy is enforced.
+- CI builds a debug APK and validates JVM, lint, instrumentation, screenshot, CodeQL, secret-scan and dependency-review jobs.
+- Production signing is not configured; a production-signed release cannot yet be produced.
 
 ## Toolchain
 
-- AGP 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
+- Android Gradle Plugin 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
 - Compose BOM 2026.11.01; compile API 37.1; target SDK 37; minimum SDK 34.
-- Emulator CI uses Android 17 API 37 when available and KVM hardware acceleration on hosted runners.
+- CI uses an Android 17 emulator when the image is available, with KVM acceleration where supported.
 
-## PR 1 — foundation (merged)
+## Merged implementation
 
-Implemented:
-- Secure project foundation, release/debug variants and wrapper validation.
-- CI builds, unit tests, lint/ktlint, merged-manifest permission policy, CodeQL and Gitleaks.
-- Android emulator instrumentation.
-- Offline-only/privacy-first app manifest and security documentation.
+### Foundation and secure CI
 
-The foundation PR was merged after the successful Android build/test and security validations. The repository Dependency Graph setting is still not confirmed enabled, so OSV dependency review coverage depends on the repository setting.
+- Debug/release variants, wrapper validation and strict dependency verification.
+- Build, unit tests, lint/ktlint, merged-manifest permission policy, CodeQL and Gitleaks.
+- Android emulator instrumentation and screenshot collection.
+- Offline-only/privacy-first manifest and security documentation.
 
-## PR 2 — appearance system (open)
+### Appearance system
 
-Implemented:
-- Preferences DataStore-backed Follow system / Light / Dark appearance.
-- Independent Pure black (AMOLED) and Dynamic colour toggles.
-- Material 3 palettes and WCAG AA contrast fallback.
-- Startup night-mode selection, matching day/night splash resources and edge-to-edge UI.
-- Accessible appearance controls and screen-state restoration.
-- JVM and instrumentation tests plus six screenshots across Home / Appearance and Light / Dark / AMOLED.
+- Preferences DataStore-backed Follow system / Light / Dark modes.
+- Independent AMOLED pure-black and Dynamic colour toggles.
+- Material 3 palettes, contrast fallback, edge-to-edge and startup theme application.
+- Accessible controls, state restoration, JVM and instrumentation coverage, screenshots.
 
-Latest CI fixes:
-- Screenshot package discovery now queries packages by the AlibiCall package prefix instead of relying on the third-party package filter.
-- The screenshot test's ktlint multiline-expression violation is fixed.
-- A CI run is validating the current PR 2 head. The latest prior run had successful connected Android tests (3/3) but failed screenshot export because package discovery returned no candidates and ktlint flagged one expression. The failure is being corrected; a fresh all-green run is required before merge.
+### Caller profiles and local simulated-call preview
 
-## PR 3 — caller profiles and local preview (in development)
+- Local caller-profile create/edit/delete and preview.
+- Fictional display names and optional number labels with validation.
+- App-private Preferences DataStore storage.
+- Incoming/answered simulation screens with explicit simulation disclaimer.
+- No actual telephony, call-log, network or remote communication.
 
-Implemented on the stacked feature branch:
-- Local caller-profile CRUD: create, edit, delete and preview.
-- Fictional display name and optional number label; strict character/length validation.
-- App-private Preferences DataStore storage with UUID records and URL-safe Base64 field encoding.
-- Explicit simulated-call banner; preview can be answered or ended locally.
-- No phone/network call, telephony, call-log, notification, scheduling or ringtone functionality in this slice.
-- Unit tests for validation/codec and Compose instrumentation tests for caller-profile creation and call preview.
-- DataStore instrumentation test for create/update/sort/delete.
+## Current CI maintenance
 
-## Remaining delivery steps
+- PR #11 fixed CodeQL extraction failing when Kotlin compilation was served from Gradle's build cache. It was merged as `936175326dca4e03eefaf694ef16cdbed2324a4b` after all six required CI jobs passed.
+- Post-merge main CI is being verified.
+- Dependabot PRs #3–#9 are being rebased and validated. Merge only after every required check passes and the update is reviewed for compatibility and security.
 
-1. Get PR 2's current CI run fully green and merge it.
-2. Rebase/retarget PR 3 onto `main`, validate it, then merge.
-3. Implement scheduled-call state machine and exact-alarm permission handling.
-4. Implement incoming-call notification/full-screen fallback with permission-health UI.
-5. Validate audio/ringtone behaviour under Android 17 hardening and target ColorOS handset.
-6. Add boot recovery, cancellation/idempotency, onboarding, accessibility and final security checks.
-7. Configure release signing only when secrets are provided by the repository owner.
+## Remaining product work
 
-## Device validation limitation
+1. Scheduling UX and a robust schedule state machine (validation, timezone/DST handling, persistence, cancellation and idempotency).
+2. Exact-alarm permission handling with graceful inexact fallback and permission-revocation recovery.
+3. Incoming-call notification, lock-screen/full-screen behavior when permitted, and a clear heads-up fallback when not.
+4. Reboot recovery for pending schedules; restore only valid future alarms and avoid duplicate deliveries.
+5. Ringtone/vibration controls with safe audio lifecycle, focus and routing behaviour.
+6. Onboarding, accessibility, empty/error states and resilient storage handling.
+7. Additional automated tests, threat review, release checklist and signing configuration (requires owner-provided secrets).
 
-The target OnePlus / ColorOS device is not available in this environment. OEM alarm delivery, lock-screen and full-screen intent behaviour, battery restrictions, audio routing and system-theme/splash behaviour must be verified physically. Do not mark device checklist items complete based only on emulator CI.
+All feature changes should be focused PRs with tests and complete green CI. Keep the app local/offline, avoid real telephony or caller-ID spoofing, and never impersonate emergency services, authorities, banks, government bodies, or real companies.
+
+## Physical-device validation limitation
+
+A target OnePlus / ColorOS handset is not available in this environment. OEM alarm delivery, exact-alarm settings, lock-screen/full-screen notification behaviour, battery restrictions, audio routing and system-theme/splash behavior remain unverified on physical hardware. Do not mark these checks complete based on emulator CI alone.

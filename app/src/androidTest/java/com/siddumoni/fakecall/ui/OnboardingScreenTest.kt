@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.siddumoni.fakecall.settings.ThemeSettings
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -44,7 +45,7 @@ class OnboardingScreenTest {
                 "No real calls: AlibiCall does not dial numbers, spoof caller ID, access contacts " +
                     "or call logs, or impersonate real people or organisations.",
             ).assertExists()
-        composeRule.onNodeWithTag("onboarding-continue-button").performClick()
+        composeRule.onNodeWithTag("onboarding-continue-button").performScrollTo().performClick()
 
         composeRule.runOnIdle {
             assertTrue(acknowledged.value)

@@ -30,12 +30,16 @@ class ScheduleRecoveryPolicyTest {
     fun overdueRecordsTimeOutAfterGraceWindow() {
         val now = trigger + ScheduleRecoveryPolicy.APPROXIMATE_GRACE_MILLIS + 1
 
-        listOf(ScheduledCallState.SCHEDULED, ScheduledCallState.RINGING).forEach { state ->
-            assertEquals(
-                ScheduledCallAction.TIMEOUT,
-                ScheduleRecoveryPolicy.expiryActionFor(call(ScheduledCallDeliveryMode.APPROXIMATE, state), now),
-            )
-        }
+        assertEquals(
+            ScheduledCallAction.TIMEOUT,
+            ScheduleRecoveryPolicy.expiryActionFor(call(ScheduledCallDeliveryMode.APPROXIMATE), now),
+        )
+        assertNull(
+            ScheduleRecoveryPolicy.expiryActionFor(
+                call(ScheduledCallDeliveryMode.APPROXIMATE, ScheduledCallState.RINGING),
+                now,
+            ),
+        )
     }
 
     @Test
@@ -65,6 +69,38 @@ class ScheduleRecoveryPolicyTest {
         assertEquals(
             now + ScheduleRecoveryPolicy.OVERDUE_REDELIVERY_DELAY_MILLIS,
             ScheduleRecoveryPolicy.alarmTriggerAt(pending, now),
+        )
+    }
+
+    @Test
+    fun ringingRecordDoesNotExpireBasedOnOriginalScheduleTime() {
+        val now = trigger + ScheduleRecoveryPolicy.APPROXIMATE_GRACE_MILLIS * 10
+
+        assertNull(
+            ScheduleRecoveryPolicy.expiryActionFor(
+                call(ScheduledCallDeliveryMode.EXACT, ScheduledCallState.RINGING),
+                now,
+            ),
+        )
+    }
+
+    @Test
+    fun timeoutDeadlineIsConvertedToElapsedRealtime() {
+        assertEquals(
+            45_000L,
+            ScheduleRecoveryPolicy.timeoutAlarmElapsedRealtime(
+                timeoutAtEpochMillis = 1_045_000L,
+                wallNowEpochMillis = 1_000_000L,
+                elapsedRealtimeMillis = 0L,
+            ),
+        )
+        assertEquals(
+            10_000L,
+            ScheduleRecoveryPolicy.timeoutAlarmElapsedRealtime(
+                timeoutAtEpochMillis = 900_000L,
+                wallNowEpochMillis = 1_000_000L,
+                elapsedRealtimeMillis = 10_000L,
+            ),
         )
     }
 

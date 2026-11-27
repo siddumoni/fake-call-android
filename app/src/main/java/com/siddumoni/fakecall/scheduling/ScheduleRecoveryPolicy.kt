@@ -31,6 +31,20 @@ object ScheduleRecoveryPolicy {
             call.triggerAtEpochMillis
         }
 
+    /** Convert a wall-clock timeout deadline to elapsed realtime so clock changes cannot shift it. */
+    fun timeoutAlarmElapsedRealtime(
+        timeoutAtEpochMillis: Long,
+        wallNowEpochMillis: Long,
+        elapsedRealtimeMillis: Long,
+    ): Long {
+        val remainingMillis =
+            runCatching { Math.subtractExact(timeoutAtEpochMillis, wallNowEpochMillis) }
+                .getOrElse { if (timeoutAtEpochMillis > wallNowEpochMillis) Long.MAX_VALUE else 0L }
+                .coerceAtLeast(0L)
+        return runCatching { Math.addExact(elapsedRealtimeMillis, remainingMillis) }
+            .getOrDefault(Long.MAX_VALUE)
+    }
+
     fun expiryActionFor(
         call: ScheduledCall,
         nowEpochMillis: Long,
@@ -42,9 +56,10 @@ object ScheduleRecoveryPolicy {
             }
         val expired = nowEpochMillis - call.triggerAtEpochMillis > grace
         return when (call.state) {
-            ScheduledCallState.SCHEDULED,
-            ScheduledCallState.RINGING,
-            -> if (expired) ScheduledCallAction.TIMEOUT else null
+            ScheduledCallState.SCHEDULED -> if (expired) ScheduledCallAction.TIMEOUT else null
+            // Ring timeout is measured from alarm delivery using elapsed realtime, not the
+            // original wall-clock schedule time. Clock/timezone reconciliation must not end
+            // an already ringing simulation early.
             else -> null
         }
     }

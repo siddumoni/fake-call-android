@@ -18,7 +18,9 @@ private val Context.scheduledCallsDataStore: DataStore<Preferences> by
     )
 
 /** App-private persistence for scheduled-call records. Alarm scheduling remains a separate layer. */
-class ScheduledCallRepository(context: Context) {
+class ScheduledCallRepository(
+    context: Context,
+) {
     private val dataStore = context.applicationContext.scheduledCallsDataStore
 
     val calls: Flow<List<ScheduledCall>> =

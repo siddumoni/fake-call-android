@@ -8,9 +8,9 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallAction
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.coroutineScope
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -56,7 +56,10 @@ class ScheduledCallRepositoryTest {
                     }
                 assertEquals(1, alarmResults.count { result -> result })
 
-                val ringing = repository.calls.first().single { saved -> saved.id == call.id }
+                val ringing =
+                    repository.calls
+                        .first()
+                        .single { saved -> saved.id == call.id }
                 assertEquals(ScheduledCallState.RINGING, ringing.state)
                 assertFalse(repository.transition(call.id, ScheduledCallAction.CANCEL))
 
@@ -69,18 +72,22 @@ class ScheduledCallRepositoryTest {
                         )
                     }
                 assertTrue(attemptedReschedule.isFailure)
-                assertEquals(
-                    ScheduledCallState.RINGING,
-                    repository.calls.first().single { saved -> saved.id == call.id }.state,
-                )
+
+                val stateAfterRejectedEdit =
+                    repository.calls
+                        .first()
+                        .single { saved -> saved.id == call.id }
+                assertEquals(ScheduledCallState.RINGING, stateAfterRejectedEdit.state)
 
                 assertTrue(repository.transition(call.id, ScheduledCallAction.ANSWER))
                 assertTrue(repository.transition(call.id, ScheduledCallAction.END))
                 assertFalse(repository.transition(call.id, ScheduledCallAction.END))
-                assertEquals(
-                    ScheduledCallState.ENDED,
-                    repository.calls.first().single { saved -> saved.id == call.id }.state,
-                )
+
+                val ended =
+                    repository.calls
+                        .first()
+                        .single { saved -> saved.id == call.id }
+                assertEquals(ScheduledCallState.ENDED, ended.state)
             } finally {
                 repository.remove(call.id)
             }
@@ -109,6 +116,13 @@ class ScheduledCallRepositoryTest {
 
             assertTrue(runCatching { repository.upsert(expired) }.isFailure)
             assertTrue(runCatching { repository.upsert(active) }.isFailure)
-            assertTrue(repository.calls.first().none { saved -> saved.id == expired.id || saved.id == active.id })
+
+            val savedIds =
+                repository.calls
+                    .first()
+                    .map { saved -> saved.id }
+                    .toSet()
+            assertFalse(expired.id in savedIds)
+            assertFalse(active.id in savedIds)
         }
 }

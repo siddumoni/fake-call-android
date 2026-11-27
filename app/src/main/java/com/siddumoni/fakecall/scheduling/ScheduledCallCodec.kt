@@ -9,10 +9,11 @@ object ScheduledCallCodec {
     private const val VERSION = "1"
 
     fun encode(call: ScheduledCall): String {
+        val encoder = Base64.getUrlEncoder().withoutPadding()
         val callerId =
-            Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(call.callerPresetId.toByteArray(StandardCharsets.UTF_8))
+            encoder.encodeToString(
+                call.callerPresetId.toByteArray(StandardCharsets.UTF_8),
+            )
         return listOf(
             VERSION,
             call.id,

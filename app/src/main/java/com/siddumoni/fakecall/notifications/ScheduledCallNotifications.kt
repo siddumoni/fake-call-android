@@ -70,7 +70,6 @@ object ScheduledCallNotifications {
                     action = Intent.ACTION_VIEW
                     data = scheduleUri(call.id)
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    putExtra("scheduled_call_id", call.id)
                 },
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )

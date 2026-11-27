@@ -50,7 +50,7 @@ Last updated: 2026-11-27
 - Concurrent duplicate alarm delivery and illegal transitions are rejected by serialized DataStore edits.
 - JVM model/codec/time-rule tests and emulator repository instrumentation tests cover DST, validation, persistence, concurrent duplicate delivery and illegal transitions.
 - PR #16 merged at `b847454dc7bd12e86473e706866196f549c098d2`; its complete PR CI passed, including build/unit/lint/manifest, emulator instrumentation/screenshots, CodeQL, secret scan and OSV dependency review.
-- PR #19 scheduling-platform implementation is under development on `feature/scheduled-call-management`; not yet merged. It adds an explicit exact/approximate delivery field with a v1→v2 codec migration, AlarmManager adapters, non-exported alarm/timeout/dismiss receivers, and a private heads-up notification path. UI permission prompts, schedule CRUD UI, notification-to-simulation navigation, reboot recovery and main-branch validation remain pending.
+- PR #19 is open and under CI review. It contains schedule create/edit/cancel/delete UI, exact-versus-approximate choice, contextual notification/exact-alarm permission flows, AlarmManager trigger/timeout adapters, non-exported receivers, a private heads-up notification, notification-to-local-simulation navigation and a Dismiss action. The branch includes rollback on alarm-registration failure, foreground alarm reconciliation, race-fenced pending deletion, UI/notification/scheduler tests, and the v1→v2 codec migration. It is not merged into `main`; CI for the latest PR head is still pending. Reboot restoration and physical-device validation remain outstanding.
 
 ## Current CI maintenance
 
@@ -60,12 +60,11 @@ Last updated: 2026-11-27
 
 ## Remaining product work
 
-1. Complete schedule create/edit/cancel/delete UI, caller-profile linkage, and notification-permission/exact-alarm special-access user flows.
-2. Wire notification content navigation to an authenticated-by-private-state simulated-call UI and persisted Answer/Decline/End actions.
-3. Reboot, timezone and wall-clock-change recovery; reconcile valid pending schedules without duplicates.
-4. Permission revocation recovery and clear retry/approximate-mode choices without silently changing user intent.
-5. Evaluate notification-channel sound or optional audio only if the platform lifecycle and Play policy support a privacy-safe implementation; do not request unnecessary audio permissions.
-6. Accessibility, error states, comprehensive lifecycle tests, threat review, release checklist and signing configuration (requires owner-provided secrets).
+1. Merge PR #19 only after complete green CI, focused review, and verified race/rollback tests.
+2. Add reboot recovery with a non-exported receiver, RECEIVE_BOOT_COMPLETED allowlist rationale, and valid-future-schedule reconciliation.
+3. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
+4. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
+5. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
 
 All feature changes should be focused PRs with tests and complete green CI. Keep the app local/offline, avoid real telephony or caller-ID spoofing, and never impersonate emergency services, authorities, banks, government bodies, or real companies.
 

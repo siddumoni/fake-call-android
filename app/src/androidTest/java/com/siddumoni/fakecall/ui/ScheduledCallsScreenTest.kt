@@ -1,10 +1,10 @@
 package com.siddumoni.fakecall.ui
 
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.assertExists
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
@@ -54,6 +54,53 @@ class ScheduledCallsScreenTest {
         }
     }
 
+ 
+    @Test
+    fun editRetainsScheduleIdentityAndDeleteFencesThePendingRecord() {
+        val caller = CallerPreset(UUID.randomUUID().toString(), "Fictional caller", "")
+        val schedule = ScheduledCall(
+            id = UUID.randomUUID().toString(),
+            callerPresetId = caller.id,
+            triggerAtEpochMillis = System.currentTimeMillis() + 60_000,
+            deliveryMode = ScheduledCallDeliveryMode.APPROXIMATE,
+        )
+        var edited: ScheduledCall? = null
+        var cancelled: String? = null
+        var deleted: String? = null
+
+        composeRule.setContent {
+            AlibiCallTheme(settings = ThemeSettings.Default) {
+                ScheduledCallsScreen(
+                    calls = listOf(schedule),
+                    callerPresets = listOf(caller),
+                    operationState = ScheduledCallOperationState.IDLE,
+                    notificationsAllowed = true,
+                    exactAlarmAllowed = true,
+                    onSave = { edited = it },
+                    onCancel = { cancelled = it },
+                    onDelete = { deleted = it },
+                    onRequestNotifications = {},
+                    onRequestExactAlarms = {},
+                    onClearOperationState = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("schedule-edit-${schedule.id}").performClick()
+        composeRule.onNodeWithText("Exact").performClick()
+        composeRule.onNodeWithTag("schedule-save-button").performClick()
+        composeRule.runOnIdle {
+            assertEquals(schedule.id, edited?.id)
+            assertEquals(ScheduledCallDeliveryMode.EXACT, edited?.deliveryMode)
+        }
+
+        composeRule.onNodeWithTag("schedule-cancel-${schedule.id}").performClick()
+        composeRule.runOnIdle { assertEquals(schedule.id, cancelled) }
+
+        composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performClick()
+        composeRule.onNodeWithTag("schedule-delete-confirm").performClick()
+        composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
+    }
     @Test
     fun exactModeExplainsSpecialAccessAndNotificationRequirement() {
         val caller = CallerPreset(UUID.randomUUID().toString(), "Fictional caller", "")

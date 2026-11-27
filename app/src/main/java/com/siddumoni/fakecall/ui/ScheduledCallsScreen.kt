@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
 import com.siddumoni.fakecall.scheduling.ScheduledCallOperationState
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
+import com.siddumoni.fakecall.scheduling.ScheduledCallRules
 import com.siddumoni.fakecall.scheduling.ScheduleTimeResolver
 import java.time.Instant
 import java.time.LocalDate
@@ -152,6 +154,7 @@ fun ScheduledCallsScreen(
         ScheduleEditorDialog(
             existing = editing,
             callerPresets = callerPresets,
+            operationState = operationState,
             exactAlarmAllowed = exactAlarmAllowed,
             notificationsAllowed = notificationsAllowed,
             onDismiss = {
@@ -175,6 +178,7 @@ fun ScheduledCallsScreen(
                         onDelete(call.id)
                         deleting = null
                     },
+                    modifier = Modifier.testTag("schedule-delete-confirm"),
                 ) {
                     Text(stringResource(R.string.delete))
                 }
@@ -230,9 +234,15 @@ private fun ScheduledCallCard(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (call.state == ScheduledCallState.SCHEDULED) {
-                    TextButton(onClick = onEdit) { Text(stringResource(R.string.edit)) }
-                    TextButton(onClick = onCancel) { Text(stringResource(R.string.schedule_cancel)) }
-                    TextButton(onClick = onDelete) { Text(stringResource(R.string.delete)) }
+                    TextButton(onClick = onEdit, modifier = Modifier.testTag("schedule-edit-${call.id}")) {
+                        Text(stringResource(R.string.edit))
+                    }
+                    TextButton(onClick = onCancel, modifier = Modifier.testTag("schedule-cancel-${call.id}")) {
+                        Text(stringResource(R.string.schedule_cancel))
+                    }
+                    TextButton(onClick = onDelete, modifier = Modifier.testTag("schedule-delete-${call.id}")) {
+                        Text(stringResource(R.string.delete))
+                    }
                 } else if (call.state != ScheduledCallState.RINGING && call.state != ScheduledCallState.IN_CALL) {
                     TextButton(onClick = onDelete) { Text(stringResource(R.string.delete)) }
                 }
@@ -245,6 +255,7 @@ private fun ScheduledCallCard(
 private fun ScheduleEditorDialog(
     existing: ScheduledCall?,
     callerPresets: List<CallerPreset>,
+    operationState: ScheduledCallOperationState,
     exactAlarmAllowed: Boolean,
     notificationsAllowed: Boolean,
     onDismiss: () -> Unit,
@@ -261,6 +272,7 @@ private fun ScheduleEditorDialog(
         }
     var selectedDate by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalDate()) }
     var selectedTime by remember(existing?.id) { mutableStateOf(defaultDateTime.toLocalTime()) }
+    val scheduleId = remember(existing?.id) { existing?.id ?: UUID.randomUUID().toString() }
     var selectedCallerId by remember(existing?.id) {
         mutableStateOf(existing?.callerPresetId ?: callerPresets.firstOrNull()?.id.orEmpty())
     }
@@ -375,18 +387,21 @@ private fun ScheduleEditorDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = selectedCaller != null,
+                enabled = selectedCaller != null && operationState != ScheduledCallOperationState.SAVING,
                 onClick = {
                     if (selectedCaller == null) {
                         validationMessage = context.getString(R.string.schedule_select_caller)
                     } else {
                         val timestamp = resolvedInstant.toEpochMilli()
-                        if (timestamp <= System.currentTimeMillis()) {
+                        val now = System.currentTimeMillis()
+                        if (timestamp <= now) {
                             validationMessage = context.getString(R.string.schedule_time_must_be_future)
+                        } else if (timestamp - now > ScheduledCallRules.MAX_SCHEDULE_HORIZON_MILLIS) {
+                            validationMessage = context.getString(R.string.schedule_time_too_far)
                         } else {
                             onSave(
                                 ScheduledCall(
-                                    id = existing?.id ?: UUID.randomUUID().toString(),
+                                    id = scheduleId,
                                     callerPresetId = selectedCaller.id,
                                     triggerAtEpochMillis = timestamp,
                                     deliveryMode = selectedMode,
@@ -419,7 +434,7 @@ private fun DeliveryModeOption(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clickable(role = Role.RadioButton, onClick = onSelect)
+                .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
                 .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

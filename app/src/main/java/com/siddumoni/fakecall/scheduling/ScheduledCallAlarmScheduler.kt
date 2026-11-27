@@ -70,10 +70,15 @@ class ScheduledCallAlarmScheduler(
         }
     }
 
-    fun cancel(scheduleId: String) {
+    fun cancelTrigger(scheduleId: String) {
         if (!isUuid(scheduleId)) return
-        alarmManager.cancel(alarmPendingIntent(scheduleId))
-        alarmPendingIntent(scheduleId).cancel()
+        val pendingIntent = alarmPendingIntent(scheduleId)
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
+    }
+
+    fun cancel(scheduleId: String) {
+        cancelTrigger(scheduleId)
         cancelTimeout(scheduleId)
     }
 

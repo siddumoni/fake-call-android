@@ -31,7 +31,15 @@ class ScheduledCallAlarmReceiver : BroadcastReceiver() {
                 if (call.state != ScheduledCallState.SCHEDULED) return@launch
 
                 if (call.triggerAtEpochMillis > System.currentTimeMillis()) {
-                    ScheduledCallAlarmScheduler(appContext).schedule(call)
+                    try {
+                        // Permission revocation must not silently change an exact schedule. Leave
+                        // the record pending; foreground reconciliation can restore it after access.
+                        ScheduledCallAlarmScheduler(appContext).schedule(call)
+                    } catch (_: Exception) {
+                        schedules.transition(id, ScheduledCallAction.TIMEOUT)
+                        ScheduledCallAlarmScheduler(appContext).cancelTrigger(id)
+                        ScheduledCallNotifications.cancel(appContext, id)
+                    }
                     return@launch
                 }
 
@@ -45,10 +53,17 @@ class ScheduledCallAlarmReceiver : BroadcastReceiver() {
                 if (schedules.transition(id, ScheduledCallAction.ALARM_FIRED)) {
                     val ringingCall = call.copy(state = ScheduledCallState.RINGING)
                     if (ScheduledCallNotifications.show(appContext, ringingCall, caller)) {
-                        ScheduledCallAlarmScheduler(appContext).scheduleTimeout(
-                            id,
-                            System.currentTimeMillis() + ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS,
-                        )
+                        try {
+                            ScheduledCallAlarmScheduler(appContext).scheduleTimeout(
+                                id,
+                                System.currentTimeMillis() + ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS,
+                            )
+                        } catch (_: Exception) {
+                            // The notification has its own platform timeout, but without this alarm
+                            // persisted state could remain RINGING forever. Fail closed and clean up.
+                            schedules.transition(id, ScheduledCallAction.TIMEOUT)
+                            ScheduledCallNotifications.cancel(appContext, id)
+                        }
                     } else {
                         schedules.transition(id, ScheduledCallAction.TIMEOUT)
                     }

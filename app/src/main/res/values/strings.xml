@@ -19,11 +19,12 @@
     <string name="schedule_approximate_title">Approximate</string>
     <string name="schedule_approximate_label">Approximate delivery selected</string>
     <string name="schedule_approximate_description">Does not require exact-alarm access. Android may delay delivery for battery and Doze modes.</string>
-    <string name="schedule_notifications_required">Notifications must be enabled to deliver a visible simulated call. No schedule has been saved.</string>
+    <string name="schedule_notifications_required">Enable notifications before creating or delivering a simulated call. Existing schedules may not deliver while notifications are blocked.</string>
     <string name="schedule_enable_notifications">Enable notifications</string>
     <string name="schedule_exact_permission_required">Exact timing is unavailable until you grant Alarms &amp; reminders access. Choose Approximate instead if you do not want to grant it.</string>
     <string name="schedule_open_exact_settings">Open Alarms &amp; reminders settings</string>
     <string name="schedule_time_must_be_future">Choose a date and time in the future.</string>
+    <string name="schedule_time_too_far">Choose a date within the next 365 days.</string>
     <string name="schedule_delete_title">Delete schedule?</string>
     <string name="schedule_delete_message">This removes the saved schedule and cancels its pending alarm.</string>
     <string name="schedule_cancel">Cancel schedule</string>

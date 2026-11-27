@@ -32,8 +32,11 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] App process killed: verify delivery and recovery.
 - [ ] Reboot with a pending schedule: verify only valid future calls are restored.
 - [ ] Cancel before trigger: verify no call notification appears.
-- [ ] Repeated Answer/Decline/Dismiss: verify idempotent state transitions.
-- [ ] Ring timeout: verify ringing stops and state becomes TimedOut.
+- [ ] Edit a pending schedule; verify its original trigger is replaced and no duplicate is delivered.
+- [ ] Delete a pending schedule immediately before trigger; verify cancellation wins or active delivery is protected (never stale/duplicate UI).
+- [ ] Tap the notification; verify it opens only the persisted schedule and fictional profile in the app.
+- [ ] Answer, Decline, End and Dismiss; verify idempotent state transitions and timeout cancellation.
+- [ ] Ring timeout: verify notification is removed and state becomes TimedOut.
 
 ## Audio and interruption modes
 

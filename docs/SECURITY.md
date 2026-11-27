@@ -27,7 +27,7 @@ No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SM
 
 ## Component exposure
 
-Every component is non-exported by default. The launcher Activity is the only currently exported component. The scheduled-alarm, timeout and notification-dismiss receivers are explicitly non-exported. Alarm and notification action PendingIntents are explicit and immutable, and use unique data URIs per schedule. Notification content opens the launcher Activity using a validated opaque schedule ID; the Activity must reload the call and caller from private storage before showing any caller details.
+Every component is non-exported by default except the launcher Activity. The scheduled-alarm, timeout and notification-dismiss receivers are explicitly non-exported. Alarm and notification action PendingIntents are explicit and immutable, and use unique data URIs per schedule. Notification content opens the launcher Activity with the app-specific `alibicall://scheduled-call/<UUID>` URI; the Activity accepts only ACTION_VIEW with the exact scheme/authority and a single validated UUID path segment, then reloads schedule state and caller data from private storage. It does not trust intent extras.
 
 ## Data protection
 

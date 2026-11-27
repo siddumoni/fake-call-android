@@ -162,6 +162,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         refreshSchedulePermissions()
+        scheduledCallsViewModel.reconcilePendingAlarms(notificationsAllowed)
     }
 
     private fun refreshSchedulePermissions() {
@@ -194,10 +195,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleScheduledCallIntent(intent: Intent?) {
-        val id =
-            intent?.data?.pathSegments?.firstOrNull()
-                ?: intent?.getStringExtra("scheduled_call_id")
-                ?: return
+        val data = intent?.data ?: return
+        // Only our explicit notification URI is accepted. Do not trust caller-supplied extras
+        // or arbitrary schemes/authorities on this exported launcher Activity.
+        if (intent.action != Intent.ACTION_VIEW ||
+            data.scheme != "alibicall" ||
+            data.authority != "scheduled-call" ||
+            data.pathSegments.size != 1
+        ) return
+        val id = data.pathSegments.single()
         if (!isUuid(id)) return
         lifecycleScope.launch {
             val call = ScheduledCallRepository(this@MainActivity).calls.first()

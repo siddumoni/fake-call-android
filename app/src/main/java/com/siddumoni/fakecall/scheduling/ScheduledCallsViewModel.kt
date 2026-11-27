@@ -140,10 +140,67 @@ class ScheduledCallsViewModel(
                         _operationState.value = ScheduledCallOperationState.ACTIVE_CALL_CANNOT_BE_DELETED
                         return@withLock
                     }
+                    // Atomically fence off a pending alarm before cancelling the external AlarmManager
+                    // entry. If delivery wins this transition, re-read and refuse to delete a ringing
+                    // or answered simulation instead of racing an unconditional repository removal.
+                    if (call.state == ScheduledCallState.SCHEDULED &&
+                        !repository.transition(id, ScheduledCallAction.CANCEL)
+                    ) {
+                        val latest = repository.calls.first().firstOrNull { saved -> saved.id == id }
+                        if (latest == null) {
+                            _operationState.value = ScheduledCallOperationState.DELETED
+                            return@withLock
+                        }
+                        if (latest.state == ScheduledCallState.RINGING || latest.state == ScheduledCallState.IN_CALL) {
+                            _operationState.value = ScheduledCallOperationState.ACTIVE_CALL_CANNOT_BE_DELETED
+                            return@withLock
+                        }
+                        if (latest.state == ScheduledCallState.SCHEDULED) {
+                            _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                            return@withLock
+                        }
+                    }
                     scheduler.cancel(id)
                     ScheduledCallNotifications.cancel(getApplication(), id)
                     repository.remove(id)
                     _operationState.value = ScheduledCallOperationState.DELETED
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                }
+            }
+        }
+    }
+
+    /**
+     * Reconcile persisted pending schedules whenever the app becomes active or permissions return.
+     * Exact schedules stay exact: missing special access leaves them saved but unscheduled until
+     * the user grants access. Notification denial cancels delivery alarms without deleting records.
+     */
+    fun reconcilePendingAlarms(notificationsAllowed: Boolean) {
+        viewModelScope.launch {
+            writeMutex.withLock {
+                try {
+                    val now = System.currentTimeMillis()
+                    repository.calls.first().forEach { call ->
+                        if (call.state != ScheduledCallState.SCHEDULED) return@forEach
+                        if (!notificationsAllowed) {
+                            scheduler.cancel(call.id)
+                            _operationState.value = ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
+                            return@forEach
+                        }
+                        if (call.triggerAtEpochMillis <= now) {
+                            repository.transition(call.id, ScheduledCallAction.TIMEOUT)
+                            scheduler.cancel(call.id)
+                            ScheduledCallNotifications.cancel(getApplication(), call.id)
+                            return@forEach
+                        }
+                        when (scheduler.schedule(call)) {
+                            ScheduleAlarmResult.SCHEDULED -> Unit
+                            ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED ->
+                                _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
+                        }
+                    }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
                     _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR

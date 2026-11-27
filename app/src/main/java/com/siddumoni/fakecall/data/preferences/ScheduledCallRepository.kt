@@ -29,10 +29,12 @@ class ScheduledCallRepository(context: Context) {
 
     suspend fun upsert(call: ScheduledCall) {
         dataStore.edit { preferences ->
-            val entries = preferences[CALLS_KEY].orEmpty()
-                .mapNotNull(ScheduledCallCodec::decode)
-                .filterNot { it.id == call.id }
-                .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+            val entries =
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull(ScheduledCallCodec::decode)
+                    .filterNot { it.id == call.id }
+                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
             entries += ScheduledCallCodec.encode(call)
             preferences[CALLS_KEY] = entries
         }
@@ -41,17 +43,19 @@ class ScheduledCallRepository(context: Context) {
     suspend fun updateState(id: String, state: ScheduledCallState): Boolean {
         var found = false
         dataStore.edit { preferences ->
-            val entries = preferences[CALLS_KEY].orEmpty()
-                .mapNotNull(ScheduledCallCodec::decode)
-                .map { call ->
-                    if (call.id == id) {
-                        found = true
-                        call.copy(state = state)
-                    } else {
-                        call
+            val entries =
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull(ScheduledCallCodec::decode)
+                    .map { call ->
+                        if (call.id == id) {
+                            found = true
+                            call.copy(state = state)
+                        } else {
+                            call
+                        }
                     }
-                }
-                .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
             preferences[CALLS_KEY] = entries
         }
         return found
@@ -59,19 +63,27 @@ class ScheduledCallRepository(context: Context) {
 
     suspend fun remove(id: String) {
         dataStore.edit { preferences ->
-            preferences[CALLS_KEY] = preferences[CALLS_KEY].orEmpty()
-                .mapNotNull(ScheduledCallCodec::decode)
-                .filterNot { it.id == id }
-                .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+            preferences[CALLS_KEY] =
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull(ScheduledCallCodec::decode)
+                    .filterNot { it.id == id }
+                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
         }
     }
 
     suspend fun removeTerminalRecords() {
         dataStore.edit { preferences ->
-            preferences[CALLS_KEY] = preferences[CALLS_KEY].orEmpty()
-                .mapNotNull(ScheduledCallCodec::decode)
-                .filter { it.state == ScheduledCallState.SCHEDULED || it.state == ScheduledCallState.RINGING || it.state == ScheduledCallState.IN_CALL }
-                .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
+            preferences[CALLS_KEY] =
+                preferences[CALLS_KEY]
+                    .orEmpty()
+                    .mapNotNull(ScheduledCallCodec::decode)
+                    .filter { call ->
+                        call.state == ScheduledCallState.SCHEDULED ||
+                            call.state == ScheduledCallState.RINGING ||
+                            call.state == ScheduledCallState.IN_CALL
+                    }
+                    .mapTo(mutableSetOf(), ScheduledCallCodec::encode)
         }
     }
 

@@ -113,11 +113,9 @@ class ThemeScreenshotSmokeTest {
         image: ImageBitmap,
     ) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val externalFiles =
-            checkNotNull(context.getExternalFilesDir(null)) {
-                "App-specific external files directory is unavailable"
-            }
-        val screenshotDirectory = File(externalFiles, "screenshots")
+        // CI pulls screenshots using adb run-as. App-private storage avoids
+        // scoped-storage restrictions on /sdcard/Android/data introduced in newer Android.
+        val screenshotDirectory = File(context.filesDir, "screenshots")
         check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {
             "Could not create screenshot output directory"
         }

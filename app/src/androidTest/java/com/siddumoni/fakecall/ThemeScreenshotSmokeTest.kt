@@ -112,8 +112,8 @@ class ThemeScreenshotSmokeTest {
         fileName: String,
         image: ImageBitmap,
     ) {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        // CI pulls screenshots using adb run-as. App-private storage avoids
+        val context = InstrumentationRegistry.getInstrumentation().context
+        // CI pulls screenshots using adb run-as from instrumentation-app private storage.
         // scoped-storage restrictions on /sdcard/Android/data introduced in newer Android.
         val screenshotDirectory = File(context.filesDir, "screenshots")
         check(screenshotDirectory.mkdirs() || screenshotDirectory.isDirectory) {

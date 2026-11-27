@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.siddumoni.fakecall.data.preferences.CallerPresetRepository as PresetRepository
 
 class ScheduledCallAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(
@@ -136,4 +137,3 @@ class ScheduledCallDismissReceiver : BroadcastReceiver() {
         }
     }
 }
-import com.siddumoni.fakecall.data.preferences.CallerPresetRepository as PresetRepository

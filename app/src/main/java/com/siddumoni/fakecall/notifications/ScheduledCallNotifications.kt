@@ -97,7 +97,8 @@ object ScheduledCallNotifications {
                 .build()
 
         val notification =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.schedule_notification_title))
                 .setContentText(
@@ -149,7 +150,8 @@ object ScheduledCallNotifications {
         id: String,
         action: String,
     ): Uri =
-        Uri.Builder()
+        Uri
+            .Builder()
             .scheme("alibicall")
             .authority("scheduled-call")
             .appendPath(id)

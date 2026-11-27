@@ -78,6 +78,11 @@ jobs:
             size: 1080x2340
             density: 420
             font-scale: '1.0'
+          - api-level: '35'
+            display: compact-landscape
+            size: 1280x720
+            density: 320
+            font-scale: '1.0'
           - api-level: '36'
             display: standard
             size: 1080x2340

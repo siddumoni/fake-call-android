@@ -85,7 +85,7 @@ fun ScheduledCallsScreen(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier =
             modifier
                 .fillMaxSize()
@@ -93,72 +93,81 @@ fun ScheduledCallsScreen(
                 .testTag("scheduled-calls-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = stringResource(R.string.schedules_title),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Text(
-            text = stringResource(R.string.schedules_disclaimer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        item {
+            Text(
+                text = stringResource(R.string.schedules_title),
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
+        item {
+            Text(
+                text = stringResource(R.string.schedules_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (!notificationsAllowed &&
             !creating &&
             editing == null &&
             operationState != ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
         ) {
-            PermissionNotice(
-                message = stringResource(R.string.schedule_notifications_required),
-                actionLabel = stringResource(R.string.schedule_enable_notifications),
-                onAction = onRequestNotifications,
-            )
+            item {
+                PermissionNotice(
+                    message = stringResource(R.string.schedule_notifications_required),
+                    actionLabel = stringResource(R.string.schedule_enable_notifications),
+                    onAction = onRequestNotifications,
+                )
+            }
         }
-        Button(
-            onClick = {
-                onClearOperationState()
-                editingId = null
-                creating = true
-            },
-            enabled = callerPresets.isNotEmpty(),
-            modifier = Modifier.fillMaxWidth().testTag("schedule-add-button"),
-        ) {
-            Text(stringResource(R.string.schedule_add))
+        item {
+            Button(
+                onClick = {
+                    onClearOperationState()
+                    editingId = null
+                    creating = true
+                },
+                enabled = callerPresets.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().testTag("schedule-add-button"),
+            ) {
+                Text(stringResource(R.string.schedule_add))
+            }
         }
         if (callerPresets.isEmpty()) {
-            Text(
-                text = stringResource(R.string.schedule_requires_caller),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.schedule_requires_caller),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (!creating && editing == null) {
-            OperationMessage(
-                state = operationState,
-                onRequestNotifications = onRequestNotifications,
-                onRequestExactAlarms = onRequestExactAlarms,
-            )
+            item {
+                OperationMessage(
+                    state = operationState,
+                    onRequestNotifications = onRequestNotifications,
+                    onRequestExactAlarms = onRequestExactAlarms,
+                )
+            }
         }
         if (calls.isEmpty()) {
-            Text(
-                text = stringResource(R.string.schedules_empty),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.schedules_empty),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(calls, key = { it.id }) { call ->
-                    ScheduledCallCard(
-                        call = call,
-                        caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
-                        onEdit = {
-                            onClearOperationState()
-                            editingId = call.id
-                        },
-                        onCancel = { onCancel(call.id) },
-                        onDelete = { deleting = call },
-                    )
-                }
+            items(calls, key = { it.id }) { call ->
+                ScheduledCallCard(
+                    call = call,
+                    caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
+                    onEdit = {
+                        onClearOperationState()
+                        editingId = call.id
+                    },
+                    onCancel = { onCancel(call.id) },
+                    onDelete = { deleting = call },
+                )
             }
         }
     }

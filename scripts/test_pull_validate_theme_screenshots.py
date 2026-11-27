@@ -23,8 +23,8 @@ def fake_png(width: int, height: int, payload_size: int = MIN_BYTES) -> bytes:
 class ThemeScreenshotValidationTests(unittest.TestCase):
     def test_reads_screenshot_from_app_private_storage_with_run_as(self):
         self.assertEqual(
-            ["adb", "exec-out", "run-as", "com.siddumoni.fakecall.debug", "cat", "files/screenshots/home-light.png"],
-            screenshot_read_command("com.siddumoni.fakecall.debug", "home-light.png"),
+            ["adb", "exec-out", "run-as", "com.siddumoni.fakecall.debug.test", "cat", "files/screenshots/home-light.png"],
+            screenshot_read_command("com.siddumoni.fakecall.debug.test", "home-light.png"),
         )
 
     def test_detects_debug_and_release_packages_and_excludes_test_package(self):
@@ -39,7 +39,7 @@ class ThemeScreenshotValidationTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            ["com.siddumoni.fakecall", "com.siddumoni.fakecall.debug"],
+            ["com.siddumoni.fakecall", "com.siddumoni.fakecall.debug", "com.siddumoni.fakecall.debug.test"],
             packages,
         )
 

@@ -30,6 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.R
+import com.siddumoni.fakecall.callers.CallerPreset
+import com.siddumoni.fakecall.callers.CallerPresetValidationError
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
@@ -37,6 +39,9 @@ import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
 enum class AppScreen {
     HOME,
     THEME_SETTINGS,
+    CALLER_PRESETS,
+    SIMULATED_CALL,
+    SIMULATED_IN_CALL,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +54,16 @@ fun AlibiCallApp(
     saveFailed: Boolean,
     screen: AppScreen,
     onOpenThemeSettings: () -> Unit,
+    onOpenCallerPresets: () -> Unit = {},
     onBack: () -> Unit,
+    callerPresets: List<CallerPreset> = emptyList(),
+    callerPresetSaveError: CallerPresetValidationError? = null,
+    onSaveCallerPreset: (String?, String, String) -> Boolean = { _, _, _ -> false },
+    onDeleteCallerPreset: (String) -> Unit = {},
+    selectedCaller: CallerPreset? = null,
+    onPreviewCaller: (CallerPreset) -> Unit = {},
+    onAnswerSimulatedCall: () -> Unit = {},
+    onEndSimulatedCall: () -> Unit = {},
 ) {
     AlibiCallTheme(settings = settings) {
         Scaffold(
@@ -58,9 +72,21 @@ fun AlibiCallApp(
                     .fillMaxSize()
                     .testTag("app-root"),
             topBar = {
-                if (screen == AppScreen.THEME_SETTINGS) {
+                if (screen == AppScreen.THEME_SETTINGS || screen == AppScreen.CALLER_PRESETS) {
                     TopAppBar(
-                        title = { Text(stringResource(R.string.theme_settings_title)) },
+                        title = {
+                            Text(
+                                stringResource(
+                                    if (screen ==
+                                        AppScreen.THEME_SETTINGS
+                                    ) {
+                                        R.string.theme_settings_title
+                                    } else {
+                                        R.string.caller_presets_title
+                                    },
+                                ),
+                            )
+                        },
                         navigationIcon = {
                             TextButton(onClick = onBack) {
                                 Text(stringResource(R.string.back))
@@ -75,6 +101,7 @@ fun AlibiCallApp(
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
                         onOpenThemeSettings = onOpenThemeSettings,
+                        onOpenCallerPresets = onOpenCallerPresets,
                     )
                 AppScreen.THEME_SETTINGS ->
                     ThemeSettingsScreen(
@@ -85,6 +112,31 @@ fun AlibiCallApp(
                         onDynamicColorChanged = onDynamicColorChanged,
                         saveFailed = saveFailed,
                     )
+                AppScreen.CALLER_PRESETS ->
+                    CallerPresetsScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        presets = callerPresets,
+                        saveError = callerPresetSaveError,
+                        onSave = onSaveCallerPreset,
+                        onDelete = onDeleteCallerPreset,
+                        onPreview = onPreviewCaller,
+                    )
+                AppScreen.SIMULATED_CALL, AppScreen.SIMULATED_IN_CALL ->
+                    if (selectedCaller != null) {
+                        SimulatedCallScreen(
+                            caller = selectedCaller,
+                            answered = screen == AppScreen.SIMULATED_IN_CALL,
+                            onAnswer = onAnswerSimulatedCall,
+                            onEnd = onEndSimulatedCall,
+                            modifier = Modifier.padding(innerPadding),
+                        )
+                    } else {
+                        HomeScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onOpenThemeSettings = onOpenThemeSettings,
+                            onOpenCallerPresets = onOpenCallerPresets,
+                        )
+                    }
             }
         }
     }
@@ -94,6 +146,7 @@ fun AlibiCallApp(
 private fun HomeScreen(
     modifier: Modifier = Modifier,
     onOpenThemeSettings: () -> Unit,
+    onOpenCallerPresets: () -> Unit,
 ) {
     Column(
         modifier =
@@ -113,6 +166,18 @@ private fun HomeScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(text = stringResource(R.string.caller_presets_title), style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.caller_presets_home_description), style = MaterialTheme.typography.bodyMedium)
+                TextButton(onClick = onOpenCallerPresets) {
+                    Text(stringResource(R.string.caller_presets_open))
+                }
+            }
+        }
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.padding(20.dp),

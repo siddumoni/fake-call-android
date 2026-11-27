@@ -24,6 +24,12 @@ Prefer notification-channel-owned system ringtone playback to avoid starting an 
 
 Do not run a second player while the notification channel is ringing. In-call voice clips, if implemented, must be explicitly started by a user action while a visible Activity is active, must stop on lifecycle exit, End, timeout, dismiss or process cleanup, and must not be used to simulate a real conversation deceptively. Avoid a foreground service unless the chosen feature has a demonstrable valid service type and Android 17 lifecycle exemption. Audio hardening strict mode removes the alarm-stream exemption and should be documented as a stricter test than default behaviour.
 
+## Caller profiles and local preview (PR 3)
+
+Caller profiles are stored as a string set in app-private Preferences DataStore. Each record has a UUID, a display name and an optional number label. Names are trimmed and limited to 40 characters; number labels are limited to 24 characters and accept only simple phone-display characters. The number label is never used for dialing. A URL-safe Base64 codec protects delimiters in stored text, and malformed entries are ignored when reading. Editing replaces the record with the same UUID; deleting removes only that profile.
+
+The Caller Profiles screen supports add, edit and delete. Preview opens a Compose-only incoming-call mock with a prominent SIMULATED CALL banner. Answer transitions to a local answered mock; Decline or End returns to Home. No phone calls, network calls, call-log entries, notifications, scheduling, or ringtone playback are implemented in this slice.
+
 ## Theme and UI
 
 Theme preferences are Follow system, Light and Dark, plus independent Pure black (AMOLED) and Dynamic colour toggles. Persist preferences and apply app-level night mode early enough to avoid a cold-start flash. UI colours must be obtained from the central theme. Respect font scaling, TalkBack, 48 dp touch targets, reduced motion, predictive back, and edge-to-edge in every screen.

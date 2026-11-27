@@ -6,12 +6,14 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
+import com.siddumoni.fakecall.onboarding.OnboardingViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
@@ -19,16 +21,25 @@ import com.siddumoni.fakecall.ui.AppScreen
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
     private val callerPresetsViewModel: CallerPresetsViewModel by viewModels()
+    private val onboardingViewModel: OnboardingViewModel by viewModels()
     private var currentScreen by mutableStateOf(AppScreen.HOME)
     private var selectedCaller by mutableStateOf<CallerPreset?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentScreen =
+        val initialOnboardingComplete = (application as AlibiCallApplication).initialOnboardingCompleted
+        val restoredScreen =
             savedInstanceState
                 ?.getString(STATE_CURRENT_SCREEN)
                 ?.let { restored -> AppScreen.entries.firstOrNull { it.name == restored } }
-                ?: AppScreen.HOME
+        currentScreen =
+            if (initialOnboardingComplete) {
+                restoredScreen
+                    ?.takeUnless { restored -> restored == AppScreen.ONBOARDING }
+                    ?: AppScreen.HOME
+            } else {
+                AppScreen.ONBOARDING
+            }
         selectedCaller =
             savedInstanceState?.let {
                 val id = it.getString(STATE_CALLER_ID)
@@ -42,8 +53,18 @@ class MainActivity : ComponentActivity() {
             val saveFailed by themeViewModel.saveFailed.collectAsState()
             val callerPresets by callerPresetsViewModel.presets.collectAsState()
             val callerPresetSaveError by callerPresetsViewModel.saveError.collectAsState()
+            val onboardingCompleted by onboardingViewModel.completed.collectAsState()
+            val onboardingSaveFailed by onboardingViewModel.saveFailed.collectAsState()
 
-            BackHandler(enabled = currentScreen != AppScreen.HOME) {
+            LaunchedEffect(onboardingCompleted) {
+                if (onboardingCompleted && currentScreen == AppScreen.ONBOARDING) {
+                    currentScreen = AppScreen.HOME
+                }
+            }
+
+            BackHandler(
+                enabled = currentScreen != AppScreen.HOME && currentScreen != AppScreen.ONBOARDING,
+            ) {
                 currentScreen = AppScreen.HOME
                 selectedCaller = null
             }
@@ -54,6 +75,8 @@ class MainActivity : ComponentActivity() {
                 onPureBlackChanged = themeViewModel::setPureBlack,
                 onDynamicColorChanged = themeViewModel::setDynamicColor,
                 saveFailed = saveFailed,
+                onboardingSaveFailed = onboardingSaveFailed,
+                onCompleteOnboarding = onboardingViewModel::complete,
                 screen = currentScreen,
                 onOpenThemeSettings = { currentScreen = AppScreen.THEME_SETTINGS },
                 onOpenCallerPresets = { currentScreen = AppScreen.CALLER_PRESETS },

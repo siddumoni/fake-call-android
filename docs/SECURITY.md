@@ -6,7 +6,7 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The app source manifest requests no platform permissions. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
+The app source manifest requests no platform permissions. First-run onboarding is informational only and requests no runtime or special app access. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
 
 The current merged-manifest allowlist contains only AndroidX Core's package-specific signature permission:
 
@@ -33,7 +33,7 @@ Every component is non-exported by default. The launcher Activity is the only cu
 
 ## Data protection
 
-Caller presets and schedules belong in app-private storage. Android cloud backup and device transfer are disabled. Cleartext traffic is disabled. No network permission, analytics, ads, tracking, crash reporting or remote configuration is permitted.
+Caller presets, schedules and the onboarding acknowledgement belong in app-private storage. The onboarding preference contains only a boolean and does not request or collect personal details. Android cloud backup and device transfer are disabled. Cleartext traffic is disabled. No network permission, analytics, ads, tracking, crash reporting or remote configuration is permitted.
 
 ## Input validation
 

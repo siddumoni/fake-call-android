@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +38,7 @@ import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
 
 enum class AppScreen {
+    ONBOARDING,
     HOME,
     THEME_SETTINGS,
     CALLER_PRESETS,
@@ -52,6 +54,8 @@ fun AlibiCallApp(
     onPureBlackChanged: (Boolean) -> Unit,
     onDynamicColorChanged: (Boolean) -> Unit,
     saveFailed: Boolean,
+    onboardingSaveFailed: Boolean = false,
+    onCompleteOnboarding: () -> Unit = {},
     screen: AppScreen,
     onOpenThemeSettings: () -> Unit,
     onOpenCallerPresets: () -> Unit = {},
@@ -97,6 +101,12 @@ fun AlibiCallApp(
             },
         ) { innerPadding ->
             when (screen) {
+                AppScreen.ONBOARDING ->
+                    OnboardingScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        saveFailed = onboardingSaveFailed,
+                        onContinue = onCompleteOnboarding,
+                    )
                 AppScreen.HOME ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding),
@@ -138,6 +148,73 @@ fun AlibiCallApp(
                         )
                     }
             }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingScreen(
+    modifier: Modifier = Modifier,
+    saveFailed: Boolean,
+    onContinue: () -> Unit,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+                .testTag("onboarding-screen"),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.onboarding_title),
+            style = MaterialTheme.typography.headlineLarge,
+        )
+        Text(
+            text = stringResource(R.string.onboarding_summary),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_privacy_heading),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.onboarding_privacy_offline),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = stringResource(R.string.onboarding_privacy_simulation),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = stringResource(R.string.onboarding_privacy_no_telephony),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        if (saveFailed) {
+            Text(
+                text = stringResource(R.string.onboarding_save_error),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Button(
+            onClick = onContinue,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .testTag("onboarding-continue-button"),
+        ) {
+            Text(stringResource(R.string.onboarding_continue))
         }
     }
 }

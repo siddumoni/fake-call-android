@@ -54,7 +54,7 @@ jobs:
         run: bash scripts/check_ui_colors.sh
       - name: Upload debug APK
         if: success()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: alibicall-debug-apk
           path: app/build/outputs/apk/debug/*.apk
@@ -112,7 +112,7 @@ jobs:
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
             python3 scripts/pull_validate_theme_screenshots.py --output screenshots
       - name: Upload rendered theme screenshots
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: alibicall-theme-screenshots-api37
           path: screenshots/*.png
@@ -177,7 +177,7 @@ jobs:
       - name: Generate release runtime dependency lockfile
         run: python3 scripts/export_osv_runtime_lockfile.py
       - name: Upload release runtime dependency lockfile
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: alibicall-release-runtime-lock
           path: build/osv/gradle.lockfile

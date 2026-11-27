@@ -44,7 +44,7 @@ Last updated: 2026-11-27
 
 - PR #11 fixed CodeQL extraction failing when Kotlin compilation was served from Gradle's build cache.
 - PR #12 corrected this status document and was merged after its Android CI run succeeded.
-- Dependency updates #3–#7 are merged. The Gradle wrapper (#8) and Android Gradle Plugin (#9) upgrades remain blocked on strict dependency-verification metadata refresh; they are not merged.
+- Dependency updates #3–#7 are merged. PR #8 (Gradle 9.9.2) and PR #9 (AGP 9.5.3) were closed after compatibility review: Kotlin Gradle Plugin 2.4.21's published fully supported maxima are Gradle 9.7.0 and AGP 9.3.1 respectively. Both updates also failed strict dependency verification on new artifacts. Revisit only as a coordinated Kotlin/toolchain upgrade with reviewed SHA-256 metadata and full green CI.
 
 ## Remaining product work
 

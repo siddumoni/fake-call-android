@@ -28,6 +28,19 @@ class CallerPresetValidatorTest {
     }
 
     @Test
+    fun rejectsBidirectionalFormattingControlsButAllowsRtlText() {
+        assertEquals(
+            CallerPresetValidationError.NAME_INVALID,
+            CallerPresetValidator.validate("Alice" + Char(0x202E), ""),
+        )
+        assertEquals(
+            CallerPresetValidationError.NAME_INVALID,
+            CallerPresetValidator.validate(Char(0x2066) + "Alice" + Char(0x2069), ""),
+        )
+        assertNull(CallerPresetValidator.validate("محمد", ""))
+    }
+
+    @Test
     fun permitsBlankOptionalNumberLabel() {
         assertNull(CallerPresetValidator.validate("Fictional caller", ""))
     }

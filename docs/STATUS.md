@@ -5,18 +5,18 @@ Last updated: 2026-11-27
 ## Repository state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- Latest verified main merge: PR #22 at `b054770e90b515eae65c638e57a9633cbf9fbb2d`.
+- Latest main merge: PR #24 at `8015b9e84878e9e757e0cd76911a92e2f734c4d7`.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
-- PRs #19–#22 are merged. Their PR-triggered Android CI runs completed successfully across all required jobs.
-- No open issues were returned by the repository audit. PR #23 is open for emulator compatibility-matrix improvements.
-- Main CI currently compiles at API 37.1 and runs instrumented tests on an Android 17 emulator only. PR #23 adds six API/display/font-scale combinations but has not completed CI.
+- PRs #19–#24 are merged; PR #24 fixes the 45-second ring timeout to use elapsed realtime. Their PR-triggered CI passed all required jobs.
+- No open issues were returned by the latest audit. PR #23 (compatibility matrix) and PR #25 (notification sound/vibration channel settings) are open.
+- Main CI currently compiles against API 37.1 and runs instrumentation on Android 17. PR #23 adds seven configurations across Android 15/16/17, compact/standard/expanded/landscape and 200% compact font scale. Its latest run is pending.
 - Production signing secrets are not configured.
 
 ## Toolchain
 
 - Android Gradle Plugin 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
 - Compose BOM 2026.11.01; compile API 37.1; target SDK 37; minimum SDK 35.
-- The pending PR #23 matrix targets Android 15 (API 35), 16 (API 36) and 17 (API 37) at compact, standard and expanded configurations, with compact configurations at 200% font scaling.
+- PR #23's emulator matrix targets Android 15 (API 35), 16 (API 36) and 17 (API 37), including compact landscape, expanded and compact 200% font scale.
 
 ## Merged implementation
 
@@ -55,22 +55,23 @@ Last updated: 2026-11-27
 | #20 Restart/package-update recovery | `4dd642a` | 45988349158 | All jobs green |
 | #21 Android 15 minimum/layout fixes | `1b533590` | 45989170051 | All jobs green |
 | #22 Clock/timezone reconciliation | `b054770` | 45990412713 | All jobs green |
+| #24 Elapsed-realtime ring timeout | `8015b9e` | 45994053187 | All jobs green |
 
 Build/unit/lint/manifest, emulator instrumentation/screenshots, CodeQL, secret scan and OSV review succeeded in these runs. OSV's optional code-scanning export steps are skipped by configuration; the scanner job itself passed.
 
-The connector cannot independently retrieve push-triggered post-merge runs on main; its workflow-run lookup is PR-only and combined-status returned no entries.
+Post-merge main CI run 45995506622 succeeded: build/unit/lint/manifest, API 37 instrumentation/screenshots, CodeQL and secret scan. OSV jobs are skipped for push events by workflow configuration.
 
 ## Remaining actionable work
 
-1. PR #23: complete and merge the Android 15/16/17 emulator display/font-scale matrix only after Python tests, workflow validation and all six matrix jobs are green.
-2. PR #24 (pending): use elapsed realtime for the 45-second ringing timeout and stop expiring RINGING records based on the original scheduled trigger. Complete tests and CI before merge.
+1. PR #23: finish the Android 15/16/17 emulator display/font-scale matrix. Earlier runs failed on offscreen Compose controls; tests were updated to scroll. The synchronized latest head `66608d1` is under CI run 46001218416.
+2. PR #25: finish notification-channel default sound/vibration and system-settings link. CI run 46000988709 exposed a missing VIBRATE entry in ManifestPermissionPolicyTest; the test was fixed at `3cc36ed`, and a fresh run must finish before merge.
 3. Expand lifecycle tests for notification denial/revocation, exact-alarm revocation, notification action paths, cancellation races, storage errors and restore edge cases.
 4. Accessibility review across all screens: TalkBack traversal, semantics, 48 dp targets, 200% fonts, contrast and reduced motion.
-5. Ringtone/vibration and custom audio controls are not implemented. If in scope, review channel/audio-focus limitations, permissions and interruption/routing behavior before implementing.
+5. Custom ringtone files and independent audio playback are intentionally unsupported. Notification-channel sound/vibration controls are being reviewed in PR #25; physical routing/interruption behavior remains to be tested.
 6. Complete manual security/threat review; verify release minification, artifact, signature and checksum.
 7. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
 8. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP) when hardware is available.
-9. Compare stale branches with main and delete only those proven obsolete. Branch deletion is not exposed by the current connector.
+9. Branch housekeeping: 13 branches with zero unique commits were safely fast-forwarded to main. Diverged branches were left untouched; branch deletion is not exposed by the current connector.
 
 ## Dependency maintenance
 
@@ -80,6 +81,6 @@ Dependabot PRs #3–#7 are merged. PR #8 (Gradle 9.9.2) and #9 (AGP 9.5.3) were 
 
 - No physical Android device is connected. Alarm delivery under OEM battery restrictions, lock-screen behavior, reboot, timezone/clock changes, audio routing, font scaling and OEM settings remain unverified. Emulator results are not physical-device evidence.
 - Production signing requires owner-provided keystore and GitHub Actions secrets.
-- Automated Codex reviews for PRs #19–#22 reported account usage limits. Required CI passed, but a final manual diff/threat review remains.
+- Automated Codex reviews for PRs #19–#24 reported account usage limits. Required CI passed, but a final manual diff/threat review remains.
 
 Do not declare production readiness while actionable tasks or external blockers remain.

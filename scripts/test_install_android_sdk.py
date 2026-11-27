@@ -10,6 +10,7 @@ class EmulatorImageCandidateTests(unittest.TestCase):
             "system-images;android-37.1;google_apis;x86_64",
             "system-images;android-37.0;google_apis;x86_64",
             "system-images;android-36;google_apis;x86_64",
+            "system-images;android-35;google_apis;x86_64",
         }
 
         self.assertEqual(
@@ -18,16 +19,48 @@ class EmulatorImageCandidateTests(unittest.TestCase):
                 ("system-images;android-37.1;google_apis_ps16k;x86_64", "37"),
                 ("system-images;android-37.0;google_apis;x86_64", "37"),
                 ("system-images;android-36;google_apis;x86_64", "36"),
+                ("system-images;android-35;google_apis;x86_64", "35"),
             ],
             emulator_image_candidates(available),
         )
 
-    def test_falls_back_to_api_36_when_no_android_17_image_is_available(self):
-        available = {"system-images;android-36;google_apis;x86_64"}
+    def test_android_15_request_selects_only_api_35_images(self):
+        available = {
+            "system-images;android-35;google_apis;x86_64",
+            "system-images;android-35;google_apis_ps16k;x86_64",
+            "system-images;android-36;google_apis;x86_64",
+            "system-images;android-37.1;google_apis;x86_64",
+        }
 
         self.assertEqual(
-            [("system-images;android-36;google_apis;x86_64", "36")],
-            emulator_image_candidates(available),
+            [
+                ("system-images;android-35;google_apis;x86_64", "35"),
+                ("system-images;android-35;google_apis_ps16k;x86_64", "35"),
+            ],
+            emulator_image_candidates(available, "35"),
+        )
+
+    def test_android_16_request_does_not_fall_back_to_another_api(self):
+        available = {
+            "system-images;android-35;google_apis;x86_64",
+            "system-images;android-37.1;google_apis;x86_64",
+        }
+
+        self.assertEqual([], emulator_image_candidates(available, "36"))
+
+    def test_android_17_request_tries_preview_minor_levels_only(self):
+        available = {
+            "system-images;android-37.1;google_apis;x86_64",
+            "system-images;android-37.0;google_apis;x86_64",
+            "system-images;android-36;google_apis;x86_64",
+        }
+
+        self.assertEqual(
+            [
+                ("system-images;android-37.1;google_apis;x86_64", "37"),
+                ("system-images;android-37.0;google_apis;x86_64", "37"),
+            ],
+            emulator_image_candidates(available, "37"),
         )
 
     def test_returns_no_candidates_when_no_compatible_image_exists(self):

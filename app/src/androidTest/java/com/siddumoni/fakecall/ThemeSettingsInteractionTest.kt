@@ -10,6 +10,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
@@ -56,14 +57,14 @@ class ThemeSettingsInteractionTest {
         composeRule.onNodeWithText("Dark").assertHeightIsAtLeast(48.dp)
 
         composeRule.onNodeWithText("Pure black (AMOLED)").assertHeightIsAtLeast(48.dp)
-        composeRule.onNodeWithText("Pure black (AMOLED)").performClick()
+        composeRule.onNodeWithText("Pure black (AMOLED)").performScrollTo().performClick()
         composeRule.onNodeWithText("Pure black (AMOLED)").assertIsOn()
         composeRule.runOnIdle {
             assertTrue(settings.pureBlack)
             assertEquals(ThemeAppearance.DARK, settings.appearance)
         }
 
-        composeRule.onNodeWithText("Dynamic colour").performClick()
+        composeRule.onNodeWithText("Dynamic colour").performScrollTo().performClick()
         composeRule.runOnIdle {
             assertTrue(!settings.dynamicColor)
             assertTrue(settings.pureBlack)

@@ -51,4 +51,4 @@ Report security issues privately to the repository owner through GitHub's privat
 
 ## Review status
 
-This document describes the design policy, not a claim that the finished app has passed a security audit. The initial project is not yet feature-complete or independently penetration-tested. All remaining findings and test evidence must be recorded in docs/STATUS.md.
+The schedule lifecycle, alarm/notification delivery, reboot recovery and clock/timezone reconciliation are implemented in main. This document describes the design policy, not a claim that the finished app has passed an independent security audit or physical-device reliability testing. The final manual threat review and OEM validation are outstanding. Record findings and evidence in docs/STATUS.md.

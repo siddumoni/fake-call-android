@@ -62,7 +62,47 @@ jobs:
           retention-days: 14
 
   instrumentation:
-    name: Instrumented and screenshot tests (API 37)
+    name: Instrumented tests (API ${{ matrix.api-level }}, ${{ matrix.display }}, font ${{ matrix.font-scale }}x)
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - api-level: '35'
+            display: compact
+            size: 720x1280
+            density: 320
+            font-scale: '2.0'
+          - api-level: '35'
+            display: standard
+            size: 1080x2340
+            density: 420
+            font-scale: '1.0'
+          - api-level: '35'
+            display: compact-landscape
+            size: 1280x720
+            density: 320
+            font-scale: '1.0'
+          - api-level: '36'
+            display: standard
+            size: 1080x2340
+            density: 420
+            font-scale: '1.0'
+          - api-level: '37'
+            display: compact
+            size: 720x1280
+            density: 320
+            font-scale: '2.0'
+          - api-level: '37'
+            display: standard
+            size: 1080x2340
+            density: 420
+            font-scale: '1.0'
+          - api-level: '37'
+            display: expanded
+            size: 1200x1800
+            density: 320
+            font-scale: '1.0'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -81,8 +121,8 @@ jobs:
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
-      - name: Install latest available Android emulator image
-        run: python3 scripts/install_android_sdk.py --kind=emulator
+      - name: Install Android emulator image for requested API
+        run: python3 scripts/install_android_sdk.py --kind=emulator --api-level=${{ matrix.api-level }}
       - name: Enable KVM access or select software-emulation fallback
         run: |
           if [ -e /dev/kvm ] && sudo chmod 666 /dev/kvm && [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
@@ -99,7 +139,7 @@ jobs:
           target: ${{ env.ANDROID_EMULATOR_TARGET }}
           arch: ${{ env.ANDROID_EMULATOR_ARCH }}
           profile: pixel_2
-          avd-name: alibicall-ci
+          avd-name: alibicall-ci-${{ matrix.api-level }}-${{ matrix.display }}
           emulator-boot-timeout: 900
           disable-linux-hw-accel: auto
           cores: 4
@@ -107,14 +147,19 @@ jobs:
           disable-animations: true
           channel: canary
           script: |
+            adb shell wm size ${{ matrix.size }}
+            adb shell wm density ${{ matrix.density }}
+            adb shell settings put system font_scale ${{ matrix.font-scale }}
             echo "Android emulator API: $ANDROID_EMULATOR_API_LEVEL" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "System image: $ANDROID_EMULATOR_IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "Display: ${{ matrix.display }} (${{ matrix.size }} pixels / ${{ matrix.density }} dpi)" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "Font scale: ${{ matrix.font-scale }}x" | tee -a "$GITHUB_STEP_SUMMARY"
             ./gradlew --no-daemon --dependency-verification strict :app:connectedDebugAndroidTest
             python3 scripts/pull_validate_theme_screenshots.py --output screenshots
       - name: Upload rendered theme screenshots
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: alibicall-theme-screenshots-api37
+          name: alibicall-theme-screenshots-api${{ matrix.api-level }}-${{ matrix.display }}-font${{ matrix.font-scale }}
           path: screenshots/*.png
           if-no-files-found: error
           retention-days: 14

@@ -6,6 +6,8 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -86,7 +88,7 @@ fun ScheduledCallsScreen(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier =
             modifier
                 .fillMaxSize()
@@ -94,78 +96,89 @@ fun ScheduledCallsScreen(
                 .testTag("scheduled-calls-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = stringResource(R.string.schedules_title),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Text(
-            text = stringResource(R.string.schedules_disclaimer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        TextButton(
-            onClick = onOpenNotificationSettings,
-            modifier = Modifier.fillMaxWidth().testTag("schedule-notification-settings"),
-        ) {
-            Text(stringResource(R.string.schedule_notification_settings))
+        item {
+            Text(
+                text = stringResource(R.string.schedules_title),
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
+        item {
+            Text(
+                text = stringResource(R.string.schedules_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item {
+            TextButton(
+                onClick = onOpenNotificationSettings,
+                modifier = Modifier.fillMaxWidth().testTag("schedule-notification-settings"),
+            ) {
+                Text(stringResource(R.string.schedule_notification_settings))
+            }
         }
         if (!notificationsAllowed &&
             !creating &&
             editing == null &&
             operationState != ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
         ) {
-            PermissionNotice(
-                message = stringResource(R.string.schedule_notifications_required),
-                actionLabel = stringResource(R.string.schedule_enable_notifications),
-                onAction = onRequestNotifications,
-            )
+            item {
+                PermissionNotice(
+                    message = stringResource(R.string.schedule_notifications_required),
+                    actionLabel = stringResource(R.string.schedule_enable_notifications),
+                    onAction = onRequestNotifications,
+                )
+            }
         }
-        Button(
-            onClick = {
-                onClearOperationState()
-                editingId = null
-                creating = true
-            },
-            enabled = callerPresets.isNotEmpty(),
-            modifier = Modifier.fillMaxWidth().testTag("schedule-add-button"),
-        ) {
-            Text(stringResource(R.string.schedule_add))
+        item {
+            Button(
+                onClick = {
+                    onClearOperationState()
+                    editingId = null
+                    creating = true
+                },
+                enabled = callerPresets.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().testTag("schedule-add-button"),
+            ) {
+                Text(stringResource(R.string.schedule_add))
+            }
         }
         if (callerPresets.isEmpty()) {
-            Text(
-                text = stringResource(R.string.schedule_requires_caller),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.schedule_requires_caller),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (!creating && editing == null) {
-            OperationMessage(
-                state = operationState,
-                onRequestNotifications = onRequestNotifications,
-                onRequestExactAlarms = onRequestExactAlarms,
-            )
+            item {
+                OperationMessage(
+                    state = operationState,
+                    onRequestNotifications = onRequestNotifications,
+                    onRequestExactAlarms = onRequestExactAlarms,
+                )
+            }
         }
         if (calls.isEmpty()) {
-            Text(
-                text = stringResource(R.string.schedules_empty),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.schedules_empty),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(calls, key = { it.id }) { call ->
-                    ScheduledCallCard(
-                        call = call,
-                        caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
-                        onEdit = {
-                            onClearOperationState()
-                            editingId = call.id
-                        },
-                        onCancel = { onCancel(call.id) },
-                        onDelete = { deleting = call },
-                    )
-                }
+            items(calls, key = { it.id }) { call ->
+                ScheduledCallCard(
+                    call = call,
+                    caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
+                    onEdit = {
+                        onClearOperationState()
+                        editingId = call.id
+                    },
+                    onCancel = { onCancel(call.id) },
+                    onDelete = { deleting = call },
+                )
             }
         }
     }
@@ -213,6 +226,7 @@ fun ScheduledCallsScreen(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun ScheduledCallCard(
     call: ScheduledCall,
     caller: CallerPreset?,
@@ -252,7 +266,11 @@ private fun ScheduledCallCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelMedium,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (call.state == ScheduledCallState.SCHEDULED) {
                     TextButton(onClick = onEdit, modifier = Modifier.testTag("schedule-edit-${call.id}")) {
                         Text(stringResource(R.string.edit))

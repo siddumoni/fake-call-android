@@ -1,11 +1,15 @@
 package com.siddumoni.fakecall.ui
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
@@ -20,6 +24,11 @@ import java.util.UUID
 class ScheduledCallsScreenTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    private fun scrollListTo(tag: String): SemanticsNodeInteraction {
+        composeRule.onNodeWithTag("scheduled-calls-screen").performScrollToNode(hasTestTag(tag))
+        return composeRule.onNodeWithTag(tag).performScrollTo()
+    }
 
     @Test
     fun scheduleEditorUsesApproximateByDefaultAndCanSelectExactExplicitly() {
@@ -44,9 +53,9 @@ class ScheduledCallsScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("schedule-add-button").performClick()
-        composeRule.onNodeWithText("Approximate").assertIsDisplayed()
-        composeRule.onNodeWithText("Exact").performClick()
+        scrollListTo("schedule-add-button").performClick()
+        composeRule.onNodeWithText("Approximate").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()
 
         composeRule.runOnIdle {
@@ -91,18 +100,18 @@ class ScheduledCallsScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("schedule-edit-${schedule.id}").performClick()
-        composeRule.onNodeWithText("Exact").performClick()
+        scrollListTo("schedule-edit-${schedule.id}").performClick()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()
         composeRule.runOnIdle {
             assertEquals(schedule.id, edited?.id)
             assertEquals(ScheduledCallDeliveryMode.EXACT, edited?.deliveryMode)
         }
 
-        composeRule.onNodeWithTag("schedule-cancel-${schedule.id}").performClick()
+        scrollListTo("schedule-cancel-${schedule.id}").performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, cancelled) }
 
-        composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performClick()
+        scrollListTo("schedule-delete-${schedule.id}").performClick()
         composeRule.onNodeWithTag("schedule-delete-confirm").performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
     }
@@ -129,10 +138,10 @@ class ScheduledCallsScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("schedule-add-button").performClick()
-        composeRule.onNodeWithText("Exact").performClick()
-        composeRule.onNodeWithText("Open Alarms & reminders settings").assertExists()
-        composeRule.onNodeWithText("Enable notifications").assertExists()
+        scrollListTo("schedule-add-button").performClick()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
+        composeRule.onNodeWithText("Open Alarms & reminders settings").performScrollTo().assertExists()
+        composeRule.onNodeWithText("Enable notifications").performScrollTo().assertExists()
     }
 
     @Test
@@ -156,7 +165,7 @@ class ScheduledCallsScreenTest {
                 )
             }
         }
-        composeRule.onNodeWithTag("schedule-notification-settings").performClick()
+        scrollListTo("schedule-notification-settings").performClick()
         composeRule.runOnIdle { assertEquals(true, opened) }
     }
 }

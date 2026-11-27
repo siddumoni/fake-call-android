@@ -14,6 +14,10 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] Force-stop and relaunch after acknowledgement opens Home without repeating onboarding.
 - [ ] Onboarding does not request notification, alarm, contacts, telephony or other permissions.
 
+## Automated emulator coverage (pending PR #23)
+
+Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 17 with compact (360 dp), standard (~411 dp) and expanded (600 dp) widths, plus 200% font scale on compact runs. Do not mark this matrix complete until every job is green. Emulator coverage is not physical OEM evidence.
+
 ## Before testing
 
 - Install the debug APK from the CI artifact.

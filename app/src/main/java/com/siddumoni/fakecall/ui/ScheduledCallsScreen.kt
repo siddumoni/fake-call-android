@@ -263,6 +263,9 @@ private fun ScheduleEditorDialog(
     onRequestExactAlarms: () -> Unit,
 ) {
     val context = LocalContext.current
+    val selectCallerError = stringResource(R.string.schedule_select_caller)
+    val timeMustBeFutureError = stringResource(R.string.schedule_time_must_be_future)
+    val timeTooFarError = stringResource(R.string.schedule_time_too_far)
     val zone = remember { ZoneId.systemDefault() }
     val defaultDateTime =
         remember(existing?.id) {
@@ -397,14 +400,14 @@ private fun ScheduleEditorDialog(
                 enabled = selectedCaller != null && operationState != ScheduledCallOperationState.SAVING,
                 onClick = {
                     if (selectedCaller == null) {
-                        validationMessage = context.getString(R.string.schedule_select_caller)
+                        validationMessage = selectCallerError
                     } else {
                         val timestamp = resolvedInstant.toEpochMilli()
                         val now = System.currentTimeMillis()
                         if (timestamp <= now) {
-                            validationMessage = context.getString(R.string.schedule_time_must_be_future)
+                            validationMessage = timeMustBeFutureError
                         } else if (timestamp - now > ScheduledCallRules.MAX_SCHEDULE_HORIZON_MILLIS) {
-                            validationMessage = context.getString(R.string.schedule_time_too_far)
+                            validationMessage = timeTooFarError
                         } else {
                             onSave(
                                 ScheduledCall(

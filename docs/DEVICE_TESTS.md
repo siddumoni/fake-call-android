@@ -39,7 +39,8 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] Delete a pending schedule immediately before trigger; verify cancellation wins or active delivery is protected (never stale/duplicate UI).
 - [ ] Tap the notification; verify it opens only the persisted schedule and fictional profile in the app.
 - [ ] Answer, Decline, End and Dismiss; verify idempotent state transitions and timeout cancellation.
-- [ ] Ring timeout: verify notification is removed and state becomes TimedOut.
+- [ ] Ring timeout: verify notification is removed and state becomes TimedOut after approximately 45 seconds, regardless of manual clock changes.
+- [ ] While ringing, change the system clock forward/backward and timezone; verify the timeout remains duration-based and does not end early or extend indefinitely.
 
 ## Audio and interruption modes
 

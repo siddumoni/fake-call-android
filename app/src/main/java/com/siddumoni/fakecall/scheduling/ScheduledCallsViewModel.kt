@@ -181,6 +181,11 @@ class ScheduledCallsViewModel(
         viewModelScope.launch {
             writeMutex.withLock {
                 try {
+                    if (_operationState.value == ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED ||
+                        _operationState.value == ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
+                    ) {
+                        _operationState.value = ScheduledCallOperationState.IDLE
+                    }
                     val now = System.currentTimeMillis()
                     repository.calls.first().forEach { call ->
                         if (call.state != ScheduledCallState.SCHEDULED) return@forEach

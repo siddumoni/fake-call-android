@@ -1,5 +1,6 @@
 package com.siddumoni.fakecall.ui
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -67,21 +68,25 @@ class ScheduledCallsScreenTest {
         var edited: ScheduledCall? = null
         var cancelled: String? = null
         var deleted: String? = null
+        val operationState = mutableStateOf(ScheduledCallOperationState.IDLE)
 
         composeRule.setContent {
             AlibiCallTheme(settings = ThemeSettings.Default) {
                 ScheduledCallsScreen(
                     calls = listOf(schedule),
                     callerPresets = listOf(caller),
-                    operationState = ScheduledCallOperationState.IDLE,
+                    operationState = operationState.value,
                     notificationsAllowed = true,
                     exactAlarmAllowed = true,
-                    onSave = { edited = it },
+                    onSave = {
+                        edited = it
+                        operationState.value = ScheduledCallOperationState.SAVED
+                    },
                     onCancel = { cancelled = it },
                     onDelete = { deleted = it },
                     onRequestNotifications = {},
                     onRequestExactAlarms = {},
-                    onClearOperationState = {},
+                    onClearOperationState = { operationState.value = ScheduledCallOperationState.IDLE },
                 )
             }
         }

@@ -72,8 +72,9 @@ object ScheduledCallRules {
             else -> null
         }
 
-    private fun isUuid(value: String): Boolean =
-        runCatching { UUID.fromString(value).toString() == value.lowercase() }.getOrDefault(false)
+    private fun isUuid(value: String): Boolean = runCatching {
+        UUID.fromString(value).toString() == value.lowercase()
+    }.getOrDefault(false)
 }
 
 enum class ScheduledCallAction {
@@ -97,9 +98,8 @@ object ScheduleTimeResolver {
             offsets.size == 1 -> localDateTime.toInstant(offsets[0])
             offsets.size >= 2 -> localDateTime.toInstant(offsets[0])
             else -> {
-                val transition =
-                    rules.getTransition(localDateTime)
-                        ?: throw java.time.DateTimeException("Unable to resolve local date-time")
+                val transition = rules.getTransition(localDateTime)
+                    ?: throw java.time.DateTimeException("Unable to resolve local date-time")
                 transition.dateTimeAfter.toInstant(transition.offsetAfter)
             }
         }

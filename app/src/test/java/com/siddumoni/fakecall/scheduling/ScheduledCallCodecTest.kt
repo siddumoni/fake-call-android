@@ -24,4 +24,14 @@ class ScheduledCallCodecTest {
         assertNull(ScheduledCallCodec.decode("2|id|caller|100|SCHEDULED"))
         assertNull(ScheduledCallCodec.decode("1|id|%%%|100|NOT_A_STATE"))
     }
+
+    @Test
+    fun recordsWithInvalidIdentifiersAreIgnored() {
+        assertNull(ScheduledCallCodec.decode("1|not-a-uuid|bm90LWEtdXVpZA|100|SCHEDULED"))
+        assertNull(
+            ScheduledCallCodec.decode(
+                "1|550e8400-e29b-41d4-a716-446655440000|bm90LWEtdXVpZA|100|SCHEDULED",
+            ),
+        )
+    }
 }

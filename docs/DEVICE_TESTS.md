@@ -31,6 +31,9 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] App swiped away: verify delivery.
 - [ ] App process killed: verify delivery and recovery.
 - [ ] Reboot with a pending schedule: verify only valid future calls are restored.
+- [ ] Change the system clock forward across a pending trigger: verify an overdue schedule inside its grace window is delivered once and an older expired schedule is closed.
+- [ ] Change the system clock backward: verify the original absolute trigger instant is re-armed and no duplicate appears.
+- [ ] Change the device timezone: verify the saved absolute trigger instant is preserved and its displayed local time updates.
 - [ ] Cancel before trigger: verify no call notification appears.
 - [ ] Edit a pending schedule; verify its original trigger is replaced and no duplicate is delivered.
 - [ ] Delete a pending schedule immediately before trigger; verify cancellation wins or active delivery is protected (never stale/duplicate UI).

@@ -82,6 +82,9 @@ class MainActivity : ComponentActivity() {
                 val number = it.getString(STATE_CALLER_NUMBER)
                 if (id != null && name != null && number != null) CallerPreset(id, name, number) else null
             }
+        if (savedInstanceState == null) {
+            scheduledCallsViewModel.endOrphanedCalls()
+        }
         enableEdgeToEdge()
         ScheduledCallNotifications.ensureChannel(this)
         refreshSchedulePermissions()
@@ -251,6 +254,11 @@ class MainActivity : ComponentActivity() {
                 ScheduledCallAlarmScheduler(this@MainActivity).cancelTimeout(id)
                 ScheduledCallNotifications.cancel(this@MainActivity, id)
                 currentScreen = AppScreen.SIMULATED_IN_CALL
+            } else {
+                // The call already timed out or was dismissed: do not leave a dead Answer button.
+                activeScheduledCallId = null
+                selectedCaller = null
+                currentScreen = AppScreen.HOME
             }
         }
     }

@@ -188,24 +188,44 @@ class ScheduledCallsViewModel(
                     }
                     val now = System.currentTimeMillis()
                     repository.calls.first().forEach { call ->
+                        val expiry = ScheduleRecoveryPolicy.expiryActionFor(call, now)
+                        if (expiry != null) {
+                            repository.transition(call.id, expiry)
+                            scheduler.cancel(call.id)
+                            ScheduledCallNotifications.cancel(getApplication(), call.id)
+                            return@forEach
+                        }
                         if (call.state != ScheduledCallState.SCHEDULED) return@forEach
                         if (!notificationsAllowed) {
                             scheduler.cancel(call.id)
                             _operationState.value = ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
                             return@forEach
                         }
-                        if (call.triggerAtEpochMillis <= now) {
-                            repository.transition(call.id, ScheduledCallAction.TIMEOUT)
-                            scheduler.cancel(call.id)
-                            ScheduledCallNotifications.cancel(getApplication(), call.id)
-                            return@forEach
-                        }
+                        // Overdue but inside the grace window: leave the pending alarm to deliver.
+                        if (call.triggerAtEpochMillis <= System.currentTimeMillis()) return@forEach
                         when (scheduler.schedule(call)) {
                             ScheduleAlarmResult.SCHEDULED -> Unit
                             ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED ->
                                 _operationState.value = ScheduledCallOperationState.EXACT_ALARM_PERMISSION_REQUIRED
                         }
                     }
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                }
+            }
+        }
+    }
+
+    /** An answered record with no surviving screen can never be ended by the user, so close it. */
+    fun endOrphanedCalls() {
+        viewModelScope.launch {
+            writeMutex.withLock {
+                try {
+                    repository.calls
+                        .first()
+                        .filter { call -> call.state == ScheduledCallState.IN_CALL }
+                        .forEach { call -> repository.transition(call.id, ScheduledCallAction.END) }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
                     _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR

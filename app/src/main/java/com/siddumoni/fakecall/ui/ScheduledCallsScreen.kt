@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -98,8 +100,20 @@ fun ScheduledCallsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (!notificationsAllowed &&
+            !creating &&
+            editing == null &&
+            operationState != ScheduledCallOperationState.NOTIFICATION_PERMISSION_REQUIRED
+        ) {
+            PermissionNotice(
+                message = stringResource(R.string.schedule_notifications_required),
+                actionLabel = stringResource(R.string.schedule_enable_notifications),
+                onAction = onRequestNotifications,
+            )
+        }
         Button(
             onClick = {
+                onClearOperationState()
                 editing = null
                 creating = true
             },
@@ -135,7 +149,10 @@ fun ScheduledCallsScreen(
                     ScheduledCallCard(
                         call = call,
                         caller = callerPresets.firstOrNull { it.id == call.callerPresetId },
-                        onEdit = { editing = call },
+                        onEdit = {
+                            onClearOperationState()
+                            editing = call
+                        },
                         onCancel = { onCancel(call.id) },
                         onDelete = { deleting = call },
                     )
@@ -300,7 +317,19 @@ private fun ScheduleEditorDialog(
             Text(stringResource(if (existing == null) R.string.schedule_add else R.string.schedule_edit))
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                if (operationState == ScheduledCallOperationState.CALLER_PROFILE_MISSING ||
+                    operationState == ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR
+                ) {
+                    OperationMessage(
+                        state = operationState,
+                        onRequestNotifications = onRequestNotifications,
+                        onRequestExactAlarms = onRequestExactAlarms,
+                    )
+                }
                 Box {
                     OutlinedButton(
                         onClick = { callerMenuExpanded = true },

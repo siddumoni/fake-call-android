@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallDeliveryMode
@@ -45,8 +46,8 @@ class ScheduledCallsScreenTest {
         }
 
         composeRule.onNodeWithTag("schedule-add-button").performClick()
-        composeRule.onNodeWithText("Approximate").assertIsDisplayed()
-        composeRule.onNodeWithText("Exact").performClick()
+        composeRule.onNodeWithText("Approximate").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Exact").performScrollTo().performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()
 
         composeRule.runOnIdle {
@@ -91,7 +92,7 @@ class ScheduledCallsScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("schedule-edit-${schedule.id}").performClick()
+        composeRule.onNodeWithTag("schedule-edit-${schedule.id}").performScrollTo().performClick()
         composeRule.onNodeWithText("Exact").performClick()
         composeRule.onNodeWithTag("schedule-save-button").performClick()
         composeRule.runOnIdle {
@@ -99,11 +100,11 @@ class ScheduledCallsScreenTest {
             assertEquals(ScheduledCallDeliveryMode.EXACT, edited?.deliveryMode)
         }
 
-        composeRule.onNodeWithTag("schedule-cancel-${schedule.id}").performClick()
+        composeRule.onNodeWithTag("schedule-cancel-${schedule.id}").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, cancelled) }
 
-        composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performClick()
-        composeRule.onNodeWithTag("schedule-delete-confirm").performClick()
+        composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performScrollTo().performClick()
+        composeRule.onNodeWithTag("schedule-delete-confirm").assertExists().performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
     }
 

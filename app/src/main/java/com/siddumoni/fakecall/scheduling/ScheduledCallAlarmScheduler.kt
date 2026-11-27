@@ -53,11 +53,11 @@ class ScheduledCallAlarmScheduler(
                     )
             }
             ScheduleAlarmResult.SCHEDULED
-        } catch (_: SecurityException) {
+        } catch (exception: SecurityException) {
             if (call.deliveryMode == ScheduledCallDeliveryMode.EXACT) {
                 ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED
             } else {
-                throw
+                throw exception
             }
         }
     }

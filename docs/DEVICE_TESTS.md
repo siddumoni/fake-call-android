@@ -19,7 +19,7 @@ The development environment cannot validate this physical device. Mark each item
 - Install the debug APK from the CI artifact.
 - Record Android build fingerprint and ColorOS build.
 - Grant notification permission and exact-alarm access only when prompted by the app.
-- Verify full-screen intent access separately.
+- Confirm the app does not request USE_FULL_SCREEN_INTENT and uses heads-up / notification fallback instead.
 - Confirm the test profile is fictional and does not resemble an emergency service, bank, authority or real business.
 
 ## Call delivery
@@ -52,11 +52,12 @@ The development environment cannot validate this physical device. Mark each item
 
 ## Permission failure and revocation
 
-- [ ] Notifications denied at onboarding.
-- [ ] Notifications revoked from system settings after onboarding.
-- [ ] Exact alarm access denied.
-- [ ] Exact alarm access revoked while a schedule exists.
-- [ ] Full-screen intent access denied; verify heads-up fallback.
+- [ ] Notifications denied when creating a schedule; verify schedule is not silently created without delivery.
+- [ ] Notifications revoked from system settings after a schedule exists; verify no Activity is launched from background and state is recorded safely.
+- [ ] Exact alarm access denied; exact schedule is blocked with clear explanation.
+- [ ] Exact alarm access revoked while a schedule exists; verify exact mode is not downgraded silently.
+- [ ] Approximate schedule remains available without exact-alarm special access.
+- [ ] Verify heads-up / lock-screen notification fallback; app must not request full-screen intent access.
 - [ ] Return from settings and confirm permission-health state refreshes.
 
 ## Themes and accessibility

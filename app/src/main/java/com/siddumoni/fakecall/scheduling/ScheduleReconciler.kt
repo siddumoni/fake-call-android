@@ -44,9 +44,18 @@ class ScheduleReconciler(
                 result = ReconcileResult.NOTIFICATION_PERMISSION_REQUIRED
                 return@forEach
             }
-            // Overdue but inside the grace window: leave the pending alarm to deliver.
-            if (call.triggerAtEpochMillis <= System.currentTimeMillis()) return@forEach
-            if (scheduler.schedule(call) == ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED) {
+            // If an RTC alarm was lost during a clock/timezone change, re-arm overdue records
+            // inside their delivery grace window for immediate delivery. Keep the persisted
+            // trigger instant unchanged; the receiver reads the original record when it fires.
+            val alarmCall =
+                call.copy(
+                    triggerAtEpochMillis =
+                        ScheduleRecoveryPolicy.alarmTriggerAt(
+                            call,
+                            now,
+                        ),
+                )
+            if (scheduler.schedule(alarmCall) == ScheduleAlarmResult.EXACT_ALARM_PERMISSION_REQUIRED) {
                 result = ReconcileResult.EXACT_ALARM_PERMISSION_REQUIRED
             }
         }

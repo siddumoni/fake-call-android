@@ -60,7 +60,7 @@ Last updated: 2026-11-27
 
 ## Remaining product work
 
-1. Verify restart recovery on a physical device.
+1. Verify reboot, app-update, exact-alarm-grant, manual-clock and timezone recovery on a physical device.
 2. Cover notification denial/revocation, exact-alarm revocation/grant, duplicate delivery, cancellation and timeout with additional tests; document how pending schedules behave after permission loss.
 3. Validate notification-to-simulation Answer/Decline/End and external-intent rejection; keep the notification heads-up fallback (no restricted full-screen intent).
 4. Accessibility review, lifecycle/device tests, threat review, release checklist and production signing configuration (requires owner-provided secrets).
@@ -74,4 +74,4 @@ A target OnePlus / ColorOS handset is not available in this environment. OEM ala
 ## Restart recovery and schedule fixes
 
 - PR #19 was squash-merged at `28d2ded` after all PR checks passed. It also keeps late approximate alarms pending for one hour (exact: two minutes) and closes stale ringing or orphaned answered records.
-- Restart recovery is added: future schedules are re-registered; expired, ringing and answered records are closed. A real device restart has not been tested.
+- PR #20 adds restart/app-update/exact-alarm-grant recovery and time/timezone-change reconciliation. Future schedules are re-registered; expired, ringing and answered records are closed; overdue schedules inside the grace window are re-armed for immediate delivery without rewriting their original trigger instant. A real device restart or clock/timezone change has not been tested.

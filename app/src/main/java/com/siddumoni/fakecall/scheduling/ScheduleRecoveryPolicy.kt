@@ -5,6 +5,7 @@ object ScheduleRecoveryPolicy {
     /** Inexact alarms can be delivered well after the requested time. */
     const val APPROXIMATE_GRACE_MILLIS = 60L * 60L * 1000L
     const val EXACT_GRACE_MILLIS = 2L * 60L * 1000L
+    const val OVERDUE_REDELIVERY_DELAY_MILLIS = 1_000L
 
     /** A restart removes alarms and notifications, so only future schedules remain valid. */
     fun rebootActionFor(
@@ -17,6 +18,20 @@ object ScheduleRecoveryPolicy {
             ScheduledCallState.RINGING -> ScheduledCallAction.TIMEOUT
             ScheduledCallState.IN_CALL -> ScheduledCallAction.END
             else -> null
+        }
+
+    /**
+     * AlarmManager needs a future RTC trigger even when the stored instant is slightly overdue.
+     * Callers must apply [expiryActionFor] first so records outside the grace window are closed.
+     */
+    fun alarmTriggerAt(
+        call: ScheduledCall,
+        nowEpochMillis: Long,
+    ): Long =
+        if (call.triggerAtEpochMillis <= nowEpochMillis) {
+            nowEpochMillis + OVERDUE_REDELIVERY_DELAY_MILLIS
+        } else {
+            call.triggerAtEpochMillis
         }
 
     fun expiryActionFor(

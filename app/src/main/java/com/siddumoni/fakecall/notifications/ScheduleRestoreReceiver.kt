@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-/** Restores pending schedules after a restart, an app update or a grant of exact-alarm access. */
+/** Reconciles RTC alarms after restart, app update, time changes and exact-alarm access grants. */
 class ScheduleRestoreReceiver : BroadcastReceiver() {
     override fun onReceive(
         context: Context,
@@ -46,6 +46,8 @@ class ScheduleRestoreReceiver : BroadcastReceiver() {
                 Intent.ACTION_BOOT_COMPLETED,
                 Intent.ACTION_MY_PACKAGE_REPLACED,
                 AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED,
+                Intent.ACTION_TIME_CHANGED,
+                Intent.ACTION_TIMEZONE_CHANGED,
             )
     }
 }

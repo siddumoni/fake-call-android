@@ -104,7 +104,7 @@ class ScheduledCallsScreenTest {
         composeRule.runOnIdle { assertEquals(schedule.id, cancelled) }
 
         composeRule.onNodeWithTag("schedule-delete-${schedule.id}").performScrollTo().performClick()
-        composeRule.onNodeWithTag("schedule-delete-confirm").performScrollTo().performClick()
+        composeRule.onNodeWithTag("schedule-delete-confirm").performClick()
         composeRule.runOnIdle { assertEquals(schedule.id, deleted) }
     }
 

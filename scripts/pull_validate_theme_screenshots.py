@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull six Android emulator theme screenshots from app-private storage and validate them."""
+"""Pull six Android emulator screenshots from public MediaStore storage and validate."""
 
 from __future__ import annotations
 
@@ -23,77 +23,13 @@ SCREENSHOT_NAMES = (
 )
 
 
-def run_adb(*args: str) -> str:
-    result = subprocess.run(
-        ["adb", *args],
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    return result.stdout
+def screenshot_pull_command(name: str, destination: Path) -> list[str]:
+    return ["adb", "pull", f"/sdcard/Pictures/AlibiCall/{name}", str(destination)]
 
 
-def parse_app_packages(output: str) -> list[str]:
-    return sorted(
-        {
-            line.removeprefix("package:").strip()
-            for line in output.splitlines()
-            if line.startswith("package:")
-            and line.removeprefix("package:").strip().startswith("com.siddumoni.fakecall")
-        }
-    )
-
-
-def installed_app_packages() -> list[str]:
-    output = run_adb("shell", "pm", "list", "packages")
-    print("Package-list output for AlibiCall discovery:")
-    print(output)
-    return parse_app_packages(output)
-
-
-def list_screenshot_names(package: str) -> set[str]:
-    # The instrumentation APK owns these files. run-as accesses its private
-    # storage after connectedAndroidTest completes without relying on scoped storage.
-    return set(run_adb("shell", "run-as", package, "ls", "files/screenshots").split())
-
-
-def find_screenshot_package() -> str:
-    known_packages = ("com.siddumoni.fakecall.debug.test", "com.siddumoni.fakecall.test", "com.siddumoni.fakecall.debug", "com.siddumoni.fakecall")
-    try:
-        installed = installed_app_packages()
-    except subprocess.CalledProcessError:
-        installed = []
-    candidates = list(dict.fromkeys((*known_packages, *installed)))
-    for package in candidates:
-        print(f"Checking app-private screenshot directory for {package}")
-        try:
-            names = list_screenshot_names(package)
-            print(f"Found screenshot files for {package}: {sorted(names)}")
-        except subprocess.CalledProcessError as error:
-            print(f"Could not list private screenshots for {package}: {error.stdout or error.stderr}")
-            continue
-        if set(SCREENSHOT_NAMES).issubset(names):
-            return package
-
-    raise RuntimeError(
-        "No installed AlibiCall app package contains all six private screenshots. "
-        f"Candidates checked: {candidates}"
-    )
-
-
-def screenshot_read_command(package: str, name: str) -> list[str]:
-    return ["adb", "exec-out", "run-as", package, "cat", f"files/screenshots/{name}"]
-
-
-def pull_screenshot(package: str, name: str, destination: Path) -> None:
-    result = subprocess.run(
-        screenshot_read_command(package, name),
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    destination.write_bytes(result.stdout)
+def pull_screenshot(name: str, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(screenshot_pull_command(name, destination), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def png_dimensions(data: bytes) -> tuple[int, int]:
@@ -113,23 +49,13 @@ def validate_png(path: Path) -> tuple[int, int]:
 
 
 def pull_and_validate(output: Path) -> list[dict[str, object]]:
-    package = find_screenshot_package()
     output.mkdir(parents=True, exist_ok=True)
     report: list[dict[str, object]] = []
-
     for name in SCREENSHOT_NAMES:
         destination = output / name
-        pull_screenshot(package, name, destination)
+        pull_screenshot(name, destination)
         width, height = validate_png(destination)
-        report.append(
-            {
-                "file": name,
-                "width": width,
-                "height": height,
-                "bytes": destination.stat().st_size,
-                "package": package,
-            }
-        )
+        report.append({"file": name, "width": width, "height": height, "bytes": destination.stat().st_size})
     return report
 
 
@@ -137,18 +63,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("screenshots"))
     args = parser.parse_args(argv)
-
     try:
         report = pull_and_validate(args.output)
-    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"Theme screenshot export failed: {error}", file=sys.stderr)
         return 1
-
     for item in report:
-        print(
-            f"{item['file']}: {item['width']}x{item['height']} "
-            f"({item['bytes']} bytes) from {item['package']}"
-        )
+        print(f"{item['file']}: {item['width']}x{item['height']} ({item['bytes']} bytes)")
     print(f"Validated all {len(report)} theme screenshots.")
     return 0
 

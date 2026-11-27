@@ -48,6 +48,10 @@ Use the checked-in Gradle Wrapper:
 
 On Windows use `gradlew.bat`. GitHub Actions installs Android API 37.1 and tests on the highest available Android 17 x86_64 emulator image, recording the selected API level in the run summary. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
+## Notification sound and vibration
+
+Scheduled-call notifications use the system default notification sound and a short vibration pattern. Users can customize or disable these in Android notification-channel settings from the schedule screen. Custom ringtone files are not supported.
+
 ## Privacy and permissions
 
 The application source manifest declares no feature permissions. AndroidX Core currently contributes one package-specific, signature-protected compatibility permission to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the declared protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is unrelated to telephony or access to user data.

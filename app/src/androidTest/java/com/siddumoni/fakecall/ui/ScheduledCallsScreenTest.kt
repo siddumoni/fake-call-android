@@ -134,6 +134,7 @@ class ScheduledCallsScreenTest {
         composeRule.onNodeWithText("Open Alarms & reminders settings").assertExists()
         composeRule.onNodeWithText("Enable notifications").assertExists()
     }
+
     @Test
     fun notificationSettingsButtonDelegatesToSystemSettings() {
         var opened = false
@@ -158,6 +159,4 @@ class ScheduledCallsScreenTest {
         composeRule.onNodeWithTag("schedule-notification-settings").performClick()
         composeRule.runOnIdle { assertEquals(true, opened) }
     }
-
-
 }

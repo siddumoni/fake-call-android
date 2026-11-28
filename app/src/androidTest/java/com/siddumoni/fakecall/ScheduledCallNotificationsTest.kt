@@ -1,13 +1,18 @@
 package com.siddumoni.fakecall
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,8 +35,35 @@ class ScheduledCallNotificationsTest {
         )
         val actualChannel = requireNotNull(channel)
         assertTrue(actualChannel.shouldVibrate())
-        assertArrayEquals(longArrayOf(0L, 300L, 200L, 300L), actualChannel.vibrationPattern)
-        val defaultSound = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
-        if (defaultSound != null) assertEquals(defaultSound, actualChannel.sound)
+        assertArrayEquals(longArrayOf(0L, 1_000L, 1_000L), actualChannel.vibrationPattern)
+    }
+
+    @Test
+    fun newChannelRingsWithTheDefaultRingtone() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        val channel = ScheduledCallNotifications.buildChannel(context, legacy = null)
+
+        val ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        if (ringtone != null) {
+            assertEquals(ringtone, channel.sound)
+            assertEquals(AudioAttributes.USAGE_NOTIFICATION_RINGTONE, channel.audioAttributes.usage)
+        }
+    }
+
+    @Test
+    fun channelUpgradeKeepsWhatTheUserTurnedOff() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val legacy =
+            NotificationChannel("legacy", "Legacy", NotificationManager.IMPORTANCE_NONE).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
+
+        val channel = ScheduledCallNotifications.buildChannel(context, legacy)
+
+        assertEquals(NotificationManager.IMPORTANCE_NONE, channel.importance)
+        assertNull(channel.sound)
+        assertFalse(channel.shouldVibrate())
     }
 }

@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,6 +67,7 @@ class ScheduledCallActionsTest {
     fun declineActionEndsRingingCallAndRemovesNotification() {
         val notification = postNotification()
         assertEquals(listOf("Decline", "Answer"), notification.actions.map { it.title.toString() })
+        assertTrue(notification.flags and Notification.FLAG_INSISTENT != 0)
 
         notification.actions[0].actionIntent.send()
 

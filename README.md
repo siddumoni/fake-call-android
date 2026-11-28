@@ -33,7 +33,7 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout, and notification Answer and Decline actions (swiping the notification away also declines).
 - Restart, app-update and exact-alarm-grant recovery through a non-exported receiver. A restart restores only future schedules and closes expired or interrupted records.
 
-Custom ringtone files are not implemented. Physical-device delivery is unverified.
+Physical-device delivery is unverified.
 
 ## Build
 
@@ -48,9 +48,9 @@ Use the checked-in Gradle Wrapper:
 
 On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. CI adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), expanded (600 dp), and compact-landscape (640×360 dp) configurations plus 200% font scaling on compact portrait configurations. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
-## Notification sound and vibration
+## Ringtone and vibration
 
-Scheduled-call notifications use the system default notification sound and a short vibration pattern. Users can customize or disable these in Android notification-channel settings from the schedule screen. Custom ringtone files are not supported.
+A ringing simulation repeats the default ringtone and a vibration pattern until it is answered, declined, times out after about 45 seconds, or the notification shade is opened. Android plays the sound, so silent mode, Do Not Disturb and audio routing apply. Use the schedule screen settings link to pick another tone or turn sound or vibration off. The app has no audio player or file import of its own.
 
 ## Privacy and permissions
 

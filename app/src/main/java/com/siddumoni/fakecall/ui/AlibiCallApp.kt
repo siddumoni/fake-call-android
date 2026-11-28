@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -29,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.R
 import com.siddumoni.fakecall.callers.CallerPreset
@@ -202,6 +205,7 @@ private fun OnboardingScreen(
     ) {
         Text(
             text = stringResource(R.string.onboarding_title),
+            modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
         )
         Text(
@@ -244,7 +248,7 @@ private fun OnboardingScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .heightIn(min = 56.dp)
                     .testTag("onboarding-continue-button"),
         ) {
             Text(stringResource(R.string.onboarding_continue))
@@ -270,6 +274,7 @@ private fun HomeScreen(
     ) {
         Text(
             text = stringResource(R.string.app_name),
+            modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
         )
         Text(
@@ -354,6 +359,7 @@ private fun ThemeSettingsScreen(
     ) {
         Text(
             text = stringResource(R.string.theme_appearance_heading),
+            modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.titleMedium,
         )
         AppearanceOption(
@@ -404,7 +410,7 @@ private fun AppearanceOption(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .heightIn(min = 56.dp)
                 .selectable(
                     selected = selected,
                     role = Role.RadioButton,

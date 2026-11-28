@@ -2,7 +2,9 @@ package com.siddumoni.fakecall.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.R
 import com.siddumoni.fakecall.callers.CallerPreset
@@ -47,47 +51,58 @@ fun CallerPresetsScreen(
     val editing = presets.firstOrNull { it.id == editingId }
     var deleting by remember { mutableStateOf<CallerPreset?>(null) }
 
-    Column(
-        modifier = modifier.fillMaxSize().padding(20.dp).testTag("caller-presets-screen"),
+    // The whole screen scrolls so large fonts and short windows cannot squeeze out the list.
+    LazyColumn(
+        modifier = modifier.fillMaxSize().testTag("caller-presets-screen"),
+        contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.caller_presets_title), style = MaterialTheme.typography.headlineMedium)
-        Text(
-            stringResource(R.string.caller_presets_disclaimer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (saveError != null) {
+        item {
             Text(
-                text = stringResource(R.string.caller_preset_error),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
+                text = stringResource(R.string.caller_presets_title),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.headlineMedium,
             )
         }
-        Button(
-            onClick = {
-                editingId = null
-                showCreate = true
-            },
-            modifier = Modifier.fillMaxWidth().testTag("caller-preset-add-button"),
-        ) {
-            Text(stringResource(R.string.caller_preset_add))
+        item {
+            Text(
+                stringResource(R.string.caller_presets_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (saveError != null) {
+            item {
+                Text(
+                    text = stringResource(R.string.caller_preset_error),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        item {
+            Button(
+                onClick = {
+                    editingId = null
+                    showCreate = true
+                },
+                modifier = Modifier.fillMaxWidth().testTag("caller-preset-add-button"),
+            ) {
+                Text(stringResource(R.string.caller_preset_add))
+            }
         }
         if (presets.isEmpty()) {
-            Text(stringResource(R.string.caller_presets_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            item {
+                Text(stringResource(R.string.caller_presets_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                items(presets, key = { it.id }) { preset ->
-                    CallerPresetCard(
-                        preset = preset,
-                        onPreview = { onPreview(preset) },
-                        onEdit = { editingId = preset.id },
-                        onDelete = { deleting = preset },
-                    )
-                }
+            items(presets, key = { it.id }) { preset ->
+                CallerPresetCard(
+                    preset = preset,
+                    onPreview = { onPreview(preset) },
+                    onEdit = { editingId = preset.id },
+                    onDelete = { deleting = preset },
+                )
             }
         }
     }
@@ -122,6 +137,7 @@ fun CallerPresetsScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CallerPresetCard(
     preset: CallerPreset,
@@ -135,7 +151,7 @@ private fun CallerPresetCard(
             if (preset.numberLabel.isNotBlank()) {
                 Text(preset.numberLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onPreview) { Text(stringResource(R.string.caller_preset_preview)) }
                 OutlinedButton(onClick = onEdit) { Text(stringResource(R.string.edit)) }
                 TextButton(onClick = onDelete) { Text(stringResource(R.string.delete)) }

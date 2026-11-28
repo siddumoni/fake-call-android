@@ -46,6 +46,8 @@ class MainActivity : ComponentActivity() {
     private val callSettingsViewModel: CallSettingsViewModel by viewModels()
     private var notificationsAllowed by mutableStateOf(false)
     private var exactAlarmAllowed by mutableStateOf(false)
+    private var quickCallPendingId: String? = null
+    private var quickCallSubmissionInProgress = false
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -62,6 +64,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        quickCallPendingId = savedInstanceState?.getString(STATE_QUICK_CALL_PENDING_ID)
         val initialOnboardingComplete = (application as AlibiCallApplication).initialOnboardingCompleted
         val restoredScreen =
             savedInstanceState
@@ -209,25 +212,32 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun scheduleQuickCall() {
+        if (quickCallSubmissionInProgress) return
+        quickCallSubmissionInProgress = true
         lifecycleScope.launch {
-            val outcome =
-                try {
-                    QuickCallTrigger(this@MainActivity).create()
-                } catch (exception: Exception) {
-                    if (exception is CancellationException) throw exception
-                    QuickCallOutcome.Failed
-                }
+            try {
+                val outcome =
+                    try {
+                        QuickCallTrigger(this@MainActivity).create(pendingId = quickCallPendingId)
+                    } catch (exception: Exception) {
+                        if (exception is CancellationException) throw exception
+                        QuickCallOutcome.Failed
+                    }
 
-            val message =
-                when (outcome) {
-                    is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
-                    QuickCallOutcome.Busy -> R.string.quick_call_busy
-                    QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
-                    QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
-                    QuickCallOutcome.Failed -> R.string.quick_call_start_failed
-                }
-            Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
-            if (outcome == QuickCallOutcome.NotificationsBlocked) requestNotificationPermission()
+                if (outcome is QuickCallOutcome.Scheduled) quickCallPendingId = outcome.call.id
+                val message =
+                    when (outcome) {
+                        is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
+                        QuickCallOutcome.Busy -> R.string.quick_call_busy
+                        QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
+                        QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
+                        QuickCallOutcome.Failed -> R.string.quick_call_start_failed
+                    }
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                if (outcome == QuickCallOutcome.NotificationsBlocked) requestNotificationPermission()
+            } finally {
+                quickCallSubmissionInProgress = false
+            }
         }
     }
 
@@ -246,10 +256,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)
+        quickCallPendingId?.let { outState.putString(STATE_QUICK_CALL_PENDING_ID, it) }
         super.onSaveInstanceState(outState)
     }
 
     private companion object {
         const val STATE_CURRENT_SCREEN = "current_screen"
+        const val STATE_QUICK_CALL_PENDING_ID = "quick_call_pending_id"
     }
 }

@@ -8,10 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -169,6 +171,26 @@ class CallScreenTest {
             .performClick()
         composeRule.runOnIdle { assertEquals(1, answers) }
         composeRule.onNodeWithContentDescription("Decline").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun everyCallControlIsLargeEnoughToTouch() {
+        phase = CallPhase.ACTIVE
+        show()
+
+        CallScreenStyle.entries.forEach { next ->
+            composeRule.runOnIdle { style = next }
+            listOf("Mute", "Keypad", "Speaker").forEach { label ->
+                composeRule
+                    .onNodeWithText(label)
+                    .assertWidthIsAtLeast(48.dp)
+                    .assertHeightIsAtLeast(48.dp)
+            }
+            composeRule
+                .onNodeWithContentDescription("End call")
+                .assertWidthIsAtLeast(48.dp)
+                .assertHeightIsAtLeast(48.dp)
+        }
     }
 
     private fun toggle(label: String) {

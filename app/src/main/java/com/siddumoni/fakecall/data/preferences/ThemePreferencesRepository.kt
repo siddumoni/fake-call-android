@@ -16,7 +16,10 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 private val Context.themePreferencesDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "theme_preferences")
+    preferencesDataStore(
+        name = "theme_preferences",
+        corruptionHandler = recoverCorruptPreferences(),
+    )
 
 class ThemePreferencesRepository(
     context: Context,

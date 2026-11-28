@@ -17,7 +17,10 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 private val Context.callSettingsDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "call_settings")
+    preferencesDataStore(
+        name = "call_settings",
+        corruptionHandler = recoverCorruptPreferences(),
+    )
 
 class CallSettingsRepository(
     context: Context,

@@ -18,7 +18,10 @@ import java.util.Locale
 import java.util.UUID
 
 private val Context.callerPresetsDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "caller_presets")
+    preferencesDataStore(
+        name = "caller_presets",
+        corruptionHandler = recoverCorruptPreferences(),
+    )
 
 class CallerPresetRepository(
     context: Context,

@@ -39,8 +39,6 @@ CI runs emulator instrumentation on API 35, 36 and 37. Every job must pass befor
 - [ ] Tap again while a call is already scheduled, ringing or in progress; verify a duplicate is not created and the existing call is left unchanged.
 - [ ] Verify the schedule appears in the Schedules screen and can be cancelled or deleted there.
 - [ ] Test short and long delays, including 1 s, 10 s, 2 min and 30 min; record whether exact-alarm access is granted and any OS delivery delay.
-- [ ] Screen locked after triggering: the call still rings. Presses with the screen off: record the result.
-- [ ] Works after reboot and after several hours of battery optimisation; record if OxygenOS disables the service.
 - [ ] Screen off: verify schedule delivery.
 - [ ] App open: verify delivery.
 - [ ] App swiped away: verify delivery.

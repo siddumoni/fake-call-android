@@ -14,9 +14,9 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] Force-stop and relaunch after acknowledgement opens Home without repeating onboarding.
 - [ ] Onboarding does not request notification, alarm, contacts, telephony or other permissions.
 
-## Automated emulator coverage (pending PR #23)
+## Automated emulator coverage
 
-CI runs emulator instrumentation on API 35, 36 and 37. Do not mark this matrix complete until every job is green. Emulator coverage is not physical OEM evidence.
+CI runs emulator instrumentation on API 35, 36 and 37. Every job must pass before merging. Emulator coverage is not physical OEM evidence.
 
 ## Before testing
 

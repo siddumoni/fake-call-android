@@ -57,7 +57,7 @@ data class CallSettingsActions(
     val onTriggerCallerChanged: (String) -> Unit = {},
     val onTriggerDelayChanged: (Int) -> Unit = {},
     val onOpenFullScreenSettings: () -> Unit = {},
-    val onOpenAccessibilitySettings: () -> Unit = {},
+    val onStartQuickCall: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,7 +195,7 @@ fun AlibiCallApp(
                         onPreview = onPreviewCaller,
                         onRequestNotifications = onRequestNotificationPermission,
                         onOpenFullScreenSettings = callSettingsActions.onOpenFullScreenSettings,
-                        onOpenAccessibilitySettings = callSettingsActions.onOpenAccessibilitySettings,
+                        onStartQuickCall = callSettingsActions.onStartQuickCall,
                     )
             }
         }

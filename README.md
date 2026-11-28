@@ -66,4 +66,4 @@ No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SM
 - [Project status](docs/STATUS.md)
 - [Release signing](docs/RELEASING.md)
 
-Tag releases are signed when all four signing secrets are configured. Otherwise the workflow publishes a clearly labelled debug-variant APK (signed with the temporary Android debug key) and its SHA-256 checksum. See [docs/RELEASING.md](docs/RELEASING.md) for signing setup.
+A `v<versionName>` tag on a `main` commit publishes a signed, minified release APK with its SHA-256 checksum. Without all four signing secrets the workflow fails and publishes nothing. See [docs/RELEASING.md](docs/RELEASING.md) for signing setup.

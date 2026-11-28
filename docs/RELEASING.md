@@ -44,4 +44,6 @@ sha256sum -c SHA256SUMS.txt
 apksigner verify --verbose --print-certs AlibiCall-release.apk
 ```
 
-When signing secrets exist, the tag workflow publishes a signed minified release APK and runs `apksigner verify --verbose --print-certs` before publication. When they do not exist, it publishes `AlibiCall-DEBUG.apk`, a debug-variant APK signed with Gradle's temporary Android debug key, plus a SHA-256 checksum. The debug signing identity is not suitable for production updates and may differ between CI runs. Never commit the keystore or upload it as a normal release asset.
+The tag must be `v` followed by `versionName` in `app/build.gradle.kts` and must point to a commit on `main`. The workflow runs unit tests and lint, builds the minified release APK, checks the merged release manifest permissions, runs `apksigner verify` (rejecting a debug certificate) and publishes the APK with its SHA-256 checksum. If any signing secret is missing, it fails and publishes nothing. Never commit the keystore or upload it as a normal release asset.
+
+Before each release after the first, increase `versionCode` and update `versionName`. Every update must be signed with the same key.

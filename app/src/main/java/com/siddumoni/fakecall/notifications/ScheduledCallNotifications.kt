@@ -1,12 +1,15 @@
 package com.siddumoni.fakecall.notifications
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
@@ -21,7 +24,9 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import java.util.UUID
 
 object ScheduledCallNotifications {
-    const val CHANNEL_ID = "scheduled_simulations_v2"
+    /** Channel sound is immutable after creation, so a sound change needs a new channel ID. */
+    const val CHANNEL_ID = "scheduled_simulations_v3"
+    private const val LEGACY_CHANNEL_ID = "scheduled_simulations_v2"
 
     fun canPost(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -44,34 +49,56 @@ object ScheduledCallNotifications {
     }
 
     fun ensureChannel(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL_ID) != null) return
-        manager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                context.getString(R.string.schedule_notification_channel),
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+            manager.createNotificationChannel(
+                buildChannel(context, manager.getNotificationChannel(LEGACY_CHANNEL_ID)),
+            )
+        }
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+    }
+
+    /**
+     * The system plays the channel's ringtone, so silent mode, Do Not Disturb, audio routing and
+     * user overrides apply without an app-owned player. Anything the user turned down or off on the
+     * [legacy] channel stays that way.
+     */
+    internal fun buildChannel(
+        context: Context,
+        legacy: NotificationChannel?,
+    ): NotificationChannel {
+        val importance =
+            minOf(
+                legacy?.importance ?: NotificationManager.IMPORTANCE_HIGH,
                 NotificationManager.IMPORTANCE_HIGH,
-            ).apply {
-                description = context.getString(R.string.schedule_notification_channel_description)
+            )
+        return NotificationChannel(
+            CHANNEL_ID,
+            context.getString(R.string.schedule_notification_channel),
+            importance,
+        ).apply {
+            description = context.getString(R.string.schedule_notification_channel_description)
+            if (legacy == null || legacy.shouldVibrate()) {
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0L, 300L, 200L, 300L)
-                val sound =
-                    android.media.RingtoneManager.getDefaultUri(
-                        android.media.RingtoneManager.TYPE_NOTIFICATION,
-                    )
-                if (sound != null) {
+                vibrationPattern = longArrayOf(0L, 1_000L, 1_000L)
+            } else {
+                enableVibration(false)
+            }
+            if (legacy != null && legacy.sound == null) {
+                setSound(null, null)
+            } else {
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)?.let { ringtone ->
                     setSound(
-                        sound,
-                        android.media.AudioAttributes
+                        ringtone,
+                        AudioAttributes
                             .Builder()
-                            .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
-                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build(),
                     )
                 }
-            },
-        )
+            }
+        }
     }
 
     fun show(
@@ -142,6 +169,8 @@ object ScheduledCallNotifications {
                 .addAction(0, context.getString(R.string.simulated_call_decline), declineIntent)
                 .addAction(0, context.getString(R.string.simulated_call_answer), answerIntent)
                 .build()
+        // Repeat sound and vibration until the notification is removed or the user opens the shade.
+        notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
         return try {
             NotificationManagerCompat

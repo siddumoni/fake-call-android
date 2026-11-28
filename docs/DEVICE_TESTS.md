@@ -48,7 +48,8 @@ Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 1
 
 ## Audio and interruption modes
 
-- [ ] Normal ringtone profile.
+- [ ] Normal ringtone profile: tone and vibration repeat, and stop on Answer, Decline, swipe, opening the shade and timeout.
+- [ ] Upgrade from an earlier build with the channel muted; verify it stays muted.
 - [ ] Silent mode.
 - [ ] Vibrate mode.
 - [ ] Do Not Disturb with relevant system policy.

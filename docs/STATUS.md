@@ -67,7 +67,7 @@ Post-merge main CI run 45995506622 succeeded: build/unit/lint/manifest, API 37 i
 2. PR #25 (notification sound/vibration channel settings) merged at `5e0efd3`.
 3. Expand lifecycle tests for notification denial/revocation, exact-alarm revocation, cancellation races, storage errors and restore edge cases.
 4. Accessibility review across all screens: TalkBack traversal, semantics, 48 dp targets, 200% fonts, contrast and reduced motion.
-5. Custom ringtone files and independent audio playback are intentionally unsupported. Physical routing/interruption behavior remains to be tested.
+5. The system channel loops the ringtone; there is no app-owned player or file import. Physical routing/interruption behavior remains to be tested.
 6. Complete manual security/threat review; verify release minification, artifact, signature and checksum.
 7. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
 8. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP) when hardware is available.

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.siddumoni.fakecall.call.CallActivity
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
@@ -27,11 +29,14 @@ import com.siddumoni.fakecall.onboarding.OnboardingViewModel
 import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.CallSettingsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
-import com.siddumoni.fakecall.trigger.VolumeTriggerService
+import com.siddumoni.fakecall.trigger.QuickCallOutcome
+import com.siddumoni.fakecall.trigger.QuickCallTrigger
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
 import com.siddumoni.fakecall.ui.CallAccess
 import com.siddumoni.fakecall.ui.CallSettingsActions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
@@ -41,6 +46,8 @@ class MainActivity : ComponentActivity() {
     private val callSettingsViewModel: CallSettingsViewModel by viewModels()
     private var notificationsAllowed by mutableStateOf(false)
     private var exactAlarmAllowed by mutableStateOf(false)
+    private var quickCallPendingId: String? = null
+    private var quickCallSubmissionInProgress = false
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -57,6 +64,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        quickCallPendingId = savedInstanceState?.getString(STATE_QUICK_CALL_PENDING_ID)
         val initialOnboardingComplete = (application as AlibiCallApplication).initialOnboardingCompleted
         val restoredScreen =
             savedInstanceState
@@ -127,7 +135,7 @@ class MainActivity : ComponentActivity() {
                         onTriggerCallerChanged = callSettingsViewModel::setTriggerCaller,
                         onTriggerDelayChanged = callSettingsViewModel::setTriggerDelaySeconds,
                         onOpenFullScreenSettings = ::openFullScreenSettings,
-                        onOpenAccessibilitySettings = ::openAccessibilitySettings,
+                        onStartQuickCall = ::scheduleQuickCall,
                     ),
                 onOpenCallSettings = { currentScreen = AppScreen.CALL_SETTINGS },
                 scheduledCalls = scheduledCalls,
@@ -158,7 +166,6 @@ class MainActivity : ComponentActivity() {
             CallAccess(
                 notifications = notificationsAllowed,
                 fullScreen = ScheduledCallNotifications.canUseFullScreen(this),
-                volumeShortcut = VolumeTriggerService.isEnabled(this),
             )
     }
 
@@ -204,12 +211,38 @@ class MainActivity : ComponentActivity() {
         startActivity(CallActivity.previewIntent(this, callerId))
     }
 
-    private fun openFullScreenSettings() {
-        openSettings(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
+    private fun scheduleQuickCall() {
+        if (quickCallSubmissionInProgress) return
+        quickCallSubmissionInProgress = true
+        lifecycleScope.launch {
+            try {
+                val outcome =
+                    try {
+                        QuickCallTrigger(this@MainActivity).create(pendingId = quickCallPendingId)
+                    } catch (exception: Exception) {
+                        if (exception is CancellationException) throw exception
+                        QuickCallOutcome.Failed
+                    }
+
+                if (outcome is QuickCallOutcome.Scheduled) quickCallPendingId = outcome.call.id
+                val message =
+                    when (outcome) {
+                        is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
+                        QuickCallOutcome.Busy -> R.string.quick_call_busy
+                        QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
+                        QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
+                        QuickCallOutcome.Failed -> R.string.quick_call_start_failed
+                    }
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                if (outcome == QuickCallOutcome.NotificationsBlocked) requestNotificationPermission()
+            } finally {
+                quickCallSubmissionInProgress = false
+            }
+        }
     }
 
-    private fun openAccessibilitySettings() {
-        openSettings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+    private fun openFullScreenSettings() {
+        openSettings(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
     }
 
     /** Some devices omit a specific settings page; the app's own settings page always exists. */
@@ -223,10 +256,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)
+        quickCallPendingId?.let { outState.putString(STATE_QUICK_CALL_PENDING_ID, it) }
         super.onSaveInstanceState(outState)
     }
 
     private companion object {
         const val STATE_CURRENT_SCREEN = "current_screen"
+        const val STATE_QUICK_CALL_PENDING_ID = "quick_call_pending_id"
     }
 }

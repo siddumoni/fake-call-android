@@ -30,7 +30,7 @@ sealed interface QuickCallOutcome {
     data object Failed : QuickCallOutcome
 }
 
-/** Creates the call requested by the volume-button shortcut, using the saved caller and delay. */
+/** Schedules an in-app quick call using the saved caller and delay. */
 class QuickCallTrigger(
     context: Context,
 ) {
@@ -49,8 +49,7 @@ class QuickCallTrigger(
 
         for (existing in schedules.calls.first()) {
             when {
-                existing.id == pendingId && existing.state == ScheduledCallState.SCHEDULED ->
-                    return QuickCallOutcome.Busy
+                existing.id == pendingId && existing.state == ScheduledCallState.SCHEDULED -> return QuickCallOutcome.Busy
                 existing.state == ScheduledCallState.RINGING -> return QuickCallOutcome.Busy
                 existing.state == ScheduledCallState.IN_CALL -> {
                     if (CallSession.activeCallId == existing.id) return QuickCallOutcome.Busy

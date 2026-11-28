@@ -13,7 +13,6 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
 import com.siddumoni.fakecall.trigger.QuickCallOutcome
 import com.siddumoni.fakecall.trigger.QuickCallTrigger
-import com.siddumoni.fakecall.trigger.VolumeTriggerService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -75,20 +74,14 @@ class QuickCallTriggerTest {
         }
 
     @Test
-    fun callScreenIsPrivateAndOnlyTheSystemCanBindTheShortcutService() {
+    fun callScreenIsPrivateAndNoAccessibilityServiceIsPackaged() {
         val manager = context.packageManager
-
         val activity = manager.getActivityInfo(ComponentName(context, CallActivity::class.java), 0)
-        val service =
-            manager.getServiceInfo(
-                ComponentName(context, VolumeTriggerService::class.java),
-                PackageManager.GET_META_DATA,
-            )
+        val services =
+            manager.getPackageInfo(context.packageName, PackageManager.GET_SERVICES).services.orEmpty()
 
         assertFalse(activity.exported)
-        assertFalse(service.exported)
-        assertEquals(Manifest.permission.BIND_ACCESSIBILITY_SERVICE, service.permission)
-        assertFalse(VolumeTriggerService.isEnabled(context))
+        assertTrue(services.none { service -> service.permission == Manifest.permission.BIND_ACCESSIBILITY_SERVICE })
     }
 
     private suspend fun clearSchedules() {

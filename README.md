@@ -29,7 +29,7 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Local caller-profile CRUD (fictional display name and optional number label), persisted in app-private Preferences DataStore.
 - Incoming and in-call screens in two styles (Google Phone and OnePlus dialer look-alikes) with working Answer, Decline, Mute, Keypad, Speaker, Hold and End controls. There is no audio connection, telephony or network integration, and the call screens and notification carry no simulation label (owner decision).
 - Opt-in full-screen incoming call over the lock screen.
-- Opt-in volume shortcut: five volume-down presses within three seconds start a call after a delay of 1 second to 120 minutes, through an Android accessibility service. It generally works only while the screen is on.
+- In-app quick call: choose a caller and a delay of 1 second to 120 minutes, then tap Schedule simulated call. Delivery uses the same local alarm and notification pipeline as other scheduled calls.
 - Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
 - First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
 - Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout, and notification Answer and Decline actions (swiping the notification away also declines).

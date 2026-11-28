@@ -35,7 +35,7 @@
     "android.permission.POST_NOTIFICATIONS": "Allows the user-approved scheduled simulated-call notification on Android 13+. Runtime permission is requested in context; if denied or later revoked, the app does not launch an Activity or silently downgrade the schedule.",
     "android.permission.SCHEDULE_EXACT_ALARM": "Allows a user-selected exact simulated-call schedule only after checking canScheduleExactAlarms() and sending the user to Alarms & reminders special app access when needed. Approximate mode uses an inexact alarm and never requests this access.",
     "android.permission.RECEIVE_BOOT_COMPLETED": "Restores pending future simulated-call alarms after a device restart through a non-exported receiver. Expired and interrupted records are closed.",
-    "android.permission.VIBRATE": "Allows the call notification channel to vibrate and the volume shortcut to confirm with a short buzz. The user can disable vibration or change sound in Android notification-channel settings.",
+    "android.permission.VIBRATE": "Allows notifications for scheduled simulated calls to vibrate. The user can disable vibration or change sound in Android notification-channel settings.",
     "android.permission.USE_FULL_SCREEN_INTENT": "Owner-approved opt-in. A full-screen intent is attached only after the user turns on Full-screen incoming call in the app and Android allows it. Off by default.",
     "android.permission.WAKE_LOCK": "Holds a proximity screen-off wake lock only while an answered call screen is visible with the speaker off, so the face cannot press buttons."
   }

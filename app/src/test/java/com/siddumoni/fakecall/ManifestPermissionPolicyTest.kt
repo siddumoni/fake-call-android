@@ -65,6 +65,13 @@ class ManifestPermissionPolicyTest {
     }
 
     @Test
+    fun sourceManifestDoesNotDeclareAnAccessibilityService() {
+        val manifest = File("src/main/AndroidManifest.xml").readText()
+        assertFalse(manifest.contains("android.permission.BIND_ACCESSIBILITY_SERVICE"))
+        assertFalse(manifest.contains("android.accessibilityservice.AccessibilityService"))
+    }
+
+    @Test
     fun manifestDisablesBackupAndCleartextTraffic() {
         val manifest = File("src/main/AndroidManifest.xml").readText()
         assertTrue(manifest.contains("""android:allowBackup="false""""))

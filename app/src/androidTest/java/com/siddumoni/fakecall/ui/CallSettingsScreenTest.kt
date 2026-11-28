@@ -19,12 +19,12 @@ class CallSettingsScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun userChoosesStyleCallerDelayAndOpensTheSystemSettings() {
+    fun userChoosesStyleCallerDelayAndStartsAnInAppQuickCall() {
         var style: CallScreenStyle? = null
         var caller: String? = null
         var delay: Int? = null
         var fullScreen: Boolean? = null
-        var accessibilityOpened = false
+        var quickCallStarted = false
         composeRule.setContent {
             CallSettingsScreen(
                 settings = CallSettings(),
@@ -38,14 +38,13 @@ class CallSettingsScreenTest {
                 onPreview = {},
                 onRequestNotifications = {},
                 onOpenFullScreenSettings = {},
-                onOpenAccessibilitySettings = { accessibilityOpened = true },
+                onStartQuickCall = { quickCallStarted = true },
             )
         }
 
         composeRule.onNodeWithText("OnePlus dialer").performScrollTo().performClick()
         composeRule.onNodeWithText("Full-screen incoming call").performScrollTo().performClick()
-        composeRule.onNodeWithText("Shortcut is off").performScrollTo().assertExists()
-        composeRule.onNodeWithText("Open Accessibility settings").performScrollTo().performClick()
+        composeRule.onNodeWithText("Schedule simulated call").performScrollTo().performClick()
         composeRule.onNodeWithText("Ben").performScrollTo().performClick()
         composeRule.onNodeWithTag("delay-minutes").performScrollTo().performTextReplacement("2")
         composeRule.onNodeWithTag("delay-seconds").performScrollTo().performTextReplacement("15")
@@ -54,7 +53,7 @@ class CallSettingsScreenTest {
         composeRule.runOnIdle {
             assertEquals(CallScreenStyle.ONEPLUS, style)
             assertEquals(true, fullScreen)
-            assertEquals(true, accessibilityOpened)
+            assertEquals(true, quickCallStarted)
             assertEquals("b", caller)
             assertEquals(135, delay)
         }

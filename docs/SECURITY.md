@@ -19,10 +19,6 @@ AndroidX Core's AAR manifest declares `${applicationId}.DYNAMIC_RECEIVER_NOT_EXP
 
 `USE_FULL_SCREEN_INTENT` is declared by owner decision (2026-11-28). A full-screen intent is attached only when the user has turned on **Full-screen incoming call** (off by default) and Android reports that it is allowed. Google Play limits this permission to calling and alarm apps, so Play distribution would need a separate policy review. `WAKE_LOCK` is used only for the proximity screen-off lock while an answered call screen is visible with the speaker off.
 
-## Accessibility service
-
-`VolumeTriggerService` is optional and off until the user enables it in Android Accessibility settings, after an in-app explanation. It requests key-event filtering only: no window content and no accessibility events. It inspects volume-down presses, keeps at most the last five timestamps in memory, never consumes the key and stores or sends nothing. It is not exported and is protected by `BIND_ACCESSIBILITY_SERVICE`. It is not declared as an accessibility tool; Google Play restricts non-accessibility use of this API, so Play distribution would need a separate review.
-
 ## Realistic call screens
 
 By owner decision the call screens and call notification look like an ordinary incoming call and carry no simulation label, and the caller name is shown on the lock screen. The app still places no calls, creates no call-log entry and has no telephony access. Setup screens state that every call is simulated.
@@ -35,7 +31,7 @@ No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SM
 
 ## Component exposure
 
-Every component is non-exported except the launcher Activity, which ignores intent data. The call screen Activity, the accessibility service and the scheduled-alarm, timeout and notification-dismiss receivers are explicitly non-exported. Alarm and notification action PendingIntents are explicit and immutable, and use unique data URIs per schedule. Notification content opens the non-exported call screen with the app-specific `alibicall://scheduled-call/<UUID>` URI; it accepts only the exact scheme/authority and a validated UUID path segment, optionally followed by exactly `answer` (or a `preview` URI with a caller ID), then reloads schedule state and caller data from private storage. Over the lock screen it offers call controls only, with no way into the rest of the app.
+Every component is non-exported except the launcher Activity, which ignores intent data. The call screen Activity and the scheduled-alarm, timeout and notification-dismiss receivers are explicitly non-exported. Alarm and notification action PendingIntents are explicit and immutable, and use unique data URIs per schedule. Notification content opens the non-exported call screen with the app-specific `alibicall://scheduled-call/<UUID>` URI; it accepts only the exact scheme/authority and a validated UUID path segment, optionally followed by exactly `answer` (or a `preview` URI with a caller ID), then reloads schedule state and caller data from private storage. Over the lock screen it offers call controls only, with no way into the rest of the app.
 
 ## Data protection
 
@@ -55,7 +51,7 @@ Report security issues privately to the repository owner through GitHub's privat
 
 ## Review status
 
-Source review on 2026-11-28 at `ebd9df8`, before the accessibility service and full-screen call screen were added (manifest, receivers, PendingIntents, launch-link handling, storage, backup, logging and workflow permissions). This was not an independent audit or a physical-device test.
+Source review on 2026-11-28 at `ebd9df8`, before the full-screen call screen was added. The volume-key AccessibilityService was subsequently removed from the app manifest and source. This was not an independent audit or a physical-device test.
 
 Confirmed:
 

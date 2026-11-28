@@ -26,9 +26,9 @@ Last updated: 2026-11-28
 - Caller-profile CRUD and local simulated-call preview with fictional names and optional number labels.
 - Privacy-first onboarding, local DataStore storage, no real telephony/call logs/network communication.
 
-### Call screens and volume shortcut
+### Call screens and in-app quick call
 
-- Google Phone and OnePlus dialer style call screens, opt-in full-screen call, opt-in volume-down shortcut with a configurable delay. Emulator-tested; not verified on a phone. The accessibility key delivery itself cannot be exercised in CI.
+- Google Phone and OnePlus dialer style call screens, opt-in full-screen call, and an explicit in-app quick-call action with a configurable caller and delay. Emulator-tested; physical-device delivery timing is not yet verified.
 - Caller/schedule editor input state retained across rotation/theme changes; caller editor scrolls.
 
 ### Schedule lifecycle and delivery

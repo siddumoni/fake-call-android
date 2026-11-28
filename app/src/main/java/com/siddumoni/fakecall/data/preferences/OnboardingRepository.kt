@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 private val Context.onboardingDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "onboarding_preferences")
+    preferencesDataStore(
+        name = "onboarding_preferences",
+        corruptionHandler = recoverCorruptPreferences(),
+    )
 
 class OnboardingRepository(
     context: Context,

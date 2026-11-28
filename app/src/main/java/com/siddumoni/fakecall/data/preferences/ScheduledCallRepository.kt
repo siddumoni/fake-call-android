@@ -21,6 +21,7 @@ import java.util.UUID
 private val Context.scheduledCallsDataStore: DataStore<Preferences> by
     preferencesDataStore(
         name = "scheduled_calls",
+        corruptionHandler = recoverCorruptPreferences(),
     )
 
 /** App-private persistence for scheduled-call records. Alarm scheduling remains a separate layer. */

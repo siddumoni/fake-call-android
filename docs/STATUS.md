@@ -5,7 +5,7 @@ Last updated: 2026-11-28
 ## Repository state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- Latest merge covered here: PR #32 at `3cb9cdf`, plus the call screen and volume shortcut change that carries this update.
+- Latest merge covered here: PR #33 at `76c77a4`.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
 - Pull requests and `main` run build/unit/lint/manifest policy, CodeQL, secret scan, OSV and instrumented tests on seven configurations across API 35/36/37 (compact, standard, expanded, landscape and 200% compact font scale).
 - Production signing secrets are not configured and no release has been published.
@@ -65,14 +65,18 @@ Last updated: 2026-11-28
 | #28 Release safety, dependency scan on `main` | `87d9319` | PR and `main` checks passed |
 | #29 Large-font layouts and headings | `a8a5ff7` | PR and `main` checks passed |
 | #30 Alarm delivery tests | `ebd9df8` | PR checks passed (one job rerun after a plugin download error) |
+| #31 Security review record | `2bc315b` | PR and `main` checks passed |
+| #32 Stale workflow removal and recovery tests | `3cb9cdf` | PR and `main` checks passed |
+| #33 Call screens and volume shortcut | `76c77a4` | PR checks passed (one job rerun after a plugin download error) |
 
 ## Remaining actionable work
 
-1. Alarm delivery, duplicate delivery, cancellation, deleted caller, revoked notifications, lost exact-alarm access and overdue re-arming are covered on emulators. Real process death and storage-failure tests are still outstanding.
-2. Accessibility: titles are marked as headings and screens scroll at large fonts (emulator-tested). Manual TalkBack traversal, touch-target, contrast, predictive Back and reduced-motion review is still outstanding.
+1. Alarm delivery, duplicate delivery, cancellation, deleted caller, revoked notifications, lost exact-alarm access, overdue re-arming and recovery from a corrupt preferences file are covered by tests. Real process death is still a device test; a failed write with an intact file is not simulated.
+2. Accessibility: headings, large-font scrolling, call-control touch targets and theme and call-screen text contrast are tested. Manual TalkBack traversal and a predictive Back check on a phone are still outstanding. The only motion is the swipe handle returning, which follows the system animation scale.
 3. Source security review recorded in `docs/SECURITY.md` with its open items. Verify the signed release artifact once signing secrets exist.
 4. A release keystore was generated for the owner on 2026-11-28 and delivered privately (never committed). The owner must add the four Actions secrets and back up the key.
-5. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
+5. Custom ringtones are chosen in Android channel settings; there is no in-app audio import.
+6. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
 
 ## Dependency maintenance
 

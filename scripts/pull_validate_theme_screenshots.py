@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull six Android emulator screenshots from public MediaStore storage and validate."""
+"""Pull the app's Android emulator screenshots from public MediaStore storage and validate."""
 
 from __future__ import annotations
 
@@ -20,6 +20,10 @@ SCREENSHOT_NAMES = (
     "appearance-dark.png",
     "home-amoled.png",
     "appearance-amoled.png",
+    "call-google-incoming.png",
+    "call-google-active.png",
+    "call-oneplus-incoming.png",
+    "call-oneplus-active.png",
 )
 
 
@@ -66,11 +70,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = pull_and_validate(args.output)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
-        print(f"Theme screenshot export failed: {error}", file=sys.stderr)
+        print(f"Screenshot export failed: {error}", file=sys.stderr)
         return 1
     for item in report:
         print(f"{item['file']}: {item['width']}x{item['height']} ({item['bytes']} bytes)")
-    print(f"Validated all {len(report)} theme screenshots.")
+    print(f"Validated all {len(report)} screenshots.")
     return 0
 
 

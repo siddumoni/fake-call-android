@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Opt-in only: the incoming call opens full screen after the user turns it on. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Proximity wake lock: the screen turns off while the phone is held to the ear. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".AlibiCallApplication"
@@ -28,6 +32,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".call.CallActivity"
+            android:configChanges="density|fontScale|keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.siddumoni.fakecall.call"
+            android:theme="@style/Theme.AlibiCall.Call" />
+        <service
+            android:name=".trigger.VolumeTriggerService"
+            android:exported="false"
+            android:label="@string/volume_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/volume_trigger_service" />
+        </service>
         <receiver
             android:name=".notifications.ScheduledCallAlarmReceiver"
             android:exported="false" />

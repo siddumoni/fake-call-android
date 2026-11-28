@@ -5,9 +5,9 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Intent
 import android.net.Uri
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.siddumoni.fakecall.call.CallActivity
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -86,16 +87,35 @@ class ScheduledCallActionsTest {
     fun answerLinkMovesRingingCallToInCall() {
         postNotification()
 
-        ActivityScenario.launch<MainActivity>(link("answer")).use {
+        val screen = instrumentation.startActivitySync(link("answer"))
+        try {
             awaitState(ScheduledCallState.IN_CALL)
             await { manager.activeNotifications.none { it.id == call.id.hashCode() } }
+        } finally {
+            instrumentation.runOnMainSync { screen.finish() }
         }
     }
 
-    private fun link(action: String): Intent =
-        Intent(context, MainActivity::class.java)
-            .setAction(Intent.ACTION_VIEW)
-            .setData(Uri.parse("alibicall://scheduled-call/${call.id}/$action"))
+    @Test
+    fun notificationLooksLikeACallAndStaysAPlainNotificationByDefault() {
+        val notification = postNotification()
+
+        assertEquals("Fictional Caller", notification.extras.getCharSequence(Notification.EXTRA_TITLE).toString())
+        assertEquals("Incoming call", notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+        assertEquals(Notification.CATEGORY_CALL, notification.category)
+        assertNull(notification.fullScreenIntent)
+    }
+
+    @Test
+    fun optedInFullScreenCallCarriesTheCallScreenIntent() {
+        check(ScheduledCallNotifications.show(context, call, caller, fullScreen = true))
+        await { manager.activeNotifications.any { it.id == call.id.hashCode() } }
+        val notification = manager.activeNotifications.first { it.id == call.id.hashCode() }.notification
+
+        assertEquals(manager.canUseFullScreenIntent(), notification.fullScreenIntent != null)
+    }
+
+    private fun link(action: String): Intent = CallActivity.linkIntent(context, Uri.parse("alibicall://scheduled-call/${call.id}/$action"))
 
     private fun postNotification(): Notification {
         check(ScheduledCallNotifications.show(context, call, caller))

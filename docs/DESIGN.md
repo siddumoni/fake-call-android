@@ -2,7 +2,7 @@
 
 ## Purpose and non-goals
 
-AlibiCall schedules a clearly local, simulated incoming call on the device owner's phone. It does not place calls, spoof cellular caller ID, create call-log entries, or interact with telephony. It is intended as a personal convenience and must not impersonate emergency services, public authorities, banks, government agencies, or real businesses.
+AlibiCall schedules a local, simulated incoming call on the device owner's phone. It does not place calls, spoof cellular caller ID, create call-log entries, or interact with telephony. It is intended as a personal convenience and must not impersonate emergency services, public authorities, banks, government agencies, or real businesses.
 
 ## Architecture
 
@@ -16,11 +16,21 @@ On a fresh install, the launcher presents a privacy-first onboarding screen befo
 
 ## Call lifecycle
 
-A scheduled simulation is a local state machine. The persisted model supports SCHEDULED → RINGING → IN_CALL → ENDED, with CANCELLED and TIMED_OUT terminal alternatives. State transitions are action-based and atomically applied by the DataStore repository, so duplicate alarm delivery and illegal transitions are rejected. Notification content uses an explicit immutable PendingIntent to the exported launcher Activity with a strict app URI containing only a validated opaque schedule ID. The Activity reloads schedule state and caller data from app-private storage; it rejects arbitrary schemes, authorities, paths and extras. No external caller text, number, media URI, or timing data is trusted.
+A scheduled simulation is a local state machine. The persisted model supports SCHEDULED → RINGING → IN_CALL → ENDED, with CANCELLED and TIMED_OUT terminal alternatives. State transitions are action-based and atomically applied by the DataStore repository, so duplicate alarm delivery and illegal transitions are rejected. Notification content uses an explicit immutable PendingIntent to the non-exported call Activity with a strict app URI containing only a validated opaque schedule ID. The Activity reloads schedule state and caller data from app-private storage; it rejects arbitrary schemes, authorities, paths and extras. No external caller text, number, media URI, or timing data is trusted.
 
 Scheduling uses AlarmManager exact alarms only after checking canScheduleExactAlarms(). Permission denial or revocation is an explicit UI state; do not silently downgrade a user-requested exact schedule to an inaccurate one. Approximate schedules use setAndAllowWhileIdle and can be delayed by power management. Re-check permission after returning from system settings and reconcile schedules after boot, app replacement, exact-alarm access grants, manual clock changes and timezone changes. Persisted triggers are absolute epoch instants resolved from the selected local date/time at creation; timezone changes update the displayed local time without reinterpreting that instant. If a clock jump makes a schedule overdue but it remains inside its delivery grace window, re-arm it for immediate delivery without changing the persisted trigger. Expired pending schedules are closed. The 45-second ring timeout is scheduled with ELAPSED_REALTIME_WAKEUP using a wall-clock deadline converted to elapsed time at registration, so subsequent clock changes do not shift the duration. Reconciliation does not expire RINGING records based on their original schedule time; reboot recovery closes interrupted ringing/answered records. Persist the schedule before setting the alarm and make receiver handling idempotent.
 
-Incoming-call presentation uses a high-importance notification with a clear SIMULATED CALL / NO REAL CALL label, private lock-screen visibility and a generic public version. Its versioned channel (v3) uses the default ringtone with ringtone audio usage and a repeating vibration pattern, and the notification is insistent so both loop until it is removed or the shade is opened. Upgrading keeps a lowered importance, silenced sound or disabled vibration from v2; a custom v2 tone is not carried over. Tone selection and muting happen in Android channel settings, linked from the schedule screen; the app imports no audio files. Per-schedule immutable notification actions Answer (a direct Activity PendingIntent, no receiver trampoline) or Decline the simulated call. The delete intent treats a swipe as Decline and a platform removal at the monotonic ring deadline as a timeout. Ending an answered call happens in the app. This app intentionally does not request USE_FULL_SCREEN_INTENT: its content is a fictional call simulation, not an actual phone/video call or a conventional alarm clock. While unlocked, use system heads-up presentation; never forcibly replace the user's foreground app. Notification denial or revocation is handled as an explicit unavailable state, not by launching an Activity from the background.
+### Presentation (owner decisions, 2026-11-28)
+
+The goal is a call that looks natural to someone nearby, so the user can leave an uncomfortable situation. Call screens and the notification carry no simulation label; setup screens say that every call is simulated. The notification shows the caller name and "Incoming call", is public on the lock screen, uses the call category and the versioned v3 channel (now named "Incoming calls") with a looping ringtone and vibration. Android still shows the app name in notification headers and recent apps.
+
+By default the call is a notification with Answer and Decline. If the user opts in and Android allows it, it uses the system call style with a full-screen intent, which opens the call screen when the phone is locked or idle; while the phone is in use Android shows a heads-up notification.
+
+`CallActivity` renders two styles drawn from scratch, with no maker logos: Google Phone (swipe to answer or decline; ends are also tappable) and OnePlus dialer (two buttons). They are approximations and are not verified against a physical device. Mute, Speaker and Hold change on-screen state only; the keypad plays tones; Add call and Video call are shown disabled; the proximity sensor turns the screen off; Back does not hang up; volume keys silence ringing.
+
+### Volume shortcut
+
+Five volume-down presses within three seconds, detected by an opt-in accessibility service, create an ordinary schedule for the chosen caller after the saved delay. One buzz confirms, two buzzes report failure. Android delays alarms that are only a few seconds away, so the running service also delivers the call itself; the alarm remains as a backup (exact if allowed) and state transitions make delivery happen once. Android generally delivers volume keys to accessibility services only while the screen is on.
 
 ## Audio decision
 
@@ -28,11 +38,9 @@ Prefer notification-channel-owned system ringtone playback to avoid starting an 
 
 Do not run a second player while the notification channel is ringing. In-call voice clips, if implemented, must be explicitly started by a user action while a visible Activity is active, must stop on lifecycle exit, End, timeout, dismiss or process cleanup, and must not be used to simulate a real conversation deceptively. Avoid a foreground service unless the chosen feature has a demonstrable valid service type and Android 17 lifecycle exemption. Audio hardening strict mode removes the alarm-stream exemption and should be documented as a stricter test than default behaviour.
 
-## Caller profiles and local preview (PR 3)
+## Caller profiles and preview
 
-Caller profiles are stored as a string set in app-private Preferences DataStore. Each record has a UUID, a display name and an optional number label. Names are trimmed and limited to 40 characters; number labels are limited to 24 characters and accept only simple phone-display characters. The number label is never used for dialing. A URL-safe Base64 codec protects delimiters in stored text, and malformed entries are ignored when reading. Editing replaces the record with the same UUID; deleting removes only that profile.
-
-The Caller Profiles screen supports add, edit and delete. Preview opens a Compose-only incoming-call mock with a prominent SIMULATED CALL banner. Answer transitions to a local answered mock; Decline or End returns to Home. No phone calls, network calls, call-log entries, notifications, scheduling, or ringtone playback are implemented in this slice.
+Caller profiles are stored as a string set in app-private Preferences DataStore. Each record has a UUID, a display name and an optional number label. Names are free text (owner decision), trimmed and limited to 40 characters; number labels are limited to 24 characters and accept only simple phone-display characters. The number label is never used for dialing. A URL-safe Base64 codec protects delimiters in stored text, and malformed entries are ignored when reading. Preview opens the selected call screen without creating a schedule, notification or ringtone.
 
 ## Theme and UI
 
@@ -40,7 +48,7 @@ Theme preferences are Follow system, Light and Dark, plus independent Pure black
 
 ## Permissions
 
-The scheduled delivery implementation declares POST_NOTIFICATIONS and SCHEDULE_EXACT_ALARM. Notification permission is requested in context before a schedule is saved; denial blocks a schedule requiring a visible notification. Exact alarm access is user-managed via Alarms & reminders and is requested only when the user selects Exact; switching to Approximate is an explicit user choice. USE_FULL_SCREEN_INTENT is intentionally omitted because this app simulates calls and does not implement actual phone/video calling or a conventional alarm-clock use case. RECEIVE_BOOT_COMPLETED may be added only together with tested reboot recovery. Foreground-service permissions are not approved by default; require documented implementation need and API-level analysis first. CI must inspect the merged manifest, not only the source manifest, and compare all permissions with a reviewed allowlist.
+The scheduled delivery implementation declares POST_NOTIFICATIONS and SCHEDULE_EXACT_ALARM. Notification permission is requested in context before a schedule is saved; denial blocks a schedule requiring a visible notification. Exact alarm access is user-managed via Alarms & reminders and is requested only when the user selects Exact; switching to Approximate is an explicit user choice. USE_FULL_SCREEN_INTENT is used only after the user opts in (see Presentation). RECEIVE_BOOT_COMPLETED may be added only together with tested reboot recovery. Foreground-service permissions are not approved by default; require documented implementation need and API-level analysis first. CI must inspect the merged manifest, not only the source manifest, and compare all permissions with a reviewed allowlist.
 
 ## Threat model
 
@@ -53,11 +61,11 @@ Threats and mitigations:
 - Component abuse: non-exported components by default; exported launcher only; no exported receivers/services unless a platform entry point requires it.
 - Data leakage: app-private storage, backup/device transfer disabled, no network stack permission, no sensitive logs.
 - Dependency compromise: dependency locking/verification, Dependabot, CodeQL, secret scanning and pinned CI action SHAs.
-- Confusing simulation with reality: visible simulated-call wording in app documentation/settings; no telephony integration or emergency/company impersonation.
+- Confusing simulation with reality: simulation wording in setup screens and documentation; no label during calls by owner decision; no telephony integration.
 
 ## Known platform risks
 
-Android 17 background audio hardening may silently reject audio operations outside a valid lifecycle. Exact alarm exemption applies only under documented conditions and does not survive strict hardening test mode. Full-screen intent availability depends on system approval. OEM battery and auto-launch policies may delay or suppress alarms/notifications. Notification channel sound is user-controlled and immutable after channel creation. These behaviours require physical-device validation.
+Android 17 background audio hardening may silently reject audio operations outside a valid lifecycle. Exact alarm exemption applies only under documented conditions and does not survive strict hardening test mode. Full-screen intent availability depends on system approval. OEM builds may restrict accessibility services in the background. OEM battery and auto-launch policies may delay or suppress alarms/notifications. Notification channel sound is user-controlled and immutable after channel creation. These behaviours require physical-device validation.
 
 ColorOS-specific setting names and paths have not yet been confirmed on the target device. Verify before documenting a precise menu path; otherwise mark it unverified in DEVICE_TESTS.md.
 

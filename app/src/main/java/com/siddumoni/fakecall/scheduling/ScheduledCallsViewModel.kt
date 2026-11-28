@@ -7,6 +7,7 @@ import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -203,7 +204,7 @@ class ScheduledCallsViewModel(
     }
 
     /** An answered record with no surviving screen can never be ended by the user, so close it. */
-    fun endOrphanedCalls() {
+    fun endOrphanedCalls(): Job =
         viewModelScope.launch {
             writeMutex.withLock {
                 try {
@@ -217,7 +218,6 @@ class ScheduledCallsViewModel(
                 }
             }
         }
-    }
 
     fun clearOperationState() {
         _operationState.value = ScheduledCallOperationState.IDLE

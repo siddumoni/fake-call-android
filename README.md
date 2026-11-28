@@ -30,10 +30,10 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Preview incoming and answered simulated-call screens with an explicit simulation banner; no telephony or network integration.
 - Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
 - First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
-- Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout and notification actions.
+- Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout, and notification Answer and Decline actions (swiping the notification away also declines).
 - Restart, app-update and exact-alarm-grant recovery through a non-exported receiver. A restart restores only future schedules and closes expired or interrupted records.
 
-Ringtone and vibration controls are not implemented yet. Physical-device delivery is unverified.
+Custom ringtone files are not implemented. Physical-device delivery is unverified.
 
 ## Build
 
@@ -46,7 +46,7 @@ Use the checked-in Gradle Wrapper:
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. PR #23 adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), expanded (600 dp), and compact-landscape (640×360 dp) configurations plus 200% font scaling on compact portrait configurations. This matrix is not considered complete until PR #23 is merged and every matrix job passes. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
+On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 and runs instrumented tests on an Android 17 emulator. CI adds emulator coverage for Android 15 (API 35), Android 16 (API 36) and Android 17 (API 37), using compact (360 dp), standard (~411 dp), expanded (600 dp), and compact-landscape (640×360 dp) configurations plus 200% font scaling on compact portrait configurations. Before emulator startup, CI attempts to make `/dev/kvm` accessible. The runner uses KVM hardware acceleration where available and selects Android Emulator TCG software emulation otherwise; the boot timeout is 15 minutes.
 
 ## Notification sound and vibration
 

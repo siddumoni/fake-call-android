@@ -16,6 +16,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a main commit and a tag matching versionName
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "::error::Release tags must point to a commit on main."
+            exit 1
+          }
+          version_name="$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts)"
+          if [ "$GITHUB_REF_NAME" != "v$version_name" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match versionName $version_name."
+            exit 1
+          fi
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c
       - name: Set up JDK 17
@@ -29,44 +43,48 @@ jobs:
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd
       - name: Install Android 17 SDK platform and Build Tools
         run: python3 scripts/install_android_sdk.py --kind=compile
-      - name: Check signing secrets and decode keystore
-        id: signing
+      - name: Require signing secrets and decode keystore
         env:
           SIGNING_KEY_BASE64: ${{ secrets.ALIBICALL_KEYSTORE_BASE64 }}
           SIGNING_STORE_PASSWORD: ${{ secrets.ALIBICALL_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.ALIBICALL_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.ALIBICALL_KEY_PASSWORD }}
         run: |
-          if [ -n "$SIGNING_KEY_BASE64" ] && [ -n "$SIGNING_STORE_PASSWORD" ] && [ -n "$SIGNING_KEY_ALIAS" ] && [ -n "$SIGNING_KEY_PASSWORD" ]; then
-            printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/alibicall-release.jks"
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "ALIBICALL_SIGNING_READY=true" >> "$GITHUB_ENV"
-            echo "ALIBICALL_KEYSTORE_PATH=$RUNNER_TEMP/alibicall-release.jks" >> "$GITHUB_ENV"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "ALIBICALL_SIGNING_READY=false" >> "$GITHUB_ENV"
+          if [ -z "$SIGNING_KEY_BASE64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ] || [ -z "$SIGNING_KEY_PASSWORD" ]; then
+            echo "::error::All four signing secrets are required. Nothing is published. See docs/RELEASING.md."
+            exit 1
           fi
-      - name: Build signed release or clearly labelled debug APK
+          umask 077
+          printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/alibicall-release.jks"
+          echo "ALIBICALL_KEYSTORE_PATH=$RUNNER_TEMP/alibicall-release.jks" >> "$GITHUB_ENV"
+      - name: Test and build the signed release APK
         env:
           ALIBICALL_STORE_PASSWORD: ${{ secrets.ALIBICALL_STORE_PASSWORD }}
           ALIBICALL_KEY_ALIAS: ${{ secrets.ALIBICALL_KEY_ALIAS }}
           ALIBICALL_KEY_PASSWORD: ${{ secrets.ALIBICALL_KEY_PASSWORD }}
         run: |
+          ./gradlew --no-daemon --dependency-verification strict \
+            :app:testDebugUnitTest \
+            :app:lintDebug \
+            :app:assembleRelease
+          python3 scripts/check_merged_manifest.py --variant release \
+            --manifest app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
           mkdir -p release
-          if [ "$ALIBICALL_SIGNING_READY" = "true" ]; then
-            ./gradlew --no-daemon --dependency-verification strict :app:assembleRelease
-            cp app/build/outputs/apk/release/*.apk release/AlibiCall-release.apk
-          else
-            ./gradlew --no-daemon --dependency-verification strict :app:assembleDebug
-            cp app/build/outputs/apk/debug/*.apk release/AlibiCall-DEBUG.apk
-          fi
-          (cd release && sha256sum *.apk > SHA256SUMS.txt)
-      - name: Verify signed release APK
-        if: steps.signing.outputs.ready == 'true'
+          cp app/build/outputs/apk/release/app-release.apk release/AlibiCall-release.apk
+          (cd release && sha256sum AlibiCall-release.apk > SHA256SUMS.txt)
+      - name: Verify the release signature
         run: |
           build_tools_version="${ANDROID_BUILD_TOOLS#build-tools;}"
           apksigner="$ANDROID_HOME/build-tools/$build_tools_version/apksigner"
-          "$apksigner" verify --verbose --print-certs release/AlibiCall-release.apk
+          certificates="$("$apksigner" verify --verbose --print-certs release/AlibiCall-release.apk)"
+          echo "$certificates"
+          if echo "$certificates" | grep -q 'CN=Android Debug'; then
+            echo "::error::Refusing to publish an APK signed with a debug key."
+            exit 1
+          fi
+      - name: Remove the decoded keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/alibicall-release.jks"
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
         with:

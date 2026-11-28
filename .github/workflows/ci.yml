@@ -212,7 +212,7 @@ jobs:
 
   export-release-runtime-lock:
     name: Prepare release runtime lockfile for OSV
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -231,7 +231,7 @@ jobs:
 
   dependency-review:
     name: Dependency vulnerability review (OSV-Scanner)
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/pr2-theme-system'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     needs: export-release-runtime-lock
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     permissions:

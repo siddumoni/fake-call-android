@@ -1,22 +1,20 @@
 # Project status
 
-Last updated: 2026-11-27
+Last updated: 2026-11-28
 
 ## Repository state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- Latest main merge: PR #24 at `8015b9e84878e9e757e0cd76911a92e2f734c4d7`.
+- Latest feature merge: PR #27 at `2724603`.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
-- PRs #19–#24 are merged; PR #24 fixes the 45-second ring timeout to use elapsed realtime. Their PR-triggered CI passed all required jobs.
-- No open issues were returned by the latest audit.
-- Main CI currently compiles against API 37.1 and runs instrumentation on Android 17. PR #23 adds seven configurations across Android 15/16/17, compact/standard/expanded/landscape and 200% compact font scale. Its latest run is pending.
-- Production signing secrets are not configured.
+- Pull requests and `main` run build/unit/lint/manifest policy, CodeQL, secret scan, OSV and instrumented tests on seven configurations across API 35/36/37 (compact, standard, expanded, landscape and 200% compact font scale).
+- Production signing secrets are not configured and no release has been published.
 
 ## Toolchain
 
 - Android Gradle Plugin 9.3.1; Gradle 9.7.0; Kotlin / Compose compiler plugin 2.4.21; JDK 17.
 - Compose BOM 2026.11.01; compile API 37.1; target SDK 37; minimum SDK 35.
-- PR #23's emulator matrix targets Android 15 (API 35), 16 (API 36) and 17 (API 37), including compact landscape, expanded and compact 200% font scale.
+- The emulator matrix targets Android 15 (API 35), 16 (API 36) and 17 (API 37), including compact landscape, expanded and compact 200% font scale.
 
 ## Merged implementation
 
@@ -47,31 +45,28 @@ Last updated: 2026-11-27
 - Android 15 minimum and editor/layout fixes in PR #21 merged at `1b5335902fede57c1a2f8ead3ea282ca04fce4c3`.
 - Clock/timezone reconciliation in PR #22 merged at `b054770e90b515eae65c638e57a9633cbf9fbb2d`.
 
-## Verified PR CI
+## Verified CI
 
-| PR | Merge SHA | CI run | Result |
-|---|---|---|---|
-| #19 Schedule UI, alarms and notifications | `28d2ded` | 45987430593 | All jobs green |
-| #20 Restart/package-update recovery | `4dd642a` | 45988349158 | All jobs green |
-| #21 Android 15 minimum/layout fixes | `1b533590` | 45989170051 | All jobs green |
-| #22 Clock/timezone reconciliation | `b054770` | 45990412713 | All jobs green |
-| #24 Elapsed-realtime ring timeout | `8015b9e` | 45994053187 | All jobs green |
-
-Build/unit/lint/manifest, emulator instrumentation/screenshots, CodeQL, secret scan and OSV review succeeded in these runs. OSV's optional code-scanning export steps are skipped by configuration; the scanner job itself passed.
-
-Post-merge main CI run 45995506622 succeeded: build/unit/lint/manifest, API 37 instrumentation/screenshots, CodeQL and secret scan. OSV jobs are skipped for push events by workflow configuration.
+| PR | Merge SHA | Result |
+|---|---|---|
+| #19 Schedule UI, alarms and notifications | `28d2ded` | PR checks passed |
+| #20 Restart/package-update recovery | `4dd642a` | PR checks passed |
+| #21 Android 15 minimum/layout fixes | `1b53359` | PR checks passed |
+| #22 Clock/timezone reconciliation | `b054770` | PR checks passed |
+| #24 Elapsed-realtime ring timeout | `8015b9e` | PR checks passed |
+| #25 Notification sound/vibration settings | `5e0efd3` | PR checks passed |
+| #23 Seven-configuration emulator matrix | `6b919b6` | PR and `main` checks passed |
+| #26 Notification Answer/Decline, responsive call screen | `81bdaca` | PR and `main` checks passed |
+| #27 Looping system ringtone | `2724603` | PR checks passed |
 
 ## Remaining actionable work
 
-1. PR #23 (7-configuration API 35/36/37 emulator matrix) merged at `6b919b6`.
-2. PR #25 (notification sound/vibration channel settings) merged at `5e0efd3`.
-3. Expand lifecycle tests for notification denial/revocation, exact-alarm revocation, cancellation races, storage errors and restore edge cases.
-4. Accessibility review across all screens: TalkBack traversal, semantics, 48 dp targets, 200% fonts, contrast and reduced motion.
-5. The system channel loops the ringtone; there is no app-owned player or file import. Physical routing/interruption behavior remains to be tested.
-6. Complete manual security/threat review; verify release minification, artifact, signature and checksum.
-7. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
-8. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP) when hardware is available.
-9. Branch housekeeping: 13 branches with zero unique commits were safely fast-forwarded to main. Diverged branches were left untouched; branch deletion is not exposed by the current connector.
+1. Expand lifecycle tests for notification and exact-alarm revocation, process restart, cancellation races, storage errors and restore edge cases.
+2. Accessibility review across all screens: TalkBack traversal, semantics, 48 dp targets, 200% fonts, contrast, predictive Back and reduced motion.
+3. Complete the manual security/threat review; verify the signed release artifact once signing secrets exist.
+4. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
+5. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
+6. Owner decision: delete merged branches, and retire or retarget `gradle-integrity.yml`, which only runs for the old `initial-setup` branch.
 
 ## Dependency maintenance
 
@@ -81,6 +76,6 @@ Dependabot PRs #3–#7 are merged. PR #8 (Gradle 9.9.2) and #9 (AGP 9.5.3) were 
 
 - No physical Android device is connected. Alarm delivery under OEM battery restrictions, lock-screen behavior, reboot, timezone/clock changes, audio routing, font scaling and OEM settings remain unverified. Emulator results are not physical-device evidence.
 - Production signing requires owner-provided keystore and GitHub Actions secrets.
-- Automated Codex reviews for PRs #19–#24 reported account usage limits. Required CI passed, but a final manual diff/threat review remains.
+- Automated Codex reviews for PRs #19–#24 reported account usage limits. A final manual threat review remains.
 
 Do not declare production readiness while actionable tasks or external blockers remain.

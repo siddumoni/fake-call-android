@@ -23,13 +23,22 @@ CI runs emulator instrumentation on API 35, 36 and 37. Every job must pass befor
 - Install the debug APK from the CI artifact.
 - Record the device model, Android build fingerprint and OEM software version.
 - Grant notification permission and exact-alarm access only when prompted by the app.
-- Confirm the app does not request USE_FULL_SCREEN_INTENT and uses heads-up / notification fallback instead.
-- Confirm the test profile is fictional and does not resemble an emergency service, bank, authority or real business.
+- Note which Phone app is the default (Google Phone or OnePlus Dialer) and keep a screenshot of its real incoming and in-call screens for comparison.
 
 ## Call delivery
 
 - [ ] Device locked: schedule a call; verify notification/call presentation and actions.
-- [ ] Device unlocked with another app in foreground: verify heads-up fallback; ensure no forced takeover.
+- [ ] Device unlocked with another app in foreground: verify the heads-up notification.
+- [ ] Full-screen off: no full-screen takeover. Full-screen on: locked and screen-off phone shows the call screen; permission revoked falls back to the notification.
+- [ ] Call screen: swipe/tap Answer and Decline in both styles; Mute, Keypad, Speaker, Hold, End; volume key silences; proximity sensor blanks the screen; compare with the real Phone app.
+
+## Volume shortcut
+
+- [ ] Enable the service (including "Allow restricted settings" for a sideloaded APK).
+- [ ] Five presses give one buzz and the call rings after delays of 1 s, 10 s, 2 min and 30 min.
+- [ ] Slow or fewer presses do nothing; volume still changes; a second sequence while waiting creates no duplicate.
+- [ ] Screen locked after triggering: the call still rings. Presses with the screen off: record the result.
+- [ ] Works after reboot and after several hours of battery optimisation; record if OxygenOS disables the service.
 - [ ] Screen off: verify schedule delivery.
 - [ ] App open: verify delivery.
 - [ ] App swiped away: verify delivery.
@@ -70,7 +79,7 @@ CI runs emulator instrumentation on API 35, 36 and 37. Every job must pass befor
 - [ ] Exact alarm access denied; exact schedule is blocked with clear explanation.
 - [ ] Exact alarm access revoked while a schedule exists; verify exact mode is not downgraded silently.
 - [ ] Approximate schedule remains available without exact-alarm special access.
-- [ ] Verify heads-up / lock-screen notification fallback; app must not request full-screen intent access.
+- [ ] Verify the heads-up / lock-screen notification fallback while full-screen is off.
 - [ ] Return from settings and confirm permission-health state refreshes.
 
 ## Themes and accessibility

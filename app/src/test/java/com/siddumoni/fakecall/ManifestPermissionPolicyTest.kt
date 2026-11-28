@@ -56,7 +56,9 @@ class ManifestPermissionPolicyTest {
                 "android.permission.POST_NOTIFICATIONS",
                 "android.permission.RECEIVE_BOOT_COMPLETED",
                 "android.permission.SCHEDULE_EXACT_ALARM",
+                "android.permission.USE_FULL_SCREEN_INTENT",
                 "android.permission.VIBRATE",
+                "android.permission.WAKE_LOCK",
             ),
             activePermissions.filter { it.isNotBlank() }.toSet(),
         )

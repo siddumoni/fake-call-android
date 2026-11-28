@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.R
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetValidationError
+import com.siddumoni.fakecall.settings.CallScreenStyle
+import com.siddumoni.fakecall.settings.CallSettings
 import com.siddumoni.fakecall.settings.ThemeAppearance
 import com.siddumoni.fakecall.settings.ThemeSettings
 import com.siddumoni.fakecall.ui.theme.AlibiCallTheme
@@ -46,9 +48,17 @@ enum class AppScreen {
     THEME_SETTINGS,
     CALLER_PRESETS,
     SCHEDULES,
-    SIMULATED_CALL,
-    SIMULATED_IN_CALL,
+    CALL_SETTINGS,
 }
+
+data class CallSettingsActions(
+    val onStyleChanged: (CallScreenStyle) -> Unit = {},
+    val onFullScreenChanged: (Boolean) -> Unit = {},
+    val onTriggerCallerChanged: (String) -> Unit = {},
+    val onTriggerDelayChanged: (Int) -> Unit = {},
+    val onOpenFullScreenSettings: () -> Unit = {},
+    val onOpenAccessibilitySettings: () -> Unit = {},
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,10 +78,12 @@ fun AlibiCallApp(
     callerPresetSaveError: CallerPresetValidationError? = null,
     onSaveCallerPreset: (String?, String, String) -> Boolean = { _, _, _ -> false },
     onDeleteCallerPreset: (String) -> Unit = {},
-    selectedCaller: CallerPreset? = null,
-    onPreviewCaller: (CallerPreset) -> Unit = {},
-    onAnswerSimulatedCall: () -> Unit = {},
-    onEndSimulatedCall: () -> Unit = {},
+    onPreviewCaller: (String) -> Unit = {},
+    callSettings: CallSettings = CallSettings(),
+    callAccess: CallAccess = CallAccess(),
+    callSettingsSaveFailed: Boolean = false,
+    callSettingsActions: CallSettingsActions = CallSettingsActions(),
+    onOpenCallSettings: () -> Unit = {},
     scheduledCalls: List<com.siddumoni.fakecall.scheduling.ScheduledCall> = emptyList(),
     scheduleOperationState: com.siddumoni.fakecall.scheduling.ScheduledCallOperationState =
         com.siddumoni.fakecall.scheduling.ScheduledCallOperationState.IDLE,
@@ -95,7 +107,8 @@ fun AlibiCallApp(
             topBar = {
                 if (screen == AppScreen.THEME_SETTINGS ||
                     screen == AppScreen.CALLER_PRESETS ||
-                    screen == AppScreen.SCHEDULES
+                    screen == AppScreen.SCHEDULES ||
+                    screen == AppScreen.CALL_SETTINGS
                 ) {
                     TopAppBar(
                         title = {
@@ -104,6 +117,7 @@ fun AlibiCallApp(
                                     when (screen) {
                                         AppScreen.THEME_SETTINGS -> R.string.theme_settings_title
                                         AppScreen.CALLER_PRESETS -> R.string.caller_presets_title
+                                        AppScreen.CALL_SETTINGS -> R.string.call_settings_title
                                         else -> R.string.schedules_title
                                     },
                                 ),
@@ -131,6 +145,7 @@ fun AlibiCallApp(
                         onOpenThemeSettings = onOpenThemeSettings,
                         onOpenCallerPresets = onOpenCallerPresets,
                         onOpenSchedules = onOpenSchedules,
+                        onOpenCallSettings = onOpenCallSettings,
                     )
                 AppScreen.SCHEDULES ->
                     ScheduledCallsScreen(
@@ -164,25 +179,24 @@ fun AlibiCallApp(
                         saveError = callerPresetSaveError,
                         onSave = onSaveCallerPreset,
                         onDelete = onDeleteCallerPreset,
-                        onPreview = onPreviewCaller,
+                        onPreview = { caller -> onPreviewCaller(caller.id) },
                     )
-                AppScreen.SIMULATED_CALL, AppScreen.SIMULATED_IN_CALL ->
-                    if (selectedCaller != null) {
-                        SimulatedCallScreen(
-                            caller = selectedCaller,
-                            answered = screen == AppScreen.SIMULATED_IN_CALL,
-                            onAnswer = onAnswerSimulatedCall,
-                            onEnd = onEndSimulatedCall,
-                            modifier = Modifier.padding(innerPadding),
-                        )
-                    } else {
-                        HomeScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            onOpenThemeSettings = onOpenThemeSettings,
-                            onOpenCallerPresets = onOpenCallerPresets,
-                            onOpenSchedules = onOpenSchedules,
-                        )
-                    }
+                AppScreen.CALL_SETTINGS ->
+                    CallSettingsScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        settings = callSettings,
+                        callers = callerPresets,
+                        access = callAccess,
+                        saveFailed = callSettingsSaveFailed,
+                        onStyleChanged = callSettingsActions.onStyleChanged,
+                        onFullScreenChanged = callSettingsActions.onFullScreenChanged,
+                        onTriggerCallerChanged = callSettingsActions.onTriggerCallerChanged,
+                        onTriggerDelayChanged = callSettingsActions.onTriggerDelayChanged,
+                        onPreview = onPreviewCaller,
+                        onRequestNotifications = onRequestNotificationPermission,
+                        onOpenFullScreenSettings = callSettingsActions.onOpenFullScreenSettings,
+                        onOpenAccessibilitySettings = callSettingsActions.onOpenAccessibilitySettings,
+                    )
             }
         }
     }
@@ -262,6 +276,7 @@ private fun HomeScreen(
     onOpenThemeSettings: () -> Unit,
     onOpenCallerPresets: () -> Unit,
     onOpenSchedules: () -> Unit,
+    onOpenCallSettings: () -> Unit,
 ) {
     Column(
         modifier =
@@ -309,6 +324,24 @@ private fun HomeScreen(
                 )
                 TextButton(onClick = onOpenSchedules) {
                     Text(stringResource(R.string.schedules_open))
+                }
+            }
+        }
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.call_settings_title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.call_settings_home_description),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                TextButton(onClick = onOpenCallSettings) {
+                    Text(stringResource(R.string.call_settings_open))
                 }
             }
         }

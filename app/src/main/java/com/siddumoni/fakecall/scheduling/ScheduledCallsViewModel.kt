@@ -3,6 +3,7 @@ package com.siddumoni.fakecall.scheduling
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.siddumoni.fakecall.call.CallSession
 import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
@@ -210,8 +211,9 @@ class ScheduledCallsViewModel(
                 try {
                     repository.calls
                         .first()
-                        .filter { call -> call.state == ScheduledCallState.IN_CALL }
-                        .forEach { call -> repository.transition(call.id, ScheduledCallAction.END) }
+                        .filter { call ->
+                            call.state == ScheduledCallState.IN_CALL && call.id != CallSession.activeCallId
+                        }.forEach { call -> repository.transition(call.id, ScheduledCallAction.END) }
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
                     _operationState.value = ScheduledCallOperationState.STORAGE_OR_ALARM_ERROR

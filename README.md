@@ -27,7 +27,9 @@ AGP 9.3.1 and Gradle 9.7.0 are within the published fully-supported Kotlin Gradl
 - Application-level night mode selection before the first Activity, edge-to-edge surfaces and saved screen state through mode changes.
 - Screenshot, interaction, preference and colour-contrast tests for the theme slice.
 - Local caller-profile CRUD (fictional display name and optional number label), persisted in app-private Preferences DataStore.
-- Preview incoming and answered simulated-call screens with an explicit simulation banner; no telephony or network integration.
+- Incoming and in-call screens in two styles (Google Phone and OnePlus dialer look-alikes) with working Answer, Decline, Mute, Keypad, Speaker, Hold and End controls. There is no audio connection, telephony or network integration, and the call screens and notification carry no simulation label (owner decision).
+- Opt-in full-screen incoming call over the lock screen.
+- Opt-in volume shortcut: five volume-down presses within three seconds start a call after a delay of 1 second to 120 minutes, through an Android accessibility service. It generally works only while the screen is on.
 - Scheduled-call domain model with UUID/time-horizon validation, deterministic DST gap/overlap resolution, versioned persistence codec, app-private DataStore repository, atomic action-based transitions and emulator repository tests.
 - First-run privacy onboarding that explains the offline-only, fictional-profile and no-real-calls boundaries. Completion is stored as a single boolean in app-private Preferences DataStore.
 - Schedule create/edit/cancel/delete UI, exact and approximate alarms, contextual permission handling, notifications, ring timeout, and notification Answer and Decline actions (swiping the notification away also declines).
@@ -50,11 +52,11 @@ On Windows use `gradlew.bat`. Main-branch CI compiles against Android API 37.1 a
 
 ## Ringtone and vibration
 
-A ringing simulation repeats the default ringtone and a vibration pattern until it is answered, declined, times out after about 45 seconds, or the notification shade is opened. Android plays the sound, so silent mode, Do Not Disturb and audio routing apply. Use the schedule screen settings link to pick another tone or turn sound or vibration off. The app has no audio player or file import of its own.
+A ringing call repeats the default ringtone and a vibration pattern until it is answered, declined, silenced with a volume key on the call screen, or times out after about 45 seconds. Opening the notification shade also stops the sound. Android plays it, so silent mode, Do Not Disturb and audio routing apply. Use the schedule screen settings link to pick another tone. The app imports no audio files and plays no voice during a call.
 
 ## Privacy and permissions
 
-The application source manifest declares no feature permissions. AndroidX Core currently contributes one package-specific, signature-protected compatibility permission to each merged APK manifest. CI allows only the exact debug/release application-ID variants and verifies that the declared protection level remains `signature`; see [docs/SECURITY.md](docs/SECURITY.md). This dependency permission is unrelated to telephony or access to user data.
+The app requests notifications, exact alarms, vibration, restart recovery, full-screen intent (used only after opt-in) and a wake lock for the proximity sensor. AndroidX Core adds one signature-protected compatibility permission. CI checks the exact list; see [docs/SECURITY.md](docs/SECURITY.md).
 
 No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SMS, microphone, camera, location, analytics, advertising, tracking, crash reporting or remote configuration permissions are approved.
 

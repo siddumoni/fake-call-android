@@ -179,3 +179,19 @@ private fun readableTextColor(
     val whiteContrast = contrastRatio(Color.White, background)
     return if (blackContrast >= whiteContrast) Color.Black else Color.White
 }
+
+/** Fixed colours of the call screens. Like phone apps, they do not follow the app theme. */
+object CallPalette {
+    val background = Color(0xFF101418)
+    val onBackground = Color(0xFFFFFFFF)
+    val secondaryText = Color(0xFFC3C7CF)
+    val control = Color(0xFF2A2F36)
+    val controlSelected = Color(0xFFE2E6EE)
+    val onControlSelected = Color(0xFF101418)
+    val disabled = Color(0xFF7C8189)
+    val avatar = Color(0xFF3F4A5C)
+    val answer = Color(0xFF1E8E3E)
+    val decline = Color(0xFFD93025)
+    val onePlusTop = Color(0xFF1C2330)
+    val onePlusBottom = Color(0xFF05070A)
+}

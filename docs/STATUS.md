@@ -5,7 +5,7 @@ Last updated: 2026-11-28
 ## Repository state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- Latest merge covered here: PR #30 at `ebd9df8`.
+- Latest merge covered here: PR #32 at `3cb9cdf`, plus the call screen and volume shortcut change that carries this update.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
 - Pull requests and `main` run build/unit/lint/manifest policy, CodeQL, secret scan, OSV and instrumented tests on seven configurations across API 35/36/37 (compact, standard, expanded, landscape and 200% compact font scale).
 - Production signing secrets are not configured and no release has been published.
@@ -25,6 +25,10 @@ Last updated: 2026-11-28
 - Material 3 palettes, contrast fallback, edge-to-edge and startup theme application.
 - Caller-profile CRUD and local simulated-call preview with fictional names and optional number labels.
 - Privacy-first onboarding, local DataStore storage, no real telephony/call logs/network communication.
+
+### Call screens and volume shortcut
+
+- Google Phone and OnePlus dialer style call screens, opt-in full-screen call, opt-in volume-down shortcut with a configurable delay. Emulator-tested; not verified on a phone. The accessibility key delivery itself cannot be exercised in CI.
 - Caller/schedule editor input state retained across rotation/theme changes; caller editor scrolls.
 
 ### Schedule lifecycle and delivery
@@ -33,7 +37,7 @@ Last updated: 2026-11-28
 - Create/edit/cancel/delete UI; exact and approximate delivery modes.
 - Explicit exact-alarm permission flow with no silent downgrade.
 - AlarmManager trigger/timeout, unique immutable PendingIntents, non-exported receivers.
-- Private high-importance heads-up notification with generic public version, Answer and Decline actions, swipe-to-decline and strict app URI navigation. No full-screen intent permission.
+- High-importance call notification with Answer and Decline actions, swipe-to-decline and strict app URI navigation.
 - Save rollback, cancellation fencing, duplicate-save guard and reconciliation.
 - PR #19 merged at `28d2ded7745d3f80c3b0cee25d4c0ed4c5d4c834`.
 
@@ -67,7 +71,7 @@ Last updated: 2026-11-28
 1. Alarm delivery, duplicate delivery, cancellation, deleted caller, revoked notifications, lost exact-alarm access and overdue re-arming are covered on emulators. Real process death and storage-failure tests are still outstanding.
 2. Accessibility: titles are marked as headings and screens scroll at large fonts (emulator-tested). Manual TalkBack traversal, touch-target, contrast, predictive Back and reduced-motion review is still outstanding.
 3. Source security review recorded in `docs/SECURITY.md` with its open items. Verify the signed release artifact once signing secrets exist.
-4. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
+4. A release keystore was generated for the owner on 2026-11-28 and delivered privately (never committed). The owner must add the four Actions secrets and back up the key.
 5. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
 
 ## Dependency maintenance
@@ -77,7 +81,7 @@ Dependabot PRs #3–#7 are merged. PR #8 (Gradle 9.9.2) and #9 (AGP 9.5.3) were 
 ## External blockers
 
 - No physical Android device is connected. Alarm delivery under OEM battery restrictions, lock-screen behavior, reboot, timezone/clock changes, audio routing, font scaling and OEM settings remain unverified. Emulator results are not physical-device evidence.
-- Production signing requires owner-provided keystore and GitHub Actions secrets.
+- Production signing requires the owner to add the GitHub Actions secrets.
 - Automated Codex reviews for PRs #19–#24 reported account usage limits.
 
 Do not declare production readiness while actionable tasks or external blockers remain.

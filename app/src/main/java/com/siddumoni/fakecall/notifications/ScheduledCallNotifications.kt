@@ -15,9 +15,10 @@ import android.os.Build
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
 import androidx.core.content.ContextCompat
-import com.siddumoni.fakecall.MainActivity
 import com.siddumoni.fakecall.R
+import com.siddumoni.fakecall.call.CallActivity
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.scheduling.ScheduledCall
 import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
@@ -50,10 +51,16 @@ object ScheduledCallNotifications {
 
     fun ensureChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
+        val existing = manager.getNotificationChannel(CHANNEL_ID)
+        if (existing == null) {
             manager.createNotificationChannel(
                 buildChannel(context, manager.getNotificationChannel(LEGACY_CHANNEL_ID)),
             )
+        } else {
+            // Only the label can change after creation; the user's sound settings are kept.
+            existing.name = context.getString(R.string.schedule_notification_channel)
+            existing.description = context.getString(R.string.schedule_notification_channel_description)
+            manager.createNotificationChannel(existing)
         }
         manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
     }
@@ -105,33 +112,15 @@ object ScheduledCallNotifications {
         context: Context,
         call: ScheduledCall,
         caller: CallerPreset,
+        fullScreen: Boolean = false,
     ): Boolean {
         ensureChannel(context)
         if (!canPost(context)) return false
 
-        val contentIntent =
-            PendingIntent.getActivity(
-                context,
-                0,
-                Intent(context, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = scheduleUri(call.id)
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                },
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
+        val contentIntent = callScreenIntent(context, scheduleUri(call.id))
         // A direct Activity intent: Android blocks starting an Activity from a receiver trampoline.
         val answerIntent =
-            PendingIntent.getActivity(
-                context,
-                0,
-                Intent(context, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = scheduleActionUri(call.id, ScheduledCallLink.ANSWER_SEGMENT)
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                },
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
+            callScreenIntent(context, scheduleActionUri(call.id, ScheduledCallLink.ANSWER_SEGMENT))
         val declineIntent = dismissBroadcast(context, call.id, "decline", ringDeadline = null)
         val removedIntent =
             dismissBroadcast(
@@ -141,34 +130,39 @@ object ScheduledCallNotifications {
                 ringDeadline = SystemClock.elapsedRealtime() + ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS,
             )
 
-        val publicVersion =
+        val builder =
             NotificationCompat
                 .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(context.getString(R.string.schedule_notification_title))
-                .setContentText(context.getString(R.string.schedule_notification_public_text))
-                .build()
-
-        val notification =
-            NotificationCompat
-                .Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(context.getString(R.string.schedule_notification_title))
-                .setContentText(
-                    context.getString(R.string.schedule_notification_text, caller.displayName),
-                ).setSubText(context.getString(R.string.simulated_call_banner))
-                .setPublicVersion(publicVersion)
+                .setContentTitle(caller.displayName)
+                .setContentText(context.getString(R.string.call_incoming))
                 .setContentIntent(contentIntent)
-                .setCategory(NotificationCompat.CATEGORY_EVENT)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setCategory(NotificationCompat.CATEGORY_CALL)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                // Shown on the lock screen like a phone call, by the owner's decision.
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(false)
+                .setOngoing(false)
                 .setOnlyAlertOnce(false)
                 .setTimeoutAfter(ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS)
                 .setDeleteIntent(removedIntent)
-                .addAction(0, context.getString(R.string.simulated_call_decline), declineIntent)
-                .addAction(0, context.getString(R.string.simulated_call_answer), answerIntent)
-                .build()
+        if (fullScreen && canUseFullScreen(context)) {
+            // Android only accepts the system call style together with a full-screen intent.
+            val person =
+                Person
+                    .Builder()
+                    .setName(caller.displayName)
+                    .setImportant(true)
+                    .build()
+            builder
+                .setStyle(NotificationCompat.CallStyle.forIncomingCall(person, declineIntent, answerIntent))
+                .setFullScreenIntent(contentIntent, true)
+        } else {
+            builder
+                .addAction(0, context.getString(R.string.call_decline), declineIntent)
+                .addAction(0, context.getString(R.string.call_answer), answerIntent)
+        }
+        val notification = builder.build()
         // Repeat sound and vibration until the notification is removed or the user opens the shade.
         notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
@@ -181,6 +175,22 @@ object ScheduledCallNotifications {
             false
         }
     }
+
+    fun canUseFullScreen(context: Context): Boolean =
+        context
+            .getSystemService(NotificationManager::class.java)
+            .canUseFullScreenIntent()
+
+    private fun callScreenIntent(
+        context: Context,
+        uri: Uri,
+    ): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            0,
+            CallActivity.linkIntent(context, uri),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
 
     fun cancel(
         context: Context,

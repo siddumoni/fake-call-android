@@ -61,7 +61,7 @@ Last updated: 2026-11-28
 
 ## Remaining actionable work
 
-1. Expand lifecycle tests for notification and exact-alarm revocation, process restart, cancellation races, storage errors and restore edge cases.
+1. Alarm delivery, duplicate delivery, cancellation, deleted caller and revoked notifications are covered on emulators. Exact-alarm revocation, real process death and storage-failure tests are still outstanding.
 2. Accessibility: titles are marked as headings and screens scroll at large fonts (emulator-tested). Manual TalkBack traversal, touch-target, contrast, predictive Back and reduced-motion review is still outstanding.
 3. Complete the manual security/threat review; verify the signed release artifact once signing secrets exist.
 4. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.

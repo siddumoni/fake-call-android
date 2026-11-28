@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -92,16 +93,25 @@ object ScheduledCallNotifications {
                 },
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
-        val dismissIntent =
-            PendingIntent.getBroadcast(
+        // A direct Activity intent: Android blocks starting an Activity from a receiver trampoline.
+        val answerIntent =
+            PendingIntent.getActivity(
                 context,
                 0,
-                Intent(context, ScheduledCallDismissReceiver::class.java).apply {
-                    action = ACTION_DISMISS
-                    data = scheduleActionUri(call.id, "dismiss")
-                    putExtra(EXTRA_SCHEDULE_ID, call.id)
+                Intent(context, MainActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = scheduleActionUri(call.id, ScheduledCallLink.ANSWER_SEGMENT)
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 },
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        val declineIntent = dismissBroadcast(context, call.id, "decline", ringDeadline = null)
+        val removedIntent =
+            dismissBroadcast(
+                context,
+                call.id,
+                "removed",
+                ringDeadline = SystemClock.elapsedRealtime() + ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS,
             )
 
         val publicVersion =
@@ -128,11 +138,10 @@ object ScheduledCallNotifications {
                 .setAutoCancel(false)
                 .setOnlyAlertOnce(false)
                 .setTimeoutAfter(ScheduledCallAlarmScheduler.RING_TIMEOUT_MILLIS)
-                .addAction(
-                    0,
-                    context.getString(R.string.schedule_notification_dismiss),
-                    dismissIntent,
-                ).build()
+                .setDeleteIntent(removedIntent)
+                .addAction(0, context.getString(R.string.simulated_call_decline), declineIntent)
+                .addAction(0, context.getString(R.string.simulated_call_answer), answerIntent)
+                .build()
 
         return try {
             NotificationManagerCompat
@@ -153,27 +162,38 @@ object ScheduledCallNotifications {
         }
     }
 
+    private fun dismissBroadcast(
+        context: Context,
+        scheduleId: String,
+        path: String,
+        ringDeadline: Long?,
+    ): PendingIntent =
+        PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent(context, ScheduledCallDismissReceiver::class.java).apply {
+                action = ACTION_DISMISS
+                data = scheduleActionUri(scheduleId, path)
+                putExtra(EXTRA_SCHEDULE_ID, scheduleId)
+                ringDeadline?.let { putExtra(EXTRA_RING_DEADLINE_ELAPSED, it) }
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
     private fun notificationId(id: String): Int = id.hashCode()
 
     private fun scheduleUri(id: String): Uri =
         Uri
             .Builder()
-            .scheme("alibicall")
-            .authority("scheduled-call")
+            .scheme(ScheduledCallLink.SCHEME)
+            .authority(ScheduledCallLink.AUTHORITY)
             .appendPath(id)
             .build()
 
     private fun scheduleActionUri(
         id: String,
         action: String,
-    ): Uri =
-        Uri
-            .Builder()
-            .scheme("alibicall")
-            .authority("scheduled-call")
-            .appendPath(id)
-            .appendPath(action)
-            .build()
+    ): Uri = scheduleUri(id).buildUpon().appendPath(action).build()
 
     private fun isUuid(value: String): Boolean =
         runCatching {
@@ -182,4 +202,5 @@ object ScheduledCallNotifications {
 
     const val ACTION_DISMISS = "com.siddumoni.fakecall.action.DISMISS_SIMULATION"
     const val EXTRA_SCHEDULE_ID = "com.siddumoni.fakecall.extra.SCHEDULE_ID"
+    const val EXTRA_RING_DEADLINE_ELAPSED = "com.siddumoni.fakecall.extra.RING_DEADLINE_ELAPSED"
 }

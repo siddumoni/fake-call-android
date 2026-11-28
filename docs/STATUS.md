@@ -8,7 +8,7 @@ Last updated: 2026-11-27
 - Latest main merge: PR #24 at `8015b9e84878e9e757e0cd76911a92e2f734c4d7`.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
 - PRs #19–#24 are merged; PR #24 fixes the 45-second ring timeout to use elapsed realtime. Their PR-triggered CI passed all required jobs.
-- No open issues were returned by the latest audit. PR #23 (compatibility matrix) and PR #25 (notification sound/vibration channel settings) are open.
+- No open issues were returned by the latest audit.
 - Main CI currently compiles against API 37.1 and runs instrumentation on Android 17. PR #23 adds seven configurations across Android 15/16/17, compact/standard/expanded/landscape and 200% compact font scale. Its latest run is pending.
 - Production signing secrets are not configured.
 
@@ -35,7 +35,7 @@ Last updated: 2026-11-27
 - Create/edit/cancel/delete UI; exact and approximate delivery modes.
 - Explicit exact-alarm permission flow with no silent downgrade.
 - AlarmManager trigger/timeout, unique immutable PendingIntents, non-exported receivers.
-- Private high-importance heads-up notification with generic public version, Dismiss action and strict app URI navigation. No full-screen intent permission.
+- Private high-importance heads-up notification with generic public version, Answer and Decline actions, swipe-to-decline and strict app URI navigation. No full-screen intent permission.
 - Save rollback, cancellation fencing, duplicate-save guard and reconciliation.
 - PR #19 merged at `28d2ded7745d3f80c3b0cee25d4c0ed4c5d4c834`.
 
@@ -63,11 +63,11 @@ Post-merge main CI run 45995506622 succeeded: build/unit/lint/manifest, API 37 i
 
 ## Remaining actionable work
 
-1. PR #23: finish the Android 15/16/17 emulator display/font-scale matrix. Earlier runs failed on offscreen Compose controls; tests were updated to scroll. The synchronized latest head `66608d1` is under CI run 46001218416.
-2. PR #25: finish notification-channel default sound/vibration and system-settings link. CI run 46000988709 exposed a missing VIBRATE entry in ManifestPermissionPolicyTest; the test was fixed at `3cc36ed`, and a fresh run must finish before merge.
-3. Expand lifecycle tests for notification denial/revocation, exact-alarm revocation, notification action paths, cancellation races, storage errors and restore edge cases.
+1. PR #23 (7-configuration API 35/36/37 emulator matrix) merged at `6b919b6`.
+2. PR #25 (notification sound/vibration channel settings) merged at `5e0efd3`.
+3. Expand lifecycle tests for notification denial/revocation, exact-alarm revocation, cancellation races, storage errors and restore edge cases.
 4. Accessibility review across all screens: TalkBack traversal, semantics, 48 dp targets, 200% fonts, contrast and reduced motion.
-5. Custom ringtone files and independent audio playback are intentionally unsupported. Notification-channel sound/vibration controls are being reviewed in PR #25; physical routing/interruption behavior remains to be tested.
+5. Custom ringtone files and independent audio playback are intentionally unsupported. Physical routing/interruption behavior remains to be tested.
 6. Complete manual security/threat review; verify release minification, artifact, signature and checksum.
 7. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
 8. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP) when hardware is available.

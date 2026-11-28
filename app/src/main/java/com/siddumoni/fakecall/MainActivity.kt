@@ -25,6 +25,7 @@ import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
 import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
+import com.siddumoni.fakecall.notifications.ScheduledCallLink
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import com.siddumoni.fakecall.onboarding.OnboardingViewModel
 import com.siddumoni.fakecall.scheduling.ScheduledCallAction
@@ -34,9 +35,9 @@ import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
         }
     private var currentScreen by mutableStateOf(AppScreen.HOME)
     private var selectedCaller by mutableStateOf<CallerPreset?>(null)
+    private var orphanCleanup: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,9 +85,9 @@ class MainActivity : ComponentActivity() {
                 val number = it.getString(STATE_CALLER_NUMBER)
                 if (id != null && name != null && number != null) CallerPreset(id, name, number) else null
             }
-        if (savedInstanceState == null) {
-            scheduledCallsViewModel.endOrphanedCalls()
-        }
+        // Must finish before a launch intent is handled, so cleanup cannot end a just-answered call.
+        orphanCleanup =
+            if (savedInstanceState == null) scheduledCallsViewModel.endOrphanedCalls() else null
         enableEdgeToEdge()
         ScheduledCallNotifications.ensureChannel(this)
         refreshSchedulePermissions()
@@ -218,21 +220,16 @@ class MainActivity : ComponentActivity() {
 
     private fun handleScheduledCallIntent(intent: Intent?) {
         val data = intent?.data ?: return
-        // Only our explicit notification URI is accepted. Do not trust caller-supplied extras
+        // Only our explicit notification URIs are accepted. Do not trust caller-supplied extras
         // or arbitrary schemes/authorities on this exported launcher Activity.
-        if (
-            intent.action != Intent.ACTION_VIEW ||
-            data.scheme != "alibicall" ||
-            data.authority != "scheduled-call" ||
-            data.pathSegments.size != 1
-        ) {
-            return
-        }
-        val id = data.pathSegments.single()
-        if (!isUuid(id)) return
+        if (intent.action != Intent.ACTION_VIEW) return
+        val link = ScheduledCallLink.parse(data.scheme, data.authority, data.pathSegments) ?: return
+        val id = link.scheduleId
         lifecycleScope.launch {
+            orphanCleanup?.join()
+            val repository = ScheduledCallRepository(this@MainActivity)
             val call =
-                ScheduledCallRepository(this@MainActivity)
+                repository
                     .calls
                     .first()
                     .firstOrNull { it.id == id }
@@ -246,14 +243,22 @@ class MainActivity : ComponentActivity() {
                     .first()
                     .firstOrNull { it.id == call.callerPresetId }
                     ?: return@launch
+            var inCall = call.state == ScheduledCallState.IN_CALL
+            if (link.answer && !inCall) {
+                // False means the call timed out or was declined in the meantime.
+                if (!repository.transition(id, ScheduledCallAction.ANSWER)) return@launch
+                ScheduledCallAlarmScheduler(this@MainActivity).cancelTimeout(id)
+                ScheduledCallNotifications.cancel(this@MainActivity, id)
+                inCall = true
+            }
+            // Switching to another simulation must not leave the previous one answered forever.
+            // END is rejected for a call that is only ringing, which keeps its own timeout.
+            activeScheduledCallId
+                ?.takeIf { previous -> previous != id }
+                ?.let { previous -> repository.transition(previous, ScheduledCallAction.END) }
             selectedCaller = caller
             activeScheduledCallId = id
-            currentScreen =
-                if (call.state == ScheduledCallState.IN_CALL) {
-                    AppScreen.SIMULATED_IN_CALL
-                } else {
-                    AppScreen.SIMULATED_CALL
-                }
+            currentScreen = if (inCall) AppScreen.SIMULATED_IN_CALL else AppScreen.SIMULATED_CALL
         }
     }
 
@@ -295,11 +300,6 @@ class MainActivity : ComponentActivity() {
             activeScheduledCallId = null
         }
     }
-
-    private fun isUuid(value: String): Boolean =
-        runCatching {
-            UUID.fromString(value).toString() == value.lowercase()
-        }.getOrDefault(false)
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_CURRENT_SCREEN, currentScreen.name)

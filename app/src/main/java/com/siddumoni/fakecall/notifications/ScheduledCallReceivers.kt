@@ -3,6 +3,7 @@ package com.siddumoni.fakecall.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.scheduling.ScheduledCallAction
 import com.siddumoni.fakecall.scheduling.ScheduledCallAlarmScheduler
@@ -123,11 +124,16 @@ class ScheduledCallDismissReceiver : BroadcastReceiver() {
                 ?.getStringExtra(ScheduledCallNotifications.EXTRA_SCHEDULE_ID)
                 ?.takeIf { value -> runCatching { UUID.fromString(value) }.isSuccess }
                 ?: return
+        val deadline =
+            intent
+                .takeIf { it.hasExtra(ScheduledCallNotifications.EXTRA_RING_DEADLINE_ELAPSED) }
+                ?.getLongExtra(ScheduledCallNotifications.EXTRA_RING_DEADLINE_ELAPSED, 0L)
+        val action = notificationRemovalAction(deadline, SystemClock.elapsedRealtime())
         val pendingResult = goAsync()
         val appContext = context.applicationContext
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                ScheduledCallRepository(appContext).transition(id, ScheduledCallAction.DECLINE)
+                ScheduledCallRepository(appContext).transition(id, action)
                 ScheduledCallAlarmScheduler(appContext).cancelTimeout(id)
                 ScheduledCallNotifications.cancel(appContext, id)
             } finally {

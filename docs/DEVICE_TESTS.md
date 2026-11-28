@@ -42,7 +42,7 @@ Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 1
 - [ ] Edit a pending schedule; verify its original trigger is replaced and no duplicate is delivered.
 - [ ] Delete a pending schedule immediately before trigger; verify cancellation wins or active delivery is protected (never stale/duplicate UI).
 - [ ] Tap the notification; verify it opens only the persisted schedule and fictional profile in the app.
-- [ ] Answer, Decline, End and Dismiss; verify idempotent state transitions and timeout cancellation.
+- [ ] Answer and Decline from the notification (app closed, backgrounded and device locked), swipe the notification away, and End inside the app; verify state transitions and timeout cancellation.
 - [ ] Ring timeout: verify notification is removed and state becomes TimedOut after approximately 45 seconds, regardless of manual clock changes.
 - [ ] While ringing, change the system clock forward/backward and timezone; verify the timeout remains duration-based and does not end early or extend indefinitely.
 

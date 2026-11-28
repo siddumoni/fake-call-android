@@ -30,7 +30,7 @@ sealed interface QuickCallOutcome {
     data object Failed : QuickCallOutcome
 }
 
-/** Creates the call requested by the volume-button shortcut, using the saved caller and delay. */
+/** Schedules an in-app quick call using the saved caller and delay. */
 class QuickCallTrigger(
     context: Context,
 ) {

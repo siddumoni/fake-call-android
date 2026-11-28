@@ -15,12 +15,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import androidx.core.content.ContextCompat
 import com.siddumoni.fakecall.call.CallActivity
 import com.siddumoni.fakecall.callers.CallerPresetsViewModel
@@ -218,13 +218,14 @@ class MainActivity : ComponentActivity() {
                     QuickCallOutcome.Failed
                 }
 
-            val message = when (outcome) {
-                is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
-                QuickCallOutcome.Busy -> R.string.quick_call_busy
-                QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
-                QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
-                QuickCallOutcome.Failed -> R.string.quick_call_start_failed
-            }
+            val message =
+                when (outcome) {
+                    is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
+                    QuickCallOutcome.Busy -> R.string.quick_call_busy
+                    QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
+                    QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
+                    QuickCallOutcome.Failed -> R.string.quick_call_start_failed
+                }
             Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
             if (outcome == QuickCallOutcome.NotificationsBlocked) requestNotificationPermission()
         }

@@ -28,9 +28,9 @@ By default the call is a notification with Answer and Decline. If the user opts 
 
 `CallActivity` renders two styles drawn from scratch, with no maker logos: Google Phone (swipe to answer or decline; ends are also tappable) and OnePlus dialer (two buttons). They are approximations and are not verified against a physical device. Mute, Speaker and Hold change on-screen state only; the keypad plays tones; Add call and Video call are shown disabled; the proximity sensor turns the screen off; Back does not hang up; volume keys silence ringing.
 
-### Volume shortcut
+### In-app quick call
 
-Five volume-down presses within three seconds, detected by an opt-in accessibility service, create an ordinary schedule for the chosen caller after the saved delay. One buzz confirms, two buzzes report failure. Android delays alarms that are only a few seconds away, so the running service also delivers the call itself; the alarm remains as a backup (exact if allowed) and state transitions make delivery happen once. Android generally delivers volume keys to accessibility services only while the screen is on.
+The Call settings screen lets the user choose a caller and delay, then explicitly tap Schedule simulated call. `QuickCallTrigger` creates a normal persisted schedule and hands delivery to the same AlarmManager, notification and state-transition pipeline as other schedules. It does not inspect hardware keys or use an AccessibilityService. Exact alarms are used only when the user has granted exact-alarm access; approximate delivery may be delayed by Android power management.
 
 ## Audio decision
 
@@ -65,7 +65,7 @@ Threats and mitigations:
 
 ## Known platform risks
 
-Android 17 background audio hardening may silently reject audio operations outside a valid lifecycle. Exact alarm exemption applies only under documented conditions and does not survive strict hardening test mode. Full-screen intent availability depends on system approval. OEM builds may restrict accessibility services in the background. OEM battery and auto-launch policies may delay or suppress alarms/notifications. Notification channel sound is user-controlled and immutable after channel creation. These behaviours require physical-device validation.
+Android 17 background audio hardening may silently reject audio operations outside a valid lifecycle. Exact alarm exemption applies only under documented conditions and does not survive strict hardening test mode. Full-screen intent availability depends on system approval. OEM battery and auto-launch policies may delay or suppress alarms/notifications. Notification channel sound is user-controlled and immutable after channel creation. These behaviours require physical-device validation.
 
 ColorOS-specific setting names and paths have not yet been confirmed on the target device. Verify before documenting a precise menu path; otherwise mark it unverified in DEVICE_TESTS.md.
 

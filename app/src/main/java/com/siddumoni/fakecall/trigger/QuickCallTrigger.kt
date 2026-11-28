@@ -38,7 +38,7 @@ class QuickCallTrigger(
     private val schedules = ScheduledCallRepository(appContext)
     private val scheduler = ScheduledCallAlarmScheduler(appContext)
 
-    suspend fun create(): QuickCallOutcome {
+    suspend fun create(pendingId: String?): QuickCallOutcome {
         val settings = CallSettingsRepository(appContext).settings.first()
         val callers = CallerPresetRepository(appContext).presets.first()
         val caller =
@@ -49,7 +49,7 @@ class QuickCallTrigger(
 
         for (existing in schedules.calls.first()) {
             when {
-                existing.state == ScheduledCallState.SCHEDULED -> return QuickCallOutcome.Busy
+                existing.id == pendingId && existing.state == ScheduledCallState.SCHEDULED -> return QuickCallOutcome.Busy
                 existing.state == ScheduledCallState.RINGING -> return QuickCallOutcome.Busy
                 existing.state == ScheduledCallState.IN_CALL -> {
                     if (CallSession.activeCallId == existing.id) return QuickCallOutcome.Busy

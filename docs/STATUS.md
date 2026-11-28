@@ -64,12 +64,11 @@ Last updated: 2026-11-28
 
 ## Remaining actionable work
 
-1. Alarm delivery, duplicate delivery, cancellation, deleted caller and revoked notifications are covered on emulators. Exact-alarm revocation, real process death and storage-failure tests are still outstanding.
+1. Alarm delivery, duplicate delivery, cancellation, deleted caller, revoked notifications, lost exact-alarm access and overdue re-arming are covered on emulators. Real process death and storage-failure tests are still outstanding.
 2. Accessibility: titles are marked as headings and screens scroll at large fonts (emulator-tested). Manual TalkBack traversal, touch-target, contrast, predictive Back and reduced-motion review is still outstanding.
 3. Source security review recorded in `docs/SECURITY.md` with its open items. Verify the signed release artifact once signing secrets exist.
 4. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
 5. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
-6. Owner decision: delete merged branches, and retire or retarget `gradle-integrity.yml`, which only runs for the old `initial-setup` branch.
 
 ## Dependency maintenance
 

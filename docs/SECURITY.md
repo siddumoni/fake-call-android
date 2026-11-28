@@ -59,6 +59,4 @@ Confirmed:
 
 Open items:
 
-- Caller names are free text. Length, control and bidirectional characters are checked, but nothing prevents a user from typing the name of a real organization or authority. The permanent simulation banner is the mitigation; whether to add stronger limits is an owner decision.
-- `gradle-integrity.yml` holds `contents: write`, although it is limited to the old `initial-setup` branch. Remove it if no longer needed.
-- Checkout steps in pull-request CI keep the read-only token in the local git configuration.
+- Caller names are free text by owner decision (2026-11-28). Length, control and bidirectional characters are checked.

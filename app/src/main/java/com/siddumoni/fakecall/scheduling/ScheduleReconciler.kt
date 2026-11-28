@@ -11,13 +11,21 @@ enum class ReconcileResult {
     EXACT_ALARM_PERMISSION_REQUIRED,
 }
 
+/** Small boundary that allows schedule reconciliation to be tested without real OS alarms. */
+interface ScheduleAlarmOperations {
+    fun schedule(call: ScheduledCall): ScheduleAlarmResult
+
+    fun cancel(scheduleId: String)
+}
+
 /** Brings AlarmManager and notifications in line with the persisted schedule records. */
 class ScheduleReconciler(
     context: Context,
+    private val scheduler: ScheduleAlarmOperations = ScheduledCallAlarmScheduler(context.applicationContext),
+    private val nowEpochMillis: () -> Long = System::currentTimeMillis,
 ) {
     private val appContext = context.applicationContext
     private val repository = ScheduledCallRepository(appContext)
-    private val scheduler = ScheduledCallAlarmScheduler(appContext)
 
     suspend fun reconcile(
         notificationsAllowed: Boolean,
@@ -25,7 +33,7 @@ class ScheduleReconciler(
     ): ReconcileResult {
         var result = ReconcileResult.COMPLETE
         repository.calls.first().forEach { call ->
-            val now = System.currentTimeMillis()
+            val now = nowEpochMillis()
             val closingAction =
                 if (afterReboot) {
                     ScheduleRecoveryPolicy.rebootActionFor(call, now)
@@ -46,7 +54,7 @@ class ScheduleReconciler(
             }
             // Re-arm overdue RTC alarms still inside their grace window after a clock change.
             // Keep the persisted absolute trigger instant unchanged.
-            val alarmNow = System.currentTimeMillis()
+            val alarmNow = nowEpochMillis()
             val alarmCall =
                 call.copy(
                     triggerAtEpochMillis =

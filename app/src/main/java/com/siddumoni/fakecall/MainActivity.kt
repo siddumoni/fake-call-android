@@ -8,12 +8,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,11 +29,14 @@ import com.siddumoni.fakecall.onboarding.OnboardingViewModel
 import com.siddumoni.fakecall.scheduling.ScheduledCallsViewModel
 import com.siddumoni.fakecall.settings.CallSettingsViewModel
 import com.siddumoni.fakecall.settings.ThemeSettingsViewModel
-import com.siddumoni.fakecall.trigger.VolumeTriggerService
+import com.siddumoni.fakecall.trigger.QuickCallOutcome
+import com.siddumoni.fakecall.trigger.QuickCallTrigger
 import com.siddumoni.fakecall.ui.AlibiCallApp
 import com.siddumoni.fakecall.ui.AppScreen
 import com.siddumoni.fakecall.ui.CallAccess
 import com.siddumoni.fakecall.ui.CallSettingsActions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val themeViewModel: ThemeSettingsViewModel by viewModels()
@@ -127,7 +132,7 @@ class MainActivity : ComponentActivity() {
                         onTriggerCallerChanged = callSettingsViewModel::setTriggerCaller,
                         onTriggerDelayChanged = callSettingsViewModel::setTriggerDelaySeconds,
                         onOpenFullScreenSettings = ::openFullScreenSettings,
-                        onOpenAccessibilitySettings = ::openAccessibilitySettings,
+                        onStartQuickCall = ::scheduleQuickCall,
                     ),
                 onOpenCallSettings = { currentScreen = AppScreen.CALL_SETTINGS },
                 scheduledCalls = scheduledCalls,
@@ -158,7 +163,6 @@ class MainActivity : ComponentActivity() {
             CallAccess(
                 notifications = notificationsAllowed,
                 fullScreen = ScheduledCallNotifications.canUseFullScreen(this),
-                volumeShortcut = VolumeTriggerService.isEnabled(this),
             )
     }
 
@@ -204,12 +208,30 @@ class MainActivity : ComponentActivity() {
         startActivity(CallActivity.previewIntent(this, callerId))
     }
 
-    private fun openFullScreenSettings() {
-        openSettings(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
+    private fun scheduleQuickCall() {
+        lifecycleScope.launch {
+            val outcome =
+                try {
+                    QuickCallTrigger(this@MainActivity).create(pendingId = null)
+                } catch (exception: Exception) {
+                    if (exception is CancellationException) throw exception
+                    QuickCallOutcome.Failed
+                }
+
+            val message = when (outcome) {
+                is QuickCallOutcome.Scheduled -> R.string.quick_call_scheduled
+                QuickCallOutcome.Busy -> R.string.quick_call_busy
+                QuickCallOutcome.NoCaller -> R.string.quick_call_requires_caller
+                QuickCallOutcome.NotificationsBlocked -> R.string.quick_call_notifications_required
+                QuickCallOutcome.Failed -> R.string.quick_call_start_failed
+            }
+            Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            if (outcome == QuickCallOutcome.NotificationsBlocked) requestNotificationPermission()
+        }
     }
 
-    private fun openAccessibilitySettings() {
-        openSettings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+    private fun openFullScreenSettings() {
+        openSettings(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName")))
     }
 
     /** Some devices omit a specific settings page; the app's own settings page always exists. */

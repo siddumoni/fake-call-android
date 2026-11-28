@@ -19,7 +19,7 @@ class CallSettingsScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun userChoosesStyleCallerDelayAndOpensTheSystemSettings() {
+    fun userChoosesStyleCallerDelayAndStartsAnInAppQuickCall() {
         var style: CallScreenStyle? = null
         var caller: String? = null
         var delay: Int? = null

@@ -212,7 +212,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             val outcome =
                 try {
-                    QuickCallTrigger(this@MainActivity).create(pendingId = null)
+                    QuickCallTrigger(this@MainActivity).create()
                 } catch (exception: Exception) {
                     if (exception is CancellationException) throw exception
                     QuickCallOutcome.Failed

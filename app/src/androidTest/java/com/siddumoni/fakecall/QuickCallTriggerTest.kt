@@ -57,7 +57,7 @@ class QuickCallTriggerTest {
         runBlocking {
             val before = System.currentTimeMillis()
 
-            val outcome = QuickCallTrigger(context).create()
+            val outcome = QuickCallTrigger(context).create(pendingId = null)
 
             val call = (outcome as QuickCallOutcome.Scheduled).call
             assertEquals(callerId, call.callerPresetId)
@@ -69,7 +69,7 @@ class QuickCallTriggerTest {
                     .single()
                     .state,
             )
-            assertEquals(QuickCallOutcome.Busy, QuickCallTrigger(context).create())
+            assertEquals(QuickCallOutcome.Busy, QuickCallTrigger(context).create(pendingId = call.id))
             assertEquals(1, schedules.calls.first().size)
         }
 

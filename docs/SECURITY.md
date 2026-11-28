@@ -6,7 +6,7 @@ AlibiCall is an offline local simulation, not a telephony application. It must n
 
 ## Permission policy
 
-The app declares `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM` and `VIBRATE` for the scheduled-simulation feature, in addition to AndroidX Core's signature-protected package permission described below. Notification permission is requested only in context. Exact scheduling is available only after `canScheduleExactAlarms()` reports user-granted Alarms & reminders access; approximate mode does not require it. `VIBRATE` enables the notification channel's pattern; ringtone and vibration are user-controlled in Android channel settings through the schedule screen. The app imports no audio files and runs no background audio of its own. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
+The app declares `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `VIBRATE` and `RECEIVE_BOOT_COMPLETED` for the scheduled-simulation feature, in addition to AndroidX Core's signature-protected package permission described below. Notification permission is requested only in context. Exact scheduling is available only after `canScheduleExactAlarms()` reports user-granted Alarms & reminders access; approximate mode does not require it. `VIBRATE` enables the notification channel's pattern; ringtone and vibration are user-controlled in Android channel settings through the schedule screen. The app imports no audio files and runs no background audio of its own. CI inspects both final merged manifests and uses a separate, exact allowlist for debug and release. A library-added permission is allowed only with a written rationale; requested permission names, defined permission names and each defined permission's protection level are checked exactly.
 
 The current merged-manifest allowlist contains only AndroidX Core's package-specific signature permission:
 
@@ -15,11 +15,7 @@ The current merged-manifest allowlist contains only AndroidX Core's package-spec
 
 AndroidX Core's AAR manifest declares `${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` with `android:protectionLevel="signature"` and requests that permission. It is used by `ContextCompat.RECEIVER_NOT_EXPORTED` as a compatibility guard for runtime receivers on Android versions before API 33. AlibiCall has `minSdk 35`, so that legacy fallback path cannot execute; the dependency's manifest declarations nevertheless remain in the merged manifest. The custom permission does not grant telephony, contacts, call-log, SMS, microphone, camera, storage or network access. Signature protection limits it to applications signed with the same certificate. CI verifies the exact build-variant name and rejects a change from `signature` protection.
 
-Future permission additions require a separate reviewed PR and exact allowlist update:
-
-| Permission | Purpose | Gate |
-|---|---|---|
-| RECEIVE_BOOT_COMPLETED | Restore valid pending alarms after reboot | Declared; non-exported receiver |
+`RECEIVE_BOOT_COMPLETED` restores pending alarms after a restart (see Restart recovery). Future permission additions require a separate reviewed PR and exact allowlist update.
 
 `USE_FULL_SCREEN_INTENT` is deliberately not declared: AlibiCall is a fictional local simulation, not a phone/video calling app or a conventional alarm-clock app. It uses a high-importance notification with the system heads-up/lock-screen presentation instead of requesting restricted full-screen takeover. VIBRATE is limited to notification-channel vibration; no custom background audio capability is requested.
 
@@ -27,7 +23,7 @@ No INTERNET, CALL_PHONE, READ_PHONE_STATE, READ_CALL_LOG, READ_CONTACTS, SEND_SM
 
 ## Restart recovery
 
-`RECEIVE_BOOT_COMPLETED` is declared only to restore pending alarms. `ScheduleRestoreReceiver` is not exported, handles only boot-completed, package-replaced and exact-alarm-grant actions, and logs no record details.
+`RECEIVE_BOOT_COMPLETED` is declared only to restore pending alarms. `ScheduleRestoreReceiver` is not exported, handles only boot-completed, package-replaced, exact-alarm permission change, clock change and timezone change actions, and logs no record details.
 
 ## Component exposure
 
@@ -39,7 +35,7 @@ Caller presets, schedules and the onboarding acknowledgement belong in app-priva
 
 ## Input validation
 
-Treat all Intent extras, notification action identifiers, timestamps, text fields and content URIs as untrusted. Resolve caller records from local storage using validated opaque identifiers. Caller display names reject Unicode bidirectional formatting controls to reduce visual-order spoofing; ordinary right-to-left text remains allowed. Bound image dimensions, file size and audio duration. Handle revoked SAF grants and decode errors safely. Do not log caller details, phone-like strings, user-selected paths or content.
+Treat all Intent extras, notification action identifiers, timestamps and text fields as untrusted. Resolve caller records from local storage using validated opaque identifiers. Caller display names reject Unicode bidirectional formatting controls to reduce visual-order spoofing; ordinary right-to-left text remains allowed. The app does not import images, audio or other files; adding that requires bounded decoding, revoked-grant handling and a new review. Do not log caller details or phone-like strings.
 
 ## Build and release
 
@@ -51,4 +47,18 @@ Report security issues privately to the repository owner through GitHub's privat
 
 ## Review status
 
-The schedule lifecycle, alarm/notification delivery, reboot recovery and clock/timezone reconciliation are implemented in main. This document describes the design policy, not a claim that the finished app has passed an independent security audit or physical-device reliability testing. The final manual threat review and OEM validation are outstanding. Record findings and evidence in docs/STATUS.md.
+Source review on 2026-11-28 at `ebd9df8` (manifest, receivers, PendingIntents, launch-link handling, storage, backup, logging and workflow permissions). This was not an independent audit or a physical-device test.
+
+Confirmed:
+
+- Only the launcher Activity is exported. Its schedule link needs the random ID of a stored record, and only a ringing record can be answered.
+- All PendingIntents are explicit and immutable.
+- Backup and device transfer are excluded; there is no network permission.
+- The only app log message is a generic restore failure with no record data.
+- Third-party actions are pinned to full commit SHAs; the release job is the only active job that can write repository contents.
+
+Open items:
+
+- Caller names are free text. Length, control and bidirectional characters are checked, but nothing prevents a user from typing the name of a real organization or authority. The permanent simulation banner is the mitigation; whether to add stronger limits is an owner decision.
+- `gradle-integrity.yml` holds `contents: write`, although it is limited to the old `initial-setup` branch. Remove it if no longer needed.
+- Checkout steps in pull-request CI keep the read-only token in the local git configuration.

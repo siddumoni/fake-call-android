@@ -6,7 +6,7 @@ AlibiCall schedules a clearly local, simulated incoming call on the device owner
 
 ## Architecture
 
-Single Android application module. The UI uses Jetpack Compose Material 3 and follows MVVM with unidirectional data flow. UI state is exposed as immutable StateFlow values; actions are sent to ViewModels. Preferences and small records are stored in app-private DataStore. User-selected images/audio are accessed through Storage Access Framework or Android Photo Picker content URIs. Persistable URI grants must be validated and revoked when no longer needed.
+Single Android application module. The UI uses Jetpack Compose Material 3 and follows MVVM with unidirectional data flow. UI state is exposed as immutable StateFlow values; actions are sent to ViewModels. Preferences and small records are stored in app-private DataStore. The app does not import images or audio.
 
 The app is offline-only. There is no networking, analytics, crash reporting, advertising, remote configuration, or server component.
 
@@ -44,15 +44,14 @@ The scheduled delivery implementation declares POST_NOTIFICATIONS and SCHEDULE_E
 
 ## Threat model
 
-Assets: caller preset data, schedule timing, local selected image/audio content, and control over the simulated call display.
+Assets: caller preset data, schedule timing, and control over the simulated call display.
 
-Trust boundaries: external intents, notifications, OS settings, reboot broadcasts, SAF/Photo Picker URIs, and downloaded dependencies/build actions.
+Trust boundaries: external intents, notifications, OS settings, reboot broadcasts, and downloaded dependencies/build actions.
 
 Threats and mitigations:
 - Forged or stale intents: explicit intents, immutable PendingIntents, opaque IDs, private state lookup, strict state and time validation.
 - Component abuse: non-exported components by default; exported launcher only; no exported receivers/services unless a platform entry point requires it.
 - Data leakage: app-private storage, backup/device transfer disabled, no network stack permission, no sensitive logs.
-- Malformed media: enforce size/type limits, handle revoked URI grants and decode failures, never load unbounded bitmaps/audio into memory.
 - Dependency compromise: dependency locking/verification, Dependabot, CodeQL, secret scanning and pinned CI action SHAs.
 - Confusing simulation with reality: visible simulated-call wording in app documentation/settings; no telephony integration or emergency/company impersonation.
 

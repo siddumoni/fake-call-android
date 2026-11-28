@@ -5,7 +5,7 @@ Last updated: 2026-11-28
 ## Repository state
 
 - Repository: https://github.com/siddumoni/fake-call-android
-- Latest feature merge: PR #27 at `2724603`.
+- Latest merge covered here: PR #30 at `ebd9df8`.
 - Minimum OS: Android 15 (API 35); target SDK 37; compile platform Android 17 API 37.1.
 - Pull requests and `main` run build/unit/lint/manifest policy, CodeQL, secret scan, OSV and instrumented tests on seven configurations across API 35/36/37 (compact, standard, expanded, landscape and 200% compact font scale).
 - Production signing secrets are not configured and no release has been published.
@@ -57,13 +57,16 @@ Last updated: 2026-11-28
 | #25 Notification sound/vibration settings | `5e0efd3` | PR checks passed |
 | #23 Seven-configuration emulator matrix | `6b919b6` | PR and `main` checks passed |
 | #26 Notification Answer/Decline, responsive call screen | `81bdaca` | PR and `main` checks passed |
-| #27 Looping system ringtone | `2724603` | PR checks passed |
+| #27 Looping system ringtone | `2724603` | PR and `main` checks passed |
+| #28 Release safety, dependency scan on `main` | `87d9319` | PR and `main` checks passed |
+| #29 Large-font layouts and headings | `a8a5ff7` | PR and `main` checks passed |
+| #30 Alarm delivery tests | `ebd9df8` | PR checks passed (one job rerun after a plugin download error) |
 
 ## Remaining actionable work
 
 1. Alarm delivery, duplicate delivery, cancellation, deleted caller and revoked notifications are covered on emulators. Exact-alarm revocation, real process death and storage-failure tests are still outstanding.
 2. Accessibility: titles are marked as headings and screens scroll at large fonts (emulator-tested). Manual TalkBack traversal, touch-target, contrast, predictive Back and reduced-motion review is still outstanding.
-3. Complete the manual security/threat review; verify the signed release artifact once signing secrets exist.
+3. Source security review recorded in `docs/SECURITY.md` with its open items. Verify the signed release artifact once signing secrets exist.
 4. Configure production signing using owner-provided secrets. Automation must not create, invent or commit a keystore/password.
 5. Run physical-device tests across multiple OEMs (OnePlus/ColorOS, Samsung, Pixel/AOSP), including ringtone routing, silent/Do Not Disturb and lock-screen behaviour.
 6. Owner decision: delete merged branches, and retire or retarget `gradle-integrity.yml`, which only runs for the old `initial-setup` branch.
@@ -76,6 +79,6 @@ Dependabot PRs #3–#7 are merged. PR #8 (Gradle 9.9.2) and #9 (AGP 9.5.3) were 
 
 - No physical Android device is connected. Alarm delivery under OEM battery restrictions, lock-screen behavior, reboot, timezone/clock changes, audio routing, font scaling and OEM settings remain unverified. Emulator results are not physical-device evidence.
 - Production signing requires owner-provided keystore and GitHub Actions secrets.
-- Automated Codex reviews for PRs #19–#24 reported account usage limits. A final manual threat review remains.
+- Automated Codex reviews for PRs #19–#24 reported account usage limits.
 
 Do not declare production readiness while actionable tasks or external blockers remain.

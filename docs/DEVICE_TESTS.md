@@ -14,9 +14,9 @@ The development environment cannot validate this physical device. Mark each item
 - [ ] Force-stop and relaunch after acknowledgement opens Home without repeating onboarding.
 - [ ] Onboarding does not request notification, alarm, contacts, telephony or other permissions.
 
-## Automated emulator coverage (pending PR #23)
+## Automated emulator coverage
 
-Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 17 with compact (360 dp), standard (~411 dp) and expanded (600 dp) widths, plus 200% font scale on compact runs. Do not mark this matrix complete until every job is green. Emulator coverage is not physical OEM evidence.
+CI runs emulator instrumentation on API 35, 36 and 37. Every job must pass before merging. Emulator coverage is not physical OEM evidence.
 
 ## Before testing
 
@@ -59,7 +59,6 @@ Main currently runs Android 17 instrumentation. PR #23 adds Android 15, 16 and 1
 - [ ] Notification channel sound disabled by user.
 - [ ] Notification channel vibration pattern enabled/disabled in Android settings.
 - [ ] Use the in-app sound/vibration settings link and verify it opens the channel or app-notification fallback.
-- [ ] Custom SAF audio selection, if supported by implementation.
 - [ ] Confirm no duplicate ringing.
 - [ ] Run strict audio test: `adb shell cmd audio set-enable-hardening throw`; capture logs and verify expected failures are handled. This mode is stricter than default and removes the exact-alarm audio exemption.
 - [ ] Restore default audio hardening after the test.

@@ -1,11 +1,27 @@
 package com.siddumoni.fakecall.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.callers.CallerPreset
 import com.siddumoni.fakecall.callers.CallerPresetValidator
 import org.junit.Assert.assertEquals
@@ -40,13 +56,13 @@ class CallerPresetsScreenTest {
             )
         }
 
-        composeRule.onNodeWithTag("caller-preset-add-button").performClick()
+        scrollTo(hasTestTag("caller-preset-add-button")).performClick()
         composeRule.onNodeWithTag("caller-preset-name").performTextInput("Fictional Caller")
         composeRule.onNodeWithTag("caller-preset-number").performTextInput("+1 (555) 010-1234")
         composeRule.onNodeWithText("Save").performClick()
 
-        composeRule.onNodeWithText("Fictional Caller").assertExists()
-        composeRule.onNodeWithText("Preview").performClick()
+        scrollTo(hasText("Fictional Caller")).assertExists()
+        scrollTo(hasText("Preview")).performClick()
         composeRule.runOnIdle {
             assertEquals("Fictional Caller", previewed.value?.displayName)
             assertEquals("+1 (555) 010-1234", previewed.value?.numberLabel)
@@ -64,6 +80,35 @@ class CallerPresetsScreenTest {
                 onPreview = {},
             )
         }
-        composeRule.onNodeWithText("No caller profiles yet. Add one to preview your first simulated call.").assertExists()
+        scrollTo(hasText("No caller profiles yet. Add one to preview your first simulated call.")).assertExists()
+    }
+
+    @Test
+    fun everyActionStaysReachableInShortWindowAtDoubleFontScale() {
+        composeRule.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 2f)) {
+                Box(Modifier.size(width = 320.dp, height = 240.dp)) {
+                    CallerPresetsScreen(
+                        presets = listOf(CallerPreset(UUID.randomUUID().toString(), "Fictional Caller", "555-0100")),
+                        saveError = null,
+                        onSave = { _, _, _ -> true },
+                        onDelete = {},
+                        onPreview = {},
+                    )
+                }
+            }
+        }
+        composeRule
+            .onNodeWithText("Caller profiles")
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        listOf("Preview", "Edit", "Delete").forEach { label ->
+            scrollTo(hasText(label)).assertIsDisplayed()
+        }
+    }
+
+    private fun scrollTo(matcher: SemanticsMatcher): SemanticsNodeInteraction {
+        composeRule.onNodeWithTag("caller-presets-screen").performScrollToNode(matcher)
+        return composeRule.onNode(matcher).performScrollTo()
     }
 }

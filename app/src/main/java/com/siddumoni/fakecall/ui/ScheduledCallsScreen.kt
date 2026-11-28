@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.siddumoni.fakecall.R
 import com.siddumoni.fakecall.callers.CallerPreset
@@ -99,6 +101,7 @@ fun ScheduledCallsScreen(
         item {
             Text(
                 text = stringResource(R.string.schedules_title),
+                modifier = Modifier.semantics { heading() },
                 style = MaterialTheme.typography.headlineMedium,
             )
         }

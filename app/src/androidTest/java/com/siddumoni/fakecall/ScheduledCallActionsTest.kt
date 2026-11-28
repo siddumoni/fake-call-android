@@ -13,6 +13,7 @@ import com.siddumoni.fakecall.data.preferences.CallerPresetRepository
 import com.siddumoni.fakecall.data.preferences.ScheduledCallRepository
 import com.siddumoni.fakecall.notifications.ScheduledCallNotifications
 import com.siddumoni.fakecall.scheduling.ScheduledCall
+import com.siddumoni.fakecall.scheduling.ScheduledCallAction
 import com.siddumoni.fakecall.scheduling.ScheduledCallState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,7 @@ class ScheduledCallActionsTest {
         ScheduledCall(
             id = UUID.randomUUID().toString(),
             callerPresetId = caller.id,
-            triggerAtEpochMillis = System.currentTimeMillis(),
+            triggerAtEpochMillis = System.currentTimeMillis() + 60_000L,
             state = ScheduledCallState.RINGING,
         )
 
@@ -46,7 +47,9 @@ class ScheduledCallActionsTest {
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
         runBlocking {
             presets.save(caller.id, caller.displayName, caller.numberLabel)
-            schedules.upsert(call)
+            // New records must start as SCHEDULED; fire the alarm transition to make it ring.
+            schedules.upsert(call.copy(state = ScheduledCallState.SCHEDULED))
+            check(schedules.transition(call.id, ScheduledCallAction.ALARM_FIRED))
         }
     }
 
